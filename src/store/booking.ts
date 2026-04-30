@@ -11,9 +11,6 @@ export type Filters = {
   franja?: Franja;
 };
 
-export type ChatMsg = { id: string; from: "bot" | "user" | "system"; text: string; ts: number };
-
-
 export type Patient = {
   tipoDocumento: string;
   numeroDocumento: string;
@@ -37,15 +34,13 @@ export type BookingState = {
   preferredDate?: string;
   paymentMethod?: "online" | "clinic" | "none";
   confirmationCode?: string;
-  chat: ChatMsg[];
-  filterSource?: "ui" | "chat" | "init";
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
   setDate: (d?: string) => void;
-  setFilter: <K extends keyof Filters>(k: K, v: Filters[K], source?: "ui" | "chat") => void;
-  clearFilter: (k: keyof Filters, source?: "ui" | "chat") => void;
-  resetFilters: (source?: "ui" | "chat") => void;
+  setFilter: <K extends keyof Filters>(k: K, v: Filters[K]) => void;
+  clearFilter: (k: keyof Filters) => void;
+  resetFilters: () => void;
   setSelectedSlot: (s?: Slot) => void;
   setPatient: (p: Patient) => void;
   setAseguradora: (a: string) => void;
@@ -55,11 +50,8 @@ export type BookingState = {
   setPreferredDate: (d?: string) => void;
   setPaymentMethod: (m: "online" | "clinic" | "none") => void;
   setConfirmationCode: (c: string) => void;
-  pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
-  clearChat: () => void;
   reset: () => void;
 };
-
 
 const initial = {
   specialty: undefined,
@@ -75,8 +67,6 @@ const initial = {
   preferredDate: undefined,
   paymentMethod: undefined,
   confirmationCode: undefined,
-  chat: [] as ChatMsg[],
-  filterSource: undefined as "ui" | "chat" | "init" | undefined,
 };
 
 export const useBooking = create<BookingState>()(
@@ -86,15 +76,14 @@ export const useBooking = create<BookingState>()(
       setSpecialty: (s) => set({ specialty: s }),
       setService: (s) => set({ service: s }),
       setDate: (d) => set({ date: d }),
-      setFilter: (k, v, source = "ui") =>
-        set((st) => ({ filters: { ...st.filters, [k]: v }, filterSource: source })),
-      clearFilter: (k, source = "ui") =>
+      setFilter: (k, v) => set((st) => ({ filters: { ...st.filters, [k]: v } })),
+      clearFilter: (k) =>
         set((st) => {
           const f = { ...st.filters };
           delete f[k];
-          return { filters: f, filterSource: source };
+          return { filters: f };
         }),
-      resetFilters: (source = "ui") => set({ filters: {}, filterSource: source }),
+      resetFilters: () => set({ filters: {} }),
       setSelectedSlot: (s) => set({ selectedSlot: s }),
       setPatient: (p) => set({ patient: p }),
       setAseguradora: (a) => set({ aseguradora: a }),
@@ -104,17 +93,8 @@ export const useBooking = create<BookingState>()(
       setPreferredDate: (d) => set({ preferredDate: d }),
       setPaymentMethod: (m) => set({ paymentMethod: m }),
       setConfirmationCode: (c) => set({ confirmationCode: c }),
-      pushChat: (m) =>
-        set((st) => ({
-          chat: [
-            ...st.chat,
-            { ...m, id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, ts: Date.now() },
-          ],
-        })),
-      clearChat: () => set({ chat: [] }),
       reset: () => set({ ...initial }),
     }),
-
     {
       name: "booking-flow",
       storage: createJSONStorage(() =>
