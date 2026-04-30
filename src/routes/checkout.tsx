@@ -65,10 +65,11 @@ function P4() {
   const setAseguradora = useBooking((s) => s.setAseguradora);
   const setCoverage = useBooking((s) => s.setCoverage);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
   const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
 
   const [validating, setValidating] = useState(false);
-  const [coverage, setLocalCoverage] = useState<CoverageResult | null>(null);
   const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -100,28 +101,39 @@ function P4() {
       direccion: values.direccion,
     });
     setAseguradora(values.aseguradora);
+    setAcceptedSuggestedDate(false);
 
     if (values.aseguradora === "Particular") {
-      const r: CoverageResult = { case: 1, message: "Pago particular" };
-      setCoverage(r);
+      setCoverage({ case: 1, message: "Pago particular" });
       setPayParticularOverride(true);
-      navigate({ to: "/oportunidad" });
+      navigate({ to: "/pago" });
       return;
     }
 
     setValidating(true);
     setTimeout(() => {
-      const result = validateCoverage(values.aseguradora, specialty ?? "", service ?? "");
-      setLocalCoverage(result);
+      const result = validateCoverage(
+        values.aseguradora,
+        specialty ?? "",
+        service ?? "",
+        slot?.date,
+      );
       setCoverage(result);
       setValidating(false);
-    }, 1100);
-  }
 
-  function proceed(particular: boolean, acceptSuggested = false) {
-    setPayParticularOverride(particular);
-    setAcceptedSuggestedDate(acceptSuggested);
-    navigate({ to: "/oportunidad" });
+      if (result.case === 1) {
+        // Cubierta por aseguradora → directo a confirmación, sin pago
+        setPayParticularOverride(false);
+        setPaymentMethod("none");
+        const code = `CIT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+        setConfirmationCode(code);
+        navigate({ to: "/confirmacion" });
+      } else if (result.case === 2) {
+        navigate({ to: "/cobertura-fecha" });
+      } else {
+        navigate({ to: "/cobertura-no" });
+      }
+    }, 1200);
   }
 
   function onFiles(list: FileList | null) {
@@ -223,89 +235,18 @@ function P4() {
             )}
           </div>
 
-          {coverage && (
-            <CoverageBanner result={coverage} onProceed={proceed} />
-          )}
-
-          {!coverage && (
-            <div className="flex justify-center pt-6">
-              <Button
-                type="submit"
-                size="lg"
-                disabled={validating}
-                className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
-              >
-                {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {validating ? "Validando cobertura..." : "Continuar"}
-              </Button>
-            </div>
-          )}
+          <div className="flex justify-center pt-6">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={validating}
+              className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+            >
+              {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {validating ? "Validando cobertura..." : "Continuar"}
+            </Button>
+          </div>
         </form>
-      </div>
-    </div>
-  );
-}
-
-function CoverageBanner({
-  result,
-  onProceed,
-}: {
-  result: CoverageResult;
-  onProceed: (particular: boolean, acceptSuggested?: boolean) => void;
-}) {
-  if (result.case === 1) {
-    return (
-      <div className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-          <div>
-            <div className="font-semibold text-emerald-900">{result.message}</div>
-            <div className="text-sm text-emerald-800">Puedes continuar con tu cita.</div>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={() => onProceed(false)} className="rounded-full bg-foreground text-background">Continuar</Button>
-        </div>
-      </div>
-    );
-  }
-  if (result.case === 2) {
-    const d = parseYmd(result.suggestedDate);
-    return (
-      <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600" />
-          <div>
-            <div className="font-semibold text-amber-900">{result.message}</div>
-            <div className="text-sm text-amber-800 capitalize">
-              Disponibilidad cubierta a partir del {format(d, "EEEE d 'de' MMMM", { locale: es })}.
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="outline" onClick={() => onProceed(true)} className="rounded-full">
-            Pagar particular
-          </Button>
-          <Button onClick={() => onProceed(false, true)} className="rounded-full bg-foreground text-background">
-            Tomar fecha sugerida
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-4 rounded-xl border border-red-200 bg-red-50 p-5">
-      <div className="flex items-start gap-3">
-        <XCircle className="mt-0.5 h-5 w-5 text-red-600" />
-        <div>
-          <div className="font-semibold text-red-900">{result.message}</div>
-          <div className="text-sm text-red-800">Puedes continuar pagando como particular.</div>
-        </div>
-      </div>
-      <div className="flex justify-end">
-        <Button onClick={() => onProceed(true)} className="rounded-full bg-foreground text-background">
-          Pagar particular
-        </Button>
       </div>
     </div>
   );
