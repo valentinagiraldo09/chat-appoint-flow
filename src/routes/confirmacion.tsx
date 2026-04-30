@@ -56,7 +56,7 @@ function P7() {
       ["Dirección", SEDE_ADDRESSES[slot!.sede] ?? "-"],
       ["Modalidad", slot!.attention],
       ["Aseguradora", aseguradora ?? "-"],
-      ["Pago", paymentMethod === "online" ? "Pagado en línea" : "Pagar en clínica"],
+      ["Pago", paymentMethod === "online" ? "Pagado en línea" : paymentMethod === "clinic" ? "Pagar en clínica" : "Cubierto por aseguradora"],
       ["Valor", formatCOP(slot!.price)],
     ];
     let y = 46;
@@ -133,7 +133,7 @@ function P7() {
           </div>
           <div className="mt-4 border-t border-border pt-4 flex justify-between">
             <span className="text-sm text-muted-foreground">
-              {paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
+              {paymentMethod === "none" ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
             </span>
             <span className="font-semibold">{formatCOP(slot.price)}</span>
           </div>

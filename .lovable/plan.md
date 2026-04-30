@@ -1,76 +1,104 @@
+# Prototipo funcional — Agendamiento médico con asistente
 
-# Ajustes al flujo de validación de cobertura
+Voy a construir un prototipo navegable end-to-end (P0 → P7) con datos mock dinámicos, estados simulados (loaders, validaciones, filtros) y un calendario inteligente conectado a la disponibilidad. Sin backend real; toda la lógica vive en el cliente.
 
-La implementación actual ya cubre el grueso del brief (validación post-formulario, loader de 1.2 s, tres escenarios, conservación del slot). Sin embargo, encontré varias desviaciones respecto a las reglas que enviaste. Este plan las corrige sin rehacer el flujo.
+## Arquitectura y estado
 
-## Problemas detectados
+- Stack actual: TanStack Start + React + Tailwind + shadcn/ui (ya instalado).
+- Una ruta por pantalla en `src/routes/`: `index.tsx` (P0), `disponibilidad.tsx` (P1), `horarios.tsx` (P2), `buscar-fecha.tsx` (P3), `checkout.tsx` (P4), `oportunidad.tsx` (P5), `pago.tsx` (P6), `confirmacion.tsx` (P7).
+- **Estado global del flujo** con Zustand (`src/store/booking.ts`): especialidad, servicio, fecha, slot seleccionado, filtros activos, datos del paciente, aseguradora, resultado de cobertura, método de pago. Persistencia en `sessionStorage` para sobrevivir refresh.
+- **Mocks dinámicos** (`src/mocks/`):
+  - `catalog.ts`: especialidades, servicios jerárquicos (Cardiología → Primera vez/Control, etc.), sedes (4+), profesionales (6+), tipos de atención, franjas, aseguradoras.
+  - `availability.ts`: generador determinístico (seed por fecha) que produce días disponibles del mes y, para cada día disponible, una lista variada de slots (hora, profesional, sede, tipo, precio). No se repite la misma data en días distintos.
+  - `coverage.ts`: lógica que decide caso 1/2/3 según aseguradora + servicio (determinístico, no random puro, para que sea reproducible).
 
-1. **Mapeo de casos invertido en `coverage.ts`** (riesgo alto):
-   - El brief define: Caso 1 = cubre, Caso 2 = no cubre, Caso 3 = cubre pero en otra fecha.
-   - El mock actual usa: `case: 1` cubre, `case: 3` no cubre, `case: 2` cubre en otra fecha.
-   - El checkout enruta `case 2 → /cobertura-fecha` y `case 3 → /cobertura-no`, lo cual funciona accidentalmente, pero los números no coinciden con la documentación. Esto va a confundir cualquier ajuste futuro.
+## P0 — Asistente inicial
 
-2. **Sura debería usar el escenario "no cubre" puro (Escenario 2 del brief)**. Hoy lo hace, solo hay que renumerar.
+- Hero centrado con input grande (placeholder "¿Qué quieres hacer hoy?") y debajo chips de intención (Agendar, Reagendar, Cancelar, Confirmar, Pagar, Consultar).
+- Área tipo chat inline debajo: al elegir "Agendar una cita" o escribir texto que matchee keywords (`agendar`, `cita`, `doctor`, `reservar`, `turno`), aparece burbuja del asistente: "¿Qué especialidad necesitas?" + chips (Dermatología, Medicina General, Ginecología, Optometría, Pediatría, Cardiología).
+- Otras intenciones muestran respuesta corta + CTA placeholder ("Próximamente" o navegación equivalente) — el flujo principal es Agendar.
+- Al elegir especialidad → guarda en store y navega a P1.
+- Detección de keywords con un matcher determinístico (sin IA).
 
-3. **Compensar / Escenario 3**: el mensaje en `/cobertura-fecha` dice solo "la fecha más cercana...". El brief pide separar título y explicación: "Tu aseguradora cubre este servicio, pero no para la fecha seleccionada" + "La fecha más cercana disponible con cobertura de tu aseguradora es {fecha}".
+## P1 — Disponibilidad
 
-4. **Botón "Ver citas cubiertas por mi aseguradora"** en `/cobertura-fecha`: hoy hace `setDate(suggestedDate)` y navega a `/disponibilidad`, pero **no marca al chat ni a la UI que esos resultados están filtrados por cobertura de aseguradora**. El usuario llega a disponibilidad sin contexto. Falta:
-   - Un mensaje del bot en el chat: "Te muestro las citas con cobertura de {aseguradora} desde {fecha}".
-   - Un badge/banner en `/disponibilidad` mientras `acceptedSuggestedDate` esté activo, indicando "Mostrando disponibilidad cubierta por {aseguradora}".
-   - Activar `setAcceptedSuggestedDate(true)` (hoy se setea en `false` al entrar al checkout pero nunca en `true`).
+- Header con barra de búsqueda: dropdown jerárquico de servicio (especialidad → sub-servicio), date picker inteligente, botón Buscar. **Sin aseguradora.**
+- Fila de filtros (chips/dropdowns con buscador interno usando `Command` de shadcn): Sede, Profesional, Tipo de atención, Franja. Filtros activos se muestran como chips removibles.
+- Resultados en dos secciones: "Lo más pronto disponible — Hoy" (3 cards: mañana/mediodía/tarde) y "Mañana" (3 cards). Cada card: hora, profesional, sede, tag de tipo de atención, precio en COP. Botón "Ver más" → P2. Botón "Buscar otra fecha" → P3.
+- Al cambiar cualquier filtro o fecha: loader skeleton ~600ms y se re-renderiza la lista filtrada desde el mock.
 
-5. **Confirmación cuando paga particular tras Escenario 2 o 3**: el brief no pide cambios visibles, pero hoy el badge "Cubierta por tu aseguradora" solo se muestra si `paymentMethod === "none"`. Está OK; solo verificar que no aparezca por error cuando `payParticularOverride` es true.
+### Calendario inteligente (P1 y P3)
 
-6. **Mensaje de loader y copys**: el brief insiste en evitar tecnicismos. Revisar que el botón diga "Validando cobertura..." (ya está) y que los títulos de las pantallas de decisión no usen palabras como "Cobertura no disponible" en `<title>` (es interno, aceptable, pero el H1 ya está bien).
+- Popover con calendario mensual custom basado en `react-day-picker` (ya viene con shadcn).
+- Días con disponibilidad: borde/fondo verde suave, clickeables.
+- Días sin disponibilidad: gris, `disabled`, no clickeables.
+- Navegación entre meses respeta el mismo patrón.
+- Al seleccionar día disponible: cierra popover, dispara loader, reemplaza slots con los del nuevo día.
+- Link "Limpiar fecha" para volver a "lo más pronto".
 
-7. **Chat bidireccional**: cuando el sistema enruta a `/cobertura-no` o `/cobertura-fecha`, el `ChatPanel` debe emitir un mensaje del bot explicando lo que pasó, para mantener la coherencia conversacional que ya implementamos en otros pasos.
+## P2 — Ver más horarios
 
-## Cambios propuestos
+- Título con la fecha seleccionada, mismos filtros que P1 (compartidos vía store), grid completo de slots del día (12–20 cards generados por el mock).
+- Click en slot → modal de confirmación. Botón Atrás → P1.
 
-### `src/mocks/coverage.ts`
-- Renumerar el tipo `CoverageResult`:
-  - `case: 1` → cubre (igual).
-  - `case: 2` → no cubre (hoy es 3).
-  - `case: 3` → cubre pero en otra fecha, incluye `suggestedDate` (hoy es 2).
-- Ajustar las reglas de Sanitas (1), Sura (2), Compensar (1 o 3 según fecha).
+## P3 — Buscar otra fecha
 
-### `src/routes/checkout.tsx`
-- Actualizar el `switch` post-validación: `case 1 → confirmación`, `case 2 → /cobertura-no`, `case 3 → /cobertura-fecha`.
-- Después de routear a las pantallas de decisión, hacer `pushChat` con un mensaje del bot que resuma el resultado (p. ej. "{Aseguradora} no cubre esta cita. Puedes pagar como particular o buscar otra.").
+- Layout 2 columnas (desktop): izquierda lista de slots del día seleccionado, derecha calendario inteligente grande (heatmap: intensidad según cantidad de slots disponibles ese día).
+- Cambio de fecha → loader → nuevos slots a la izquierda, respetando filtros activos.
+- Mobile: calendario arriba, slots abajo.
 
-### `src/routes/cobertura-fecha.tsx`
-- Cambiar el chequeo de `coverage.case !== 2` por `!== 3`.
-- Reescribir el copy: título y subtítulo separados según brief.
-- En `verCubiertas()`: hacer `setAcceptedSuggestedDate(true)`, `pushChat({ from: "bot", text: "Te muestro las citas con cobertura de {aseguradora} desde {fecha}." })` y luego navegar.
+## Modal de confirmación
 
-### `src/routes/cobertura-no.tsx`
-- Cambiar el chequeo implícito de `coverage.case` para alinearse al nuevo número 2 (validar que solo se renderice si coverage.case === 2; hoy no valida, así que solo agregar el guard).
-- En `pagarParticular()`: pushChat con "Continuamos con pago particular para tu cita seleccionada."
-- En `buscarOtra()`: pushChat con "Vamos a buscar otra cita para {servicio}." y limpiar `selectedSlot` (ya lo hace).
+- Dialog centrado: fecha, hora, servicio, profesional, tipo atención, precio. Botones "Cerrar" y "Sí, avanzar" → guarda slot en store y navega a P4. Click fuera cierra.
 
-### `src/routes/disponibilidad.tsx`
-- Si `acceptedSuggestedDate === true` y `aseguradora` está definida, mostrar un banner superior:
-  > Mostrando disponibilidad cubierta por **{aseguradora}** a partir del **{fecha}**.
-- Botón secundario en el banner: "Ver todas las disponibles" → `setAcceptedSuggestedDate(false)` y `setDate(undefined)`.
+## P4 — Checkout + validaciones
 
-### `src/routes/confirmacion.tsx`
-- Asegurar que el badge "Cubierta por tu aseguradora" solo aparezca cuando `paymentMethod === "none"` y `payParticularOverride !== true` (ya cumple, solo añadir la segunda condición por defensa).
+- Formulario (react-hook-form + zod): tipo documento (select), número, nombre, email, teléfono, dirección, checkbox tratamiento de datos (obligatorio), uploader opcional (máx 3 archivos / 15 MB, .jpg .png .pdf — validado en cliente, sin upload real).
+- **Sección aseguradora**: dropdown con EPS A, EPS B, EPS C, Particular.
+- Al hacer "Continuar": loader 1s simulando validación, luego se resuelve uno de 3 casos según mapping determinístico (aseguradora + servicio):
+  - **Caso 1 — Cubre**: banner verde "Tu aseguradora cubre esta cita" → P5.
+  - **Caso 2 — Cubre con disponibilidad posterior**: banner ámbar + dos botones "Tomar fecha sugerida (DD/MM)" o "Pagar particular" → ambos van a P5 con flag.
+  - **Caso 3 — No cubre**: banner rojo + botón "Pagar particular" → P5.
+- Si elige Particular en el dropdown, salta la validación y va directo a P5 como pago particular.
 
-### `src/components/ChatPanel.tsx`
-- (Opcional, ligero) Detectar si la ruta cambia a `/cobertura-no`, `/cobertura-fecha` o `/confirmacion` con cobertura, y empujar mensajes contextuales si aún no se hizo desde el origen. La ruta principal ya es generar los mensajes desde el callsite (checkout / pantallas de decisión), así que aquí solo se documenta.
+## P5 — Oportunidad de cita
 
-## Detalles técnicos
+- Pregunta "¿Encontraste la cita que querías?" con dos botones grandes Sí / No.
+- Si **No**: aparece el calendario inteligente con campo "fecha preferida" (registra preferencia en el store, no cambia la cita real).
+- Botón Continuar → P6.
 
-- El renumerado del enum no rompe nada porque `CoverageResult` solo se construye en `coverage.ts` y se consume en checkout + las dos pantallas de decisión.
-- `acceptedSuggestedDate` ya existe en el store; solo no se estaba activando.
-- No se requieren nuevas rutas, ni cambios en `routeTree.gen.ts`, ni nuevas dependencias.
-- No se modifica el flujo de Particular (sigue saltando validación y yendo directo a `/pago`).
+## P6 — Pago
 
-## Pruebas manuales sugeridas
+- Resumen completo de la cita (card con todos los datos del store).
+- Si cobertura completa (Caso 1 sin override a particular): opciones "Confirmar sin pago" y "Pagar en clínica".
+- Si particular: muestra valor + opciones "Pagar ahora" (loader 1.5s simulando pasarela) y "Pagar en clínica".
+- Continuar → P7.
 
-1. **Sanitas + Cardiología Primera vez** → loader → confirmación con badge "Cubierta por tu aseguradora", sin pasar por pago.
-2. **Sura + cualquier servicio** → loader → `/cobertura-no` → "Pagar como particular" → `/pago`. También probar "Volver a buscar otra cita".
-3. **Compensar + fecha < Ago 2026** → loader → `/cobertura-fecha` con copy correcto → "Ver citas cubiertas" → `/disponibilidad` con banner activo en Ago 2026 → seleccionar slot → checkout con Compensar → confirmación cubierta.
-4. **Compensar + fecha ≥ Ago 2026** → loader → confirmación cubierta directa.
-5. **Particular** → no muestra loader de cobertura, va directo a `/pago`.
-6. Revisar que el chat acompañe cada decisión con un mensaje contextual.
+## P7 — Confirmación
+
+- Check verde grande, "Tu cita quedó confirmada", resumen (fecha, hora, servicio, profesional, tipo atención, sede si aplica, código de cita generado).
+- Acciones:
+  - **Descargar PDF**: genera PDF en cliente con `jspdf`.
+  - **Guardar en calendario**: descarga `.ics` generado en cliente.
+  - **Agendar otra cita**: limpia el store y vuelve a P0.
+
+## Detalles transversales
+
+- Botón "Atrás" en cada pantalla (excepto P0 y P7) usando el router.
+- Skeletons en lugar de spinners cuando se cargan listas; spinner pequeño en validaciones/pago.
+- Responsive: en mobile las dos columnas de P3 colapsan, los filtros de P1 entran en un sheet, y el chat de P0 ocupa toda la pantalla.
+- Persistencia del flujo entre rutas vía Zustand + sessionStorage para que refrescar no rompa el prototipo.
+- Tipografía/espaciado neutros con tokens existentes (no se busca pixel-perfect con la referencia, pero los chips, cards y modales siguen el lenguaje visual de las imágenes: pill buttons, tags ámbar para tipo de atención, banner verde de "lo más pronto").
+
+## Dependencias nuevas
+
+- `zustand` (estado global)
+- `react-hook-form` + `zod` + `@hookform/resolvers` (form P4)
+- `jspdf` (PDF de confirmación)
+- `date-fns` (manejo de fechas/heatmap)
+- `lucide-react` ya disponible.
+
+## Notas técnicas
+
+- Toda la "API" vive en `src/mocks/api.ts` exponiendo funciones async (`searchSlots`, `getDayAvailability`, `validateCoverage`) que devuelven `Promise` con `setTimeout` para simular latencia, así el código de UI ya queda preparado por si después se conecta a backend real.
+- Rutas tipadas TanStack; cada ruta con su `head()` propio.

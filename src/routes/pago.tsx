@@ -14,6 +14,8 @@ export const Route = createFileRoute("/pago")({
 function P6() {
   const navigate = useNavigate();
   const slot = useBooking((s) => s.selectedSlot);
+  const coverage = useBooking((s) => s.coverage);
+  const payParticular = useBooking((s) => s.payParticularOverride);
   const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
   const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
 
@@ -26,11 +28,14 @@ function P6() {
 
   if (!slot) return null;
 
+  const needsPay = payParticular || coverage?.case === 3;
+  const amount = needsPay ? slot.price : 0;
+
   function confirm() {
-    if (!method) return;
+    if (needsPay && !method) return;
     setProcessing(true);
     setTimeout(() => {
-      setPaymentMethod(method);
+      setPaymentMethod(needsPay ? (method as "online" | "clinic") : "none");
       const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setConfirmationCode(code);
       navigate({ to: "/confirmacion" });
@@ -43,32 +48,38 @@ function P6() {
         <BackButton />
       </div>
       <div className="mx-auto max-w-3xl px-4 pb-16">
-        <h1 className="text-3xl font-bold">Realiza el pago de tu cita</h1>
-        <p className="mt-2 text-muted-foreground">Elige cómo deseas pagar el valor de tu cita médica.</p>
+        <h1 className="text-3xl font-bold">{needsPay ? "Realiza el pago de tu cita" : "Confirma tu cita"}</h1>
+        <p className="mt-2 text-muted-foreground">
+          {needsPay
+            ? "Elige cómo deseas pagar el valor de tu cita médica."
+            : "Tu aseguradora cubre esta cita. Solo confirma para finalizar."}
+        </p>
 
         <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total a pagar</span>
-            <span className="text-2xl font-bold">{formatCOP(slot.price)}</span>
+            <span className="text-sm text-muted-foreground">Total a {needsPay ? "pagar" : "confirmar"}</span>
+            <span className="text-2xl font-bold">{needsPay ? formatCOP(amount) : "Cubierto"}</span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <MethodCard
-            icon={<CreditCard className="h-5 w-5" />}
-            title="Pagar en línea"
-            desc="Tarjeta crédito o débito (PSE)"
-            selected={method === "online"}
-            onClick={() => setMethod("online")}
-          />
-          <MethodCard
-            icon={<Building2 className="h-5 w-5" />}
-            title="Pagar en la clínica"
-            desc="Al momento de tu atención"
-            selected={method === "clinic"}
-            onClick={() => setMethod("clinic")}
-          />
-        </div>
+        {needsPay && (
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            <MethodCard
+              icon={<CreditCard className="h-5 w-5" />}
+              title="Pagar en línea"
+              desc="Tarjeta crédito o débito (PSE)"
+              selected={method === "online"}
+              onClick={() => setMethod("online")}
+            />
+            <MethodCard
+              icon={<Building2 className="h-5 w-5" />}
+              title="Pagar en la clínica"
+              desc="Al momento de tu atención"
+              selected={method === "clinic"}
+              onClick={() => setMethod("clinic")}
+            />
+          </div>
+        )}
 
         <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4" /> Pagos cifrados, nunca guardamos los datos de tu tarjeta.
@@ -78,11 +89,11 @@ function P6() {
           <Button
             size="lg"
             onClick={confirm}
-            disabled={!method || processing}
+            disabled={(needsPay && !method) || processing}
             className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
           >
             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {processing ? "Procesando..." : "Pagar y confirmar cita"}
+            {processing ? "Procesando..." : needsPay ? "Pagar y confirmar cita" : "Confirmar cita"}
           </Button>
         </div>
       </div>

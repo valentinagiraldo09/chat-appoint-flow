@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { AttentionType, Franja } from "@/mocks/catalog";
 import type { Slot } from "@/mocks/availability";
+import type { CoverageResult } from "@/mocks/coverage";
 
 export type Filters = {
   sede?: string;
@@ -9,6 +10,9 @@ export type Filters = {
   attention?: AttentionType;
   franja?: Franja;
 };
+
+export type ChatMsg = { id: string; from: "bot" | "user" | "system"; text: string; ts: number };
+
 
 export type Patient = {
   tipoDocumento: string;
@@ -22,27 +26,40 @@ export type Patient = {
 export type BookingState = {
   specialty?: string;
   service?: string;
-  date?: string;
+  date?: string; // yyyy-mm-dd, undefined = "lo más pronto"
   filters: Filters;
   selectedSlot?: Slot;
   patient?: Patient;
   aseguradora?: string;
-  paymentMethod?: "online" | "clinic";
+  coverage?: CoverageResult;
+  acceptedSuggestedDate?: boolean;
+  payParticularOverride?: boolean;
+  preferredDate?: string;
+  paymentMethod?: "online" | "clinic" | "none";
   confirmationCode?: string;
+  chat: ChatMsg[];
+  filterSource?: "ui" | "chat" | "init";
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
   setDate: (d?: string) => void;
-  setFilter: <K extends keyof Filters>(k: K, v: Filters[K]) => void;
-  clearFilter: (k: keyof Filters) => void;
-  resetFilters: () => void;
+  setFilter: <K extends keyof Filters>(k: K, v: Filters[K], source?: "ui" | "chat") => void;
+  clearFilter: (k: keyof Filters, source?: "ui" | "chat") => void;
+  resetFilters: (source?: "ui" | "chat") => void;
   setSelectedSlot: (s?: Slot) => void;
   setPatient: (p: Patient) => void;
   setAseguradora: (a: string) => void;
-  setPaymentMethod: (m: "online" | "clinic") => void;
+  setCoverage: (c?: CoverageResult) => void;
+  setAcceptedSuggestedDate: (v: boolean) => void;
+  setPayParticularOverride: (v: boolean) => void;
+  setPreferredDate: (d?: string) => void;
+  setPaymentMethod: (m: "online" | "clinic" | "none") => void;
   setConfirmationCode: (c: string) => void;
+  pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
+  clearChat: () => void;
   reset: () => void;
 };
+
 
 const initial = {
   specialty: undefined,
@@ -52,8 +69,14 @@ const initial = {
   selectedSlot: undefined,
   patient: undefined,
   aseguradora: undefined,
+  coverage: undefined,
+  acceptedSuggestedDate: false,
+  payParticularOverride: false,
+  preferredDate: undefined,
   paymentMethod: undefined,
   confirmationCode: undefined,
+  chat: [] as ChatMsg[],
+  filterSource: undefined as "ui" | "chat" | "init" | undefined,
 };
 
 export const useBooking = create<BookingState>()(
@@ -63,21 +86,35 @@ export const useBooking = create<BookingState>()(
       setSpecialty: (s) => set({ specialty: s }),
       setService: (s) => set({ service: s }),
       setDate: (d) => set({ date: d }),
-      setFilter: (k, v) => set((st) => ({ filters: { ...st.filters, [k]: v } })),
-      clearFilter: (k) =>
+      setFilter: (k, v, source = "ui") =>
+        set((st) => ({ filters: { ...st.filters, [k]: v }, filterSource: source })),
+      clearFilter: (k, source = "ui") =>
         set((st) => {
           const f = { ...st.filters };
           delete f[k];
-          return { filters: f };
+          return { filters: f, filterSource: source };
         }),
-      resetFilters: () => set({ filters: {} }),
+      resetFilters: (source = "ui") => set({ filters: {}, filterSource: source }),
       setSelectedSlot: (s) => set({ selectedSlot: s }),
       setPatient: (p) => set({ patient: p }),
       setAseguradora: (a) => set({ aseguradora: a }),
+      setCoverage: (c) => set({ coverage: c }),
+      setAcceptedSuggestedDate: (v) => set({ acceptedSuggestedDate: v }),
+      setPayParticularOverride: (v) => set({ payParticularOverride: v }),
+      setPreferredDate: (d) => set({ preferredDate: d }),
       setPaymentMethod: (m) => set({ paymentMethod: m }),
       setConfirmationCode: (c) => set({ confirmationCode: c }),
+      pushChat: (m) =>
+        set((st) => ({
+          chat: [
+            ...st.chat,
+            { ...m, id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, ts: Date.now() },
+          ],
+        })),
+      clearChat: () => set({ chat: [] }),
       reset: () => set({ ...initial }),
     }),
+
     {
       name: "booking-flow",
       storage: createJSONStorage(() =>

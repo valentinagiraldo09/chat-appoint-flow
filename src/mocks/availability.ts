@@ -52,8 +52,6 @@ export function parseYmd(s: string): Date {
  * deterministic by date+specialty.
  */
 export function hasAvailability(date: Date, specialty: string, service: string): boolean {
-  // Combinaciones forzadas sin disponibilidad para demo
-  if (specialty === "Dermatología" && service === "Procedimiento") return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const d0 = new Date(date);

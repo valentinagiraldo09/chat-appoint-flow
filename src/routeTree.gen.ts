@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PagoRouteImport } from './routes/pago'
+import { Route as OportunidadRouteImport } from './routes/oportunidad'
 import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const PagoRoute = PagoRouteImport.update({
   id: '/pago',
   path: '/pago',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OportunidadRoute = OportunidadRouteImport.update({
+  id: '/oportunidad',
+  path: '/oportunidad',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HorariosRoute = HorariosRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
+    | '/oportunidad'
     | '/pago'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
+    | '/oportunidad'
     | '/pago'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
+    | '/oportunidad'
     | '/pago'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
   HorariosRoute: typeof HorariosRoute
+  OportunidadRoute: typeof OportunidadRoute
   PagoRoute: typeof PagoRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/pago'
       fullPath: '/pago'
       preLoaderRoute: typeof PagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oportunidad': {
+      id: '/oportunidad'
+      path: '/oportunidad'
+      fullPath: '/oportunidad'
+      preLoaderRoute: typeof OportunidadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/horarios': {
@@ -182,17 +202,9 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
   HorariosRoute: HorariosRoute,
+  OportunidadRoute: OportunidadRoute,
   PagoRoute: PagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

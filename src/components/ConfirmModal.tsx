@@ -25,13 +25,6 @@ export function ConfirmModal({
   if (!slot) return null;
   const date = parseYmd(slot.date);
 
-  function onConfirm() {
-    if (!slot) return;
-    setSelectedSlot(slot);
-    onOpenChange(false);
-    navigate({ to: "/checkout" });
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
@@ -77,7 +70,11 @@ export function ConfirmModal({
           <Button
             size="lg"
             className="rounded-full bg-foreground text-background hover:bg-foreground/90"
-            onClick={onConfirm}
+            onClick={() => {
+              setSelectedSlot(slot);
+              onOpenChange(false);
+              navigate({ to: "/checkout" });
+            }}
           >
             Sí, avanzar
           </Button>
