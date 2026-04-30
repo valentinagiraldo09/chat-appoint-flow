@@ -39,6 +39,8 @@ export type BookingState = {
   confirmationCode?: string;
   chat: ChatMsg[];
   filterSource?: "ui" | "chat" | "init";
+  coverageOnly?: boolean;
+  coverageMinDate?: string;
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
@@ -55,6 +57,8 @@ export type BookingState = {
   setPreferredDate: (d?: string) => void;
   setPaymentMethod: (m: "online" | "clinic" | "none") => void;
   setConfirmationCode: (c: string) => void;
+  setCoverageOnly: (v: boolean) => void;
+  setCoverageMinDate: (d?: string) => void;
   pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
   clearChat: () => void;
   reset: () => void;
@@ -77,6 +81,8 @@ const initial = {
   confirmationCode: undefined,
   chat: [] as ChatMsg[],
   filterSource: undefined as "ui" | "chat" | "init" | undefined,
+  coverageOnly: false,
+  coverageMinDate: undefined as string | undefined,
 };
 
 export const useBooking = create<BookingState>()(
@@ -104,6 +110,8 @@ export const useBooking = create<BookingState>()(
       setPreferredDate: (d) => set({ preferredDate: d }),
       setPaymentMethod: (m) => set({ paymentMethod: m }),
       setConfirmationCode: (c) => set({ confirmationCode: c }),
+      setCoverageOnly: (v) => set({ coverageOnly: v }),
+      setCoverageMinDate: (d) => set({ coverageMinDate: d }),
       pushChat: (m) =>
         set((st) => ({
           chat: [
