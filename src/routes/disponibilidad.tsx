@@ -138,6 +138,10 @@ function P1() {
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const acceptedSuggestedDate = useBooking((s) => s.acceptedSuggestedDate);
+  const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
+  const setDate = useBooking((s) => s.setDate);
 
   // Default service if none picked
   useEffect(() => {
@@ -238,6 +242,23 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
+        {acceptedSuggestedDate && aseguradora && (
+          <div className="mb-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Mostrando disponibilidad cubierta por <strong>{aseguradora}</strong>
+              {date ? <> a partir del <strong className="capitalize">{format(parseYmd(date), "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}</strong>.</> : "."}
+            </span>
+            <button
+              onClick={() => {
+                setAcceptedSuggestedDate(false);
+                setDate(undefined);
+              }}
+              className="self-start rounded-full border border-emerald-700/30 bg-background px-3 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100 sm:self-auto"
+            >
+              Ver todas las disponibles
+            </button>
+          </div>
+        )}
         <FiltersBar />
 
         <div className="mt-6 space-y-6">
