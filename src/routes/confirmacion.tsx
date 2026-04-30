@@ -122,20 +122,37 @@ function P7() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold">Detalles de la cita</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Detalles de la cita</h2>
+            {paymentMethod === "none" ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                Cubierta por tu aseguradora
+              </span>
+            ) : paymentMethod === "online" ? (
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                Pago particular en línea
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                Pago particular en clínica
+              </span>
+            )}
+          </div>
           <div className="mt-4 grid gap-3 text-sm">
             <Row icon={<User className="h-4 w-4" />} label="Paciente" value={patient.nombre} />
             <Row icon={<Stethoscope className="h-4 w-4" />} label="Especialidad" value={`${specialty} — ${service}`} />
             <Row icon={<Calendar className="h-4 w-4" />} label="Fecha" value={dateLabel} className="capitalize" />
-            <Row icon={<Clock className="h-4 w-4" />} label="Hora" value={`${formatTime(slot.hour, slot.minute)} (${slot.attention})`} />
+            <Row icon={<Clock className="h-4 w-4" />} label="Hora" value={`${formatTime(slot.hour, slot.minute)}`} />
+            <Row icon={<Stethoscope className="h-4 w-4" />} label="Tipo de atención" value={slot.attention} />
             <Row icon={<User className="h-4 w-4" />} label="Profesional" value={slot.profesional} />
             <Row icon={<MapPin className="h-4 w-4" />} label="Sede" value={`${slot.sede} — ${SEDE_ADDRESSES[slot.sede] ?? ""}`} />
+            <Row icon={<ShieldCheck className="h-4 w-4" />} label="Aseguradora" value={aseguradora ?? "Particular"} />
           </div>
           <div className="mt-4 border-t border-border pt-4 flex justify-between">
             <span className="text-sm text-muted-foreground">
               {paymentMethod === "none" ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
             </span>
-            <span className="font-semibold">{formatCOP(slot.price)}</span>
+            <span className="font-semibold">{paymentMethod === "none" ? "Cubierto" : formatCOP(slot.price)}</span>
           </div>
         </div>
 
