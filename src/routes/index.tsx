@@ -45,6 +45,11 @@ function P0() {
   const [input, setInput] = useState("");
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [step, setStep] = useState<"intent" | "specialty" | "other">("intent");
+  const [mounted, setMounted] = useState(false);
+  // Avoid SSR/hydration timing where first click is lost
+  if (typeof window !== "undefined" && !mounted) {
+    queueMicrotask(() => setMounted(true));
+  }
 
   function handleIntent(intent: string, label?: string) {
     if (label) setBubbles((b) => [...b, { from: "user", text: label }]);
