@@ -20,7 +20,6 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
-import { AssistantLayout } from "@/components/AssistantLayout";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/disponibilidad")({
@@ -138,10 +137,6 @@ function P1() {
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
-  const aseguradora = useBooking((s) => s.aseguradora);
-  const acceptedSuggestedDate = useBooking((s) => s.acceptedSuggestedDate);
-  const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
-  const setDate = useBooking((s) => s.setDate);
 
   // Default service if none picked
   useEffect(() => {
@@ -155,16 +150,6 @@ function P1() {
   useEffect(() => {
     if (!specialty) navigate({ to: "/" });
   }, [specialty, navigate]);
-
-  // Redirect to "sin-disponibilidad" si no hay nada en los próximos 90 días
-  useEffect(() => {
-    if (!specialty || !service) return;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (!findNextAvailableDate(today, specialty, service)) {
-      navigate({ to: "/sin-disponibilidad" });
-    }
-  }, [specialty, service, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [, setTick] = useState(0);
@@ -218,9 +203,7 @@ function P1() {
   }, [specialty, service, date, filters]);
 
   return (
-    <AssistantLayout>
-      <div className="min-h-full bg-muted/30">
-
+    <div className="min-h-screen bg-muted/30">
       <div className="border-b border-border bg-muted/60">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-5 flex items-center gap-4">
@@ -242,23 +225,6 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {acceptedSuggestedDate && aseguradora && (
-          <div className="mb-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Mostrando disponibilidad cubierta por <strong>{aseguradora}</strong>
-              {date ? <> a partir del <strong className="capitalize">{format(parseYmd(date), "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}</strong>.</> : "."}
-            </span>
-            <button
-              onClick={() => {
-                setAcceptedSuggestedDate(false);
-                setDate(undefined);
-              }}
-              className="self-start rounded-full border border-emerald-700/30 bg-background px-3 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100 sm:self-auto"
-            >
-              Ver todas las disponibles
-            </button>
-          </div>
-        )}
         <FiltersBar />
 
         <div className="mt-6 space-y-6">
@@ -325,8 +291,6 @@ function P1() {
       </div>
 
       <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
-      </div>
-    </AssistantLayout>
+    </div>
   );
 }
-
