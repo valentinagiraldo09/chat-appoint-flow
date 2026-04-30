@@ -181,49 +181,85 @@ function P0() {
   }
 
 
-  // ===== Vista inicial (hero) =====
+  // ===== Vista inicial (hero) — estilo COCO =====
   if (!inChat) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-background to-background">
-        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 pb-16 pt-12 md:pt-24">
-          <header className="mb-10 text-center">
-            <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              <Stethoscope className="h-6 w-6" />
+      <div
+        className="min-h-screen w-full"
+        style={{ backgroundColor: "var(--coco-mint)" }}
+      >
+        <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-4 py-16">
+          {/* Logo COCO */}
+          <div className="mb-10 flex flex-col items-center">
+            <div className="flex items-center gap-1 text-5xl font-extrabold tracking-tight" style={{ color: "var(--coco-ink)" }}>
+              <span>C</span>
+              <span className="relative inline-flex h-10 w-10 items-center justify-center">
+                <span
+                  className="absolute inset-0 rounded-full border-[3px]"
+                  style={{ borderColor: "var(--coco-ink)" }}
+                />
+                <span
+                  className="absolute -top-2 left-1/2 h-3 w-1.5 -translate-x-1/2 rotate-12 rounded-full"
+                  style={{ backgroundColor: "var(--coco-green-strong)" }}
+                />
+              </span>
+              <span>CO</span>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Hola, soy tu asistente médico</h1>
-            <p className="mt-2 text-muted-foreground">¿En qué te ayudo hoy?</p>
-          </header>
+            <p className="mt-1 text-[10px] font-semibold tracking-[0.3em]" style={{ color: "var(--coco-ink)" }}>
+              AI &amp; E-HEALTH
+            </p>
+          </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
-            <div className="flex items-center gap-2 px-2">
+          {/* Título */}
+          <h1
+            className="mb-10 text-center text-5xl font-extrabold leading-[1.05] tracking-tight md:text-6xl"
+            style={{ color: "var(--coco-ink)" }}
+          >
+            Gestiona tus citas
+            <br />
+            fácil y rápido
+          </h1>
+
+          {/* Barra de búsqueda */}
+          <div className="w-full max-w-2xl">
+            <div className="flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                <path
+                  d="M12 2l1.8 5.4L19.2 9 13.8 10.8 12 16.2 10.2 10.8 4.8 9l5.4-1.8L12 2z"
+                  fill="var(--coco-green-strong)"
+                />
+              </svg>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder={mounted ? "Escribe lo que necesitas… ej: Quiero una cita de dermatología" : "Cargando asistente..."}
+                placeholder={mounted ? "¿Cómo puedo ayudarte hoy?" : "Cargando asistente..."}
                 disabled={!mounted}
-                className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground disabled:opacity-60"
+                className="flex-1 bg-transparent py-3 text-base outline-none placeholder:text-neutral-400 disabled:opacity-60"
+                style={{ color: "var(--coco-ink)" }}
               />
               <button
                 onClick={handleSend}
                 disabled={!mounted}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
                 aria-label="Enviar"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: "var(--coco-green-strong)" }}
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          {/* Chips de intents */}
+          <div className="mt-16 flex flex-wrap justify-center gap-3">
             {INTENTS.map((it) => (
               <button
                 key={it.intent}
                 onClick={() => handleIntent(it.intent, it.label)}
                 disabled={!mounted}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
+                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-sm font-semibold shadow-sm transition hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ color: "var(--coco-ink)" }}
               >
-                <it.icon className="h-4 w-4" />
                 {it.label}
               </button>
             ))}
