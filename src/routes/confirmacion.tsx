@@ -131,6 +131,12 @@ function P7() {
             <Row icon={<User className="h-4 w-4" />} label="Profesional" value={slot.profesional} />
             <Row icon={<MapPin className="h-4 w-4" />} label="Sede" value={`${slot.sede} — ${SEDE_ADDRESSES[slot.sede] ?? ""}`} />
           </div>
+          {paymentMethod === "none" && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
+              <CheckCircle2 className="h-4 w-4" />
+              Estado: Cubierta por tu aseguradora{aseguradora ? ` (${aseguradora})` : ""}
+            </div>
+          )}
           <div className="mt-4 border-t border-border pt-4 flex justify-between">
             <span className="text-sm text-muted-foreground">
               {paymentMethod === "none" ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
