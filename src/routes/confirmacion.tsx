@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import jsPDF from "jspdf";
-import { CheckCircle2, Calendar, Download, Home, Stethoscope, MapPin, Clock, User } from "lucide-react";
+import { CheckCircle2, Calendar, Download, Home, Stethoscope, MapPin, Clock, User, ShieldCheck } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { parseYmd, formatTime } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
