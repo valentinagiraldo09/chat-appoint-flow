@@ -28,8 +28,6 @@ function P6() {
 
   if (!slot) return null;
 
-  // Necesita pago si: aseguradora particular o coverage caso 3 o aceptó pagar particular
-  const requiresPayment = payParticular || coverage?.case === 3 || coverage?.case === 1 === false;
   const needsPay = payParticular || coverage?.case === 3;
   const amount = needsPay ? slot.price : 0;
 
