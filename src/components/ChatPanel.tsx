@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Stethoscope, Mic } from "lucide-react";
-import { useBooking, type Filters } from "@/store/booking";
+import { useNavigate } from "@tanstack/react-router";
+import { useBooking, type Filters, type Intent } from "@/store/booking";
 import {
   SEDES,
   PROFESIONALES,
