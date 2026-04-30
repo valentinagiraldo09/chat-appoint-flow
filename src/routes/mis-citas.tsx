@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, MapPin, Clock, Stethoscope, RefreshCw, X, CreditCard, CheckCircle2, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, Stethoscope, RefreshCw, X, CreditCard, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useBooking, type Intent } from "@/store/booking";
 import { getAppointmentsByDoc, cancelAppointment, confirmAppointment, markPaid, type Appointment } from "@/mocks/appointments";
 import { parseYmd, formatTime } from "@/mocks/availability";
@@ -242,7 +242,6 @@ function MisCitas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Calendar className="hidden" />
     </AssistantLayout>
   );
 }
