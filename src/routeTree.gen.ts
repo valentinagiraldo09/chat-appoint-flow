@@ -9,11 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PagoRouteImport } from './routes/pago'
+import { Route as OportunidadRouteImport } from './routes/oportunidad'
 import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
+import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
 import { Route as IndexRouteImport } from './routes/index'
 
+const PagoRoute = PagoRouteImport.update({
+  id: '/pago',
+  path: '/pago',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OportunidadRoute = OportunidadRouteImport.update({
+  id: '/oportunidad',
+  path: '/oportunidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HorariosRoute = HorariosRouteImport.update({
   id: '/horarios',
   path: '/horarios',
@@ -22,6 +36,16 @@ const HorariosRoute = HorariosRouteImport.update({
 const DisponibilidadRoute = DisponibilidadRouteImport.update({
   id: '/disponibilidad',
   path: '/disponibilidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmacionRoute = ConfirmacionRouteImport.update({
+  id: '/confirmacion',
+  path: '/confirmacion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscarFechaRoute = BuscarFechaRouteImport.update({
@@ -38,39 +62,94 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar-fecha': typeof BuscarFechaRoute
+  '/checkout': typeof CheckoutRoute
+  '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
+  '/pago': typeof PagoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar-fecha': typeof BuscarFechaRoute
+  '/checkout': typeof CheckoutRoute
+  '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
+  '/pago': typeof PagoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/buscar-fecha': typeof BuscarFechaRoute
+  '/checkout': typeof CheckoutRoute
+  '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
+  '/oportunidad': typeof OportunidadRoute
+  '/pago': typeof PagoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
+  fullPaths:
+    | '/'
+    | '/buscar-fecha'
+    | '/checkout'
+    | '/confirmacion'
+    | '/disponibilidad'
+    | '/horarios'
+    | '/oportunidad'
+    | '/pago'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
-  id: '__root__' | '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
+  to:
+    | '/'
+    | '/buscar-fecha'
+    | '/checkout'
+    | '/confirmacion'
+    | '/disponibilidad'
+    | '/horarios'
+    | '/oportunidad'
+    | '/pago'
+  id:
+    | '__root__'
+    | '/'
+    | '/buscar-fecha'
+    | '/checkout'
+    | '/confirmacion'
+    | '/disponibilidad'
+    | '/horarios'
+    | '/oportunidad'
+    | '/pago'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuscarFechaRoute: typeof BuscarFechaRoute
+  CheckoutRoute: typeof CheckoutRoute
+  ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
   HorariosRoute: typeof HorariosRoute
+  OportunidadRoute: typeof OportunidadRoute
+  PagoRoute: typeof PagoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pago': {
+      id: '/pago'
+      path: '/pago'
+      fullPath: '/pago'
+      preLoaderRoute: typeof PagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oportunidad': {
+      id: '/oportunidad'
+      path: '/oportunidad'
+      fullPath: '/oportunidad'
+      preLoaderRoute: typeof OportunidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/horarios': {
       id: '/horarios'
       path: '/horarios'
@@ -83,6 +162,20 @@ declare module '@tanstack/react-router' {
       path: '/disponibilidad'
       fullPath: '/disponibilidad'
       preLoaderRoute: typeof DisponibilidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmacion': {
+      id: '/confirmacion'
+      path: '/confirmacion'
+      fullPath: '/confirmacion'
+      preLoaderRoute: typeof ConfirmacionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/buscar-fecha': {
@@ -105,8 +198,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuscarFechaRoute: BuscarFechaRoute,
+  CheckoutRoute: CheckoutRoute,
+  ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
   HorariosRoute: HorariosRoute,
+  OportunidadRoute: OportunidadRoute,
+  PagoRoute: PagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
