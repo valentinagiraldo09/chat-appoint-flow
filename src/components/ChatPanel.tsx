@@ -156,6 +156,20 @@ export function ChatPanel() {
     let acted = false;
     const applied: string[] = [];
 
+    // Comandos de gestión de citas
+    const mgmtIntent = detectMgmtIntent(lower);
+    if (mgmtIntent) {
+      if (!documento) {
+        botSay("Para gestionar tus citas necesito tu documento. Inicia el flujo desde el inicio.");
+        return true;
+      }
+      setIntent(mgmtIntent);
+      const verb = mgmtIntent === "reagendar" ? "reagendar" : mgmtIntent === "cancelar" ? "cancelar" : mgmtIntent === "confirmar" ? "confirmar" : "pagar";
+      botSay(`Te llevo a tus próximas citas para ${verb}…`);
+      setTimeout(() => navigate({ to: "/mis-citas" }), 400);
+      return true;
+    }
+
     // Limpiar filtros
     if (lower.includes("limpia") || lower.includes("quita") || lower.includes("remover") || lower.includes("borra") && lower.includes("filtro")) {
       if (lower.includes("filtro") || lower.includes("todo")) {
