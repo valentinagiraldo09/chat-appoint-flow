@@ -9,38 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SinDisponibilidadRouteImport } from './routes/sin-disponibilidad'
 import { Route as PagoRouteImport } from './routes/pago'
-import { Route as OportunidadRouteImport } from './routes/oportunidad'
-import { Route as MisCitasRouteImport } from './routes/mis-citas'
 import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
-import { Route as CoberturaNoRouteImport } from './routes/cobertura-no'
-import { Route as CoberturaFechaRouteImport } from './routes/cobertura-fecha'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
-import { Route as AgenteRouteImport } from './routes/agente'
 import { Route as IndexRouteImport } from './routes/index'
 
-const SinDisponibilidadRoute = SinDisponibilidadRouteImport.update({
-  id: '/sin-disponibilidad',
-  path: '/sin-disponibilidad',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PagoRoute = PagoRouteImport.update({
   id: '/pago',
   path: '/pago',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OportunidadRoute = OportunidadRouteImport.update({
-  id: '/oportunidad',
-  path: '/oportunidad',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MisCitasRoute = MisCitasRouteImport.update({
-  id: '/mis-citas',
-  path: '/mis-citas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HorariosRoute = HorariosRouteImport.update({
@@ -58,16 +37,6 @@ const ConfirmacionRoute = ConfirmacionRouteImport.update({
   path: '/confirmacion',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CoberturaNoRoute = CoberturaNoRouteImport.update({
-  id: '/cobertura-no',
-  path: '/cobertura-no',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CoberturaFechaRoute = CoberturaFechaRouteImport.update({
-  id: '/cobertura-fecha',
-  path: '/cobertura-fecha',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -78,11 +47,6 @@ const BuscarFechaRoute = BuscarFechaRouteImport.update({
   path: '/buscar-fecha',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgenteRoute = AgenteRouteImport.update({
-  id: '/agente',
-  path: '/agente',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -91,142 +55,79 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
-  '/cobertura-fecha': typeof CoberturaFechaRoute
-  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
-  '/mis-citas': typeof MisCitasRoute
-  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
-  '/sin-disponibilidad': typeof SinDisponibilidadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
-  '/cobertura-fecha': typeof CoberturaFechaRoute
-  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
-  '/mis-citas': typeof MisCitasRoute
-  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
-  '/sin-disponibilidad': typeof SinDisponibilidadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
-  '/cobertura-fecha': typeof CoberturaFechaRoute
-  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
-  '/mis-citas': typeof MisCitasRoute
-  '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
-  '/sin-disponibilidad': typeof SinDisponibilidadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/agente'
     | '/buscar-fecha'
     | '/checkout'
-    | '/cobertura-fecha'
-    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
-    | '/mis-citas'
-    | '/oportunidad'
     | '/pago'
-    | '/sin-disponibilidad'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/agente'
     | '/buscar-fecha'
     | '/checkout'
-    | '/cobertura-fecha'
-    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
-    | '/mis-citas'
-    | '/oportunidad'
     | '/pago'
-    | '/sin-disponibilidad'
   id:
     | '__root__'
     | '/'
-    | '/agente'
     | '/buscar-fecha'
     | '/checkout'
-    | '/cobertura-fecha'
-    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
-    | '/mis-citas'
-    | '/oportunidad'
     | '/pago'
-    | '/sin-disponibilidad'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AgenteRoute: typeof AgenteRoute
   BuscarFechaRoute: typeof BuscarFechaRoute
   CheckoutRoute: typeof CheckoutRoute
-  CoberturaFechaRoute: typeof CoberturaFechaRoute
-  CoberturaNoRoute: typeof CoberturaNoRoute
   ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
   HorariosRoute: typeof HorariosRoute
-  MisCitasRoute: typeof MisCitasRoute
-  OportunidadRoute: typeof OportunidadRoute
   PagoRoute: typeof PagoRoute
-  SinDisponibilidadRoute: typeof SinDisponibilidadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sin-disponibilidad': {
-      id: '/sin-disponibilidad'
-      path: '/sin-disponibilidad'
-      fullPath: '/sin-disponibilidad'
-      preLoaderRoute: typeof SinDisponibilidadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pago': {
       id: '/pago'
       path: '/pago'
       fullPath: '/pago'
       preLoaderRoute: typeof PagoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/oportunidad': {
-      id: '/oportunidad'
-      path: '/oportunidad'
-      fullPath: '/oportunidad'
-      preLoaderRoute: typeof OportunidadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mis-citas': {
-      id: '/mis-citas'
-      path: '/mis-citas'
-      fullPath: '/mis-citas'
-      preLoaderRoute: typeof MisCitasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/horarios': {
@@ -250,20 +151,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfirmacionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cobertura-no': {
-      id: '/cobertura-no'
-      path: '/cobertura-no'
-      fullPath: '/cobertura-no'
-      preLoaderRoute: typeof CoberturaNoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cobertura-fecha': {
-      id: '/cobertura-fecha'
-      path: '/cobertura-fecha'
-      fullPath: '/cobertura-fecha'
-      preLoaderRoute: typeof CoberturaFechaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
@@ -278,13 +165,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuscarFechaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/agente': {
-      id: '/agente'
-      path: '/agente'
-      fullPath: '/agente'
-      preLoaderRoute: typeof AgenteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -297,18 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AgenteRoute: AgenteRoute,
   BuscarFechaRoute: BuscarFechaRoute,
   CheckoutRoute: CheckoutRoute,
-  CoberturaFechaRoute: CoberturaFechaRoute,
-  CoberturaNoRoute: CoberturaNoRoute,
   ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
   HorariosRoute: HorariosRoute,
-  MisCitasRoute: MisCitasRoute,
-  OportunidadRoute: OportunidadRoute,
   PagoRoute: PagoRoute,
-  SinDisponibilidadRoute: SinDisponibilidadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
