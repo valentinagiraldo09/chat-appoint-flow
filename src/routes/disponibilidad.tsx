@@ -20,6 +20,7 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
+import { AssistantLayout } from "@/components/AssistantLayout";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/disponibilidad")({
@@ -203,8 +204,9 @@ function P1() {
   }, [specialty, service, date, filters]);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header search bar */}
+    <AssistantLayout>
+      <div className="min-h-full bg-muted/30">
+
       <div className="border-b border-border bg-muted/60">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-5 flex items-center gap-4">
@@ -292,6 +294,8 @@ function P1() {
       </div>
 
       <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
-    </div>
+      </div>
+    </AssistantLayout>
   );
 }
+

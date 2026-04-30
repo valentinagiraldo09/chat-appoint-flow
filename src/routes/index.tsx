@@ -59,12 +59,15 @@ function P0() {
   const navigate = useNavigate();
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const reset = useBooking((s) => s.reset);
+  const pushChat = useBooking((s) => s.pushChat);
+  const clearChat = useBooking((s) => s.clearChat);
   const [input, setInput] = useState("");
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [step, setStep] = useState<"idle" | "intent" | "specialty" | "other">("idle");
   const [mounted, setMounted] = useState(false);
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     setMounted(true);
@@ -87,12 +90,27 @@ function P0() {
     }, 450);
   }
 
+  function transferChatAndGo(specialty: string) {
+    // Transferir bubbles actuales al chat persistente
+    clearChat();
+    bubbles.forEach((b) => {
+      if (b.from === "user" || b.from === "bot") {
+        pushChat({ from: b.from, text: b.text });
+      }
+    });
+    pushChat({
+      from: "bot",
+      text: `Listo. Estoy mostrando disponibilidad para ${specialty}. Puedo aplicar filtros si me los pides aquí, o si los seleccionas en la interfaz te lo confirmo.`,
+    });
+    setTimeout(() => navigate({ to: "/disponibilidad" }), 500);
+  }
+
   function startAgendarFlow(prefilledSpecialty?: string | null) {
     reset();
     if (prefilledSpecialty) {
       setSpecialty(prefilledSpecialty);
       botSay(`Perfecto, busquemos disponibilidad para ${prefilledSpecialty}. Te llevo a la agenda…`, () => {
-        setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+        transferChatAndGo(prefilledSpecialty);
       });
       setStep("other");
     } else {
@@ -129,9 +147,10 @@ function P0() {
       if (sp) {
         setSpecialty(sp);
         botSay(`Genial, busquemos disponibilidad para ${sp}…`, () => {
-          setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+          transferChatAndGo(sp);
         });
         setStep("other");
+
       } else {
         botSay("No reconocí esa especialidad. Elige una de las opciones de abajo:");
       }
@@ -156,10 +175,11 @@ function P0() {
     setSpecialty(s);
     setBubbles((b) => [...b, { from: "user", text: s }]);
     botSay(`Genial, busquemos disponibilidad para ${s}…`, () => {
-      setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+      transferChatAndGo(s);
     });
     setStep("other");
   }
+
 
   // ===== Vista inicial (hero) =====
   if (!inChat) {
