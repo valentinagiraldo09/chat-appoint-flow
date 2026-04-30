@@ -16,6 +16,8 @@ import { Route as MisCitasRouteImport } from './routes/mis-citas'
 import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
+import { Route as CoberturaNoRouteImport } from './routes/cobertura-no'
+import { Route as CoberturaFechaRouteImport } from './routes/cobertura-fecha'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
 import { Route as AgenteRouteImport } from './routes/agente'
@@ -56,6 +58,16 @@ const ConfirmacionRoute = ConfirmacionRouteImport.update({
   path: '/confirmacion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoberturaNoRoute = CoberturaNoRouteImport.update({
+  id: '/cobertura-no',
+  path: '/cobertura-no',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoberturaFechaRoute = CoberturaFechaRouteImport.update({
+  id: '/cobertura-fecha',
+  path: '/cobertura-fecha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -82,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
+  '/cobertura-fecha': typeof CoberturaFechaRoute
+  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByTo {
   '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
+  '/cobertura-fecha': typeof CoberturaFechaRoute
+  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
@@ -109,6 +125,8 @@ export interface FileRoutesById {
   '/agente': typeof AgenteRoute
   '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
+  '/cobertura-fecha': typeof CoberturaFechaRoute
+  '/cobertura-no': typeof CoberturaNoRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
   '/horarios': typeof HorariosRoute
@@ -124,6 +142,8 @@ export interface FileRouteTypes {
     | '/agente'
     | '/buscar-fecha'
     | '/checkout'
+    | '/cobertura-fecha'
+    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
@@ -137,6 +157,8 @@ export interface FileRouteTypes {
     | '/agente'
     | '/buscar-fecha'
     | '/checkout'
+    | '/cobertura-fecha'
+    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
@@ -150,6 +172,8 @@ export interface FileRouteTypes {
     | '/agente'
     | '/buscar-fecha'
     | '/checkout'
+    | '/cobertura-fecha'
+    | '/cobertura-no'
     | '/confirmacion'
     | '/disponibilidad'
     | '/horarios'
@@ -164,6 +188,8 @@ export interface RootRouteChildren {
   AgenteRoute: typeof AgenteRoute
   BuscarFechaRoute: typeof BuscarFechaRoute
   CheckoutRoute: typeof CheckoutRoute
+  CoberturaFechaRoute: typeof CoberturaFechaRoute
+  CoberturaNoRoute: typeof CoberturaNoRoute
   ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
   HorariosRoute: typeof HorariosRoute
@@ -224,6 +250,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfirmacionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cobertura-no': {
+      id: '/cobertura-no'
+      path: '/cobertura-no'
+      fullPath: '/cobertura-no'
+      preLoaderRoute: typeof CoberturaNoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cobertura-fecha': {
+      id: '/cobertura-fecha'
+      path: '/cobertura-fecha'
+      fullPath: '/cobertura-fecha'
+      preLoaderRoute: typeof CoberturaFechaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
@@ -260,6 +300,8 @@ const rootRouteChildren: RootRouteChildren = {
   AgenteRoute: AgenteRoute,
   BuscarFechaRoute: BuscarFechaRoute,
   CheckoutRoute: CheckoutRoute,
+  CoberturaFechaRoute: CoberturaFechaRoute,
+  CoberturaNoRoute: CoberturaNoRoute,
   ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
   HorariosRoute: HorariosRoute,

@@ -1,4 +1,4 @@
-import { findNextAvailableDate, ymd } from "./availability";
+import { findNextAvailableDate, parseYmd, ymd } from "./availability";
 
 export type CoverageResult =
   | { case: 1; message: string }
@@ -6,16 +6,19 @@ export type CoverageResult =
   | { case: 3; message: string };
 
 /**
- * Deterministic coverage rules:
- * - Particular: Caso 1 (irrelevante, salta validación normalmente)
- * - EPS Sanitas: Caso 1 siempre (cubre)
- * - EPS Sura: Caso 2 (cubre pero con disponibilidad posterior)
- * - EPS Compensar: Caso 3 si servicio Primera vez, sino Caso 1
+ * Reglas deterministas (mock):
+ * - Particular: no se debe llamar (se enruta directo a /pago).
+ * - EPS Sanitas: caso 1 (cubre).
+ * - EPS Sura: caso 3 (no cubre).
+ * - EPS Compensar:
+ *    - si la fecha del slot es anterior a Agosto 2026 → caso 2 (sugerir fecha cubierta)
+ *    - si la fecha del slot es ≥ Agosto 2026 → caso 1
  */
 export function validateCoverage(
   aseguradora: string,
   specialty: string,
   service: string,
+  slotDate?: string,
 ): CoverageResult {
   if (aseguradora === "Particular") {
     return { case: 1, message: "Pago particular — no requiere validación de cobertura." };
@@ -24,18 +27,18 @@ export function validateCoverage(
     return { case: 1, message: "Tu aseguradora cubre esta cita." };
   }
   if (aseguradora === "EPS Sura") {
-    const future = new Date();
-    future.setDate(future.getDate() + 14);
-    const next = findNextAvailableDate(future, specialty, service) ?? future;
-    return {
-      case: 2,
-      message: "Tu aseguradora tiene disponibilidad en fechas posteriores.",
-      suggestedDate: ymd(next),
-    };
+    return { case: 3, message: "Tu aseguradora no cubre esta cita." };
   }
   if (aseguradora === "EPS Compensar") {
-    if (service === "Primera vez") {
-      return { case: 3, message: "Este servicio no está cubierto por tu aseguradora." };
+    const cutoff = new Date(2026, 7, 1); // Agosto 2026
+    const sd = slotDate ? parseYmd(slotDate) : new Date();
+    if (sd < cutoff) {
+      const next = findNextAvailableDate(cutoff, specialty, service) ?? cutoff;
+      return {
+        case: 2,
+        message: "Tu aseguradora cubre este servicio, pero no para la fecha seleccionada.",
+        suggestedDate: ymd(next),
+      };
     }
     return { case: 1, message: "Tu aseguradora cubre esta cita." };
   }
