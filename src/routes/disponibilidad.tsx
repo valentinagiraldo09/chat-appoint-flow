@@ -246,6 +246,24 @@ function P1() {
       <div className="mx-auto max-w-6xl px-4 py-8">
         <FiltersBar />
 
+        {coverageOnly && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-800">
+            <Star className="h-3 w-3" />
+            Solo cubiertas por {aseguradora ?? "tu aseguradora"}
+            {coverageMinDate && (
+              <span className="text-emerald-700">
+                · desde {format(parseYmd(coverageMinDate), "MMM yyyy", { locale: es })}
+              </span>
+            )}
+            <button
+              onClick={clearCoverageFilter}
+              className="ml-1 rounded-full bg-emerald-200/60 px-1.5 py-0.5 text-[10px] hover:bg-emerald-200"
+            >
+              Quitar
+            </button>
+          </div>
+        )}
+
         <div className="mt-6 space-y-6">
           {loading
             ? [0, 1].map((i) => (
