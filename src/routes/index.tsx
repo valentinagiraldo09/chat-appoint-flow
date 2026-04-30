@@ -59,12 +59,15 @@ function P0() {
   const navigate = useNavigate();
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const reset = useBooking((s) => s.reset);
+  const pushChat = useBooking((s) => s.pushChat);
+  const clearChat = useBooking((s) => s.clearChat);
   const [input, setInput] = useState("");
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [step, setStep] = useState<"idle" | "intent" | "specialty" | "other">("idle");
   const [mounted, setMounted] = useState(false);
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     setMounted(true);
