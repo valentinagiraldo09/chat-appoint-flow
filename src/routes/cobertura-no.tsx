@@ -20,23 +20,27 @@ function CoberturaNo() {
   const aseguradora = useBooking((s) => s.aseguradora);
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
+  const coverage = useBooking((s) => s.coverage);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
+  const pushChat = useBooking((s) => s.pushChat);
 
   useEffect(() => {
-    if (!slot) navigate({ to: "/" });
-  }, [slot, navigate]);
+    if (!slot || !coverage || coverage.case !== 2) navigate({ to: "/" });
+  }, [slot, coverage, navigate]);
 
-  if (!slot) return null;
+  if (!slot || !coverage || coverage.case !== 2) return null;
   const d = parseYmd(slot.date);
 
   function pagarParticular() {
     setPayParticularOverride(true);
+    pushChat({ from: "bot", text: "Continuamos con pago particular para tu cita seleccionada." });
     navigate({ to: "/pago" });
   }
 
   function buscarOtra() {
     setSelectedSlot(undefined);
+    pushChat({ from: "bot", text: `Vamos a buscar otra cita para ${service ?? "tu servicio"}.` });
     navigate({ to: "/disponibilidad" });
   }
 

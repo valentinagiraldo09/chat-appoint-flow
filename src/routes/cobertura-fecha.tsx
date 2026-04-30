@@ -24,23 +24,32 @@ function CoberturaFecha() {
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const setDate = useBooking((s) => s.setDate);
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
+  const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
+  const pushChat = useBooking((s) => s.pushChat);
 
   useEffect(() => {
-    if (!slot || !coverage || coverage.case !== 2) navigate({ to: "/" });
+    if (!slot || !coverage || coverage.case !== 3) navigate({ to: "/" });
   }, [slot, coverage, navigate]);
 
-  if (!slot || !coverage || coverage.case !== 2) return null;
+  if (!slot || !coverage || coverage.case !== 3) return null;
   const d = parseYmd(slot.date);
   const sd = parseYmd(coverage.suggestedDate);
+  const sdLabel = format(sd, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
 
   function verCubiertas() {
-    setDate(coverage!.case === 2 ? coverage!.suggestedDate : undefined);
+    setDate(coverage!.case === 3 ? coverage!.suggestedDate : undefined);
     setSelectedSlot(undefined);
+    setAcceptedSuggestedDate(true);
+    pushChat({
+      from: "bot",
+      text: `Te muestro las citas con cobertura de ${aseguradora ?? "tu aseguradora"} desde ${sdLabel}.`,
+    });
     navigate({ to: "/disponibilidad" });
   }
 
   function pagarParticular() {
     setPayParticularOverride(true);
+    pushChat({ from: "bot", text: "Continuamos con pago particular y conservamos tu cita seleccionada." });
     navigate({ to: "/pago" });
   }
 
@@ -58,7 +67,7 @@ function CoberturaFecha() {
             Tu aseguradora cubre este servicio, pero no para la fecha seleccionada
           </h1>
           <p className="mt-2 max-w-md text-muted-foreground capitalize">
-            {aseguradora ? `${aseguradora}: ` : ""}la fecha más cercana disponible con cobertura es {format(sd, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}.
+            La fecha más cercana disponible con cobertura de {aseguradora ?? "tu aseguradora"} es {sdLabel}.
           </p>
         </div>
 
