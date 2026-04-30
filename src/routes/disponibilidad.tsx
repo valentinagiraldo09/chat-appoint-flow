@@ -138,6 +138,11 @@ function P1() {
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
+  const coverageOnly = useBooking((s) => s.coverageOnly);
+  const coverageMinDate = useBooking((s) => s.coverageMinDate);
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
+  const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
 
   // Default service if none picked
   useEffect(() => {
@@ -164,18 +169,24 @@ function P1() {
       setTick((x) => x + 1);
     }, 600);
     return () => clearTimeout(t);
-  }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service]);
+  }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, coverageOnly, coverageMinDate]);
+
+  const minDate = coverageOnly && coverageMinDate ? parseYmd(coverageMinDate) : null;
 
   const sections = useMemo(() => {
     if (!specialty || !service) return [];
     if (date) {
       const d = parseYmd(date);
+      if (minDate && d < minDate) {
+        return [{ title: "", subtitle: format(d, "EEEE d 'de' MMMM", { locale: es }), date: d, slots: [], full: [] }];
+      }
       const all = filterSlots(generateSlots(d, specialty, service), filters);
       return [{ title: "", subtitle: format(d, "EEEE d 'de' MMMM", { locale: es }), date: d, slots: all.slice(0, 6), full: all }];
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const first = findNextAvailableDate(today, specialty, service) ?? today;
+    const startFrom = minDate && minDate > today ? minDate : today;
+    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
     const second = findNextAvailableDate(new Date(first.getTime() + 24 * 3600 * 1000), specialty, service);
     const out = [];
     const firstSlots = filterSlots(generateSlots(first, specialty, service), filters);
@@ -201,7 +212,12 @@ function P1() {
       });
     }
     return out;
-  }, [specialty, service, date, filters]);
+  }, [specialty, service, date, filters, minDate]);
+
+  function clearCoverageFilter() {
+    setCoverageOnly(false);
+    setCoverageMinDate(undefined);
+  }
 
   return (
     <AssistantLayout>
