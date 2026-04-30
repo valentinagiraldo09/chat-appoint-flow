@@ -294,6 +294,8 @@ function P1() {
       </div>
 
       <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
-    </div>
+      </div>
+    </AssistantLayout>
   );
 }
+
