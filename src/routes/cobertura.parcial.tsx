@@ -33,14 +33,15 @@ function Parcial() {
 
   if (!slot || !coverage || coverage.case !== 2) return null;
 
-  const suggested = parseYmd(coverage.suggestedDate);
+  const suggestedDate = coverage.suggestedDate;
+  const suggested = parseYmd(suggestedDate);
   const suggestedLabel = format(suggested, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
 
   function verCubiertas() {
     setSelectedSlot(undefined);
-    setDate(coverage.suggestedDate);
+    setDate(suggestedDate);
     setCoverageOnly(true);
-    setCoverageMinDate(coverage.suggestedDate);
+    setCoverageMinDate(suggestedDate);
     pushChat({
       from: "system",
       text: `Mostrando solo citas cubiertas por ${aseguradora ?? "tu aseguradora"} desde ${suggestedLabel}.`,
