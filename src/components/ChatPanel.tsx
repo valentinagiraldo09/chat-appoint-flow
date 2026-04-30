@@ -67,6 +67,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatPanel() {
+  const navigate = useNavigate();
   const chat = useBooking((s) => s.chat);
   const pushChat = useBooking((s) => s.pushChat);
   const clearChat = useBooking((s) => s.clearChat);
@@ -79,6 +80,8 @@ export function ChatPanel() {
   const resetFilters = useBooking((s) => s.resetFilters);
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const setService = useBooking((s) => s.setService);
+  const setIntent = useBooking((s) => s.setIntent);
+  const documento = useBooking((s) => s.documento);
 
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
