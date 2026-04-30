@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, Calendar, RefreshCw, X, CheckCircle2, CreditCard, Info } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { SPECIALTIES } from "@/mocks/catalog";
