@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver as zodResolver } from "@hookform/resolvers/standard-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Upload, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { useBooking } from "@/store/booking";
@@ -79,7 +79,8 @@ function P4() {
   }, [slot, navigate]);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema as any) as any,
     defaultValues: {
       tipoDocumento: "",
       numeroDocumento: "",
