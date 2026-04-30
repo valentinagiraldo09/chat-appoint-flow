@@ -68,6 +68,7 @@ function P4() {
   const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
   const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
   const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
+  const pushChat = useBooking((s) => s.pushChat);
 
   const [validating, setValidating] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -127,11 +128,23 @@ function P4() {
         setPaymentMethod("none");
         const code = `CIT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
         setConfirmationCode(code);
+        pushChat({
+          from: "bot",
+          text: `${values.aseguradora} cubre esta cita. La dejé confirmada sin pago.`,
+        });
         navigate({ to: "/confirmacion" });
       } else if (result.case === 2) {
-        navigate({ to: "/cobertura-fecha" });
-      } else {
+        pushChat({
+          from: "bot",
+          text: `${values.aseguradora} no cubre esta cita. Puedes pagar como particular o buscar otra.`,
+        });
         navigate({ to: "/cobertura-no" });
+      } else {
+        pushChat({
+          from: "bot",
+          text: `${values.aseguradora} cubre el servicio, pero no para esta fecha. Te muestro alternativas.`,
+        });
+        navigate({ to: "/cobertura-fecha" });
       }
     }, 1200);
   }

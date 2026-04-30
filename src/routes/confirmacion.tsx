@@ -23,7 +23,9 @@ function P7() {
   const aseguradora = useBooking((s) => s.aseguradora);
   const code = useBooking((s) => s.confirmationCode);
   const paymentMethod = useBooking((s) => s.paymentMethod);
+  const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const reset = useBooking((s) => s.reset);
+  const isCovered = paymentMethod === "none" && !payParticularOverride;
 
   useEffect(() => {
     if (!slot || !patient || !code) navigate({ to: "/" });
@@ -131,7 +133,7 @@ function P7() {
             <Row icon={<User className="h-4 w-4" />} label="Profesional" value={slot.profesional} />
             <Row icon={<MapPin className="h-4 w-4" />} label="Sede" value={`${slot.sede} — ${SEDE_ADDRESSES[slot.sede] ?? ""}`} />
           </div>
-          {paymentMethod === "none" && (
+          {isCovered && (
             <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
               <CheckCircle2 className="h-4 w-4" />
               Estado: Cubierta por tu aseguradora{aseguradora ? ` (${aseguradora})` : ""}
@@ -139,7 +141,7 @@ function P7() {
           )}
           <div className="mt-4 border-t border-border pt-4 flex justify-between">
             <span className="text-sm text-muted-foreground">
-              {paymentMethod === "none" ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
+              {isCovered ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
             </span>
             <span className="font-semibold">{formatCOP(slot.price)}</span>
           </div>

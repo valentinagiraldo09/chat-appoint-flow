@@ -1,76 +1,76 @@
-# Plan: Validaciones de cobertura por aseguradora
 
-Mantener la disponibilidad libre de cobertura. La validación se ejecuta cuando el paciente envía el formulario de datos personales en `/checkout`. Según el resultado, el flujo se ramifica en 3 caminos.
+# Ajustes al flujo de validación de cobertura
 
-## Cambios por archivo
+La implementación actual ya cubre el grueso del brief (validación post-formulario, loader de 1.2 s, tres escenarios, conservación del slot). Sin embargo, encontré varias desviaciones respecto a las reglas que enviaste. Este plan las corrige sin rehacer el flujo.
 
-### 1. `src/mocks/coverage.ts` — reglas deterministas más claras
-Mantener `validateCoverage(aseguradora, specialty, service, slotDate)` (añadir `slotDate`) con estos casos simulados:
-- **Particular** → no se llama validación, va directo a `/pago`.
-- **EPS Sanitas** → caso 1 (cubre).
-- **EPS Sura** → caso 3 (no cubre nunca → solo opción particular).
-- **EPS Compensar**:
-  - Si `slotDate < 2026-08-01` → caso 2 (cubre el servicio pero no la fecha; sugiere la primera disponibilidad ≥ Agosto 2026).
-  - Si `slotDate ≥ 2026-08-01` → caso 1.
-- Tipos: `case 1 | 2 | 3`. Caso 2 incluye `suggestedDate: string` (ymd).
+## Problemas detectados
 
-### 2. `src/store/booking.ts` — sin cambios estructurales
-Reutilizar `coverage`, `payParticularOverride`, `acceptedSuggestedDate`. Añadir helper `setDate` ya existe.
+1. **Mapeo de casos invertido en `coverage.ts`** (riesgo alto):
+   - El brief define: Caso 1 = cubre, Caso 2 = no cubre, Caso 3 = cubre pero en otra fecha.
+   - El mock actual usa: `case: 1` cubre, `case: 3` no cubre, `case: 2` cubre en otra fecha.
+   - El checkout enruta `case 2 → /cobertura-fecha` y `case 3 → /cobertura-no`, lo cual funciona accidentalmente, pero los números no coinciden con la documentación. Esto va a confundir cualquier ajuste futuro.
 
-### 3. `src/routes/checkout.tsx` — loader y enrutamiento por caso
-Reemplazar el banner inline `CoverageBanner` por navegación a una pantalla intermedia de decisión:
-- Mantener el formulario y el loader actual ("Validando cobertura...") con duración ~1.2s.
-- Tras `validateCoverage`:
-  - **Particular** → `navigate("/pago")` directo.
-  - **Caso 1 (cubre)** → set `paymentMethod = "none"`, generar `confirmationCode`, `navigate("/confirmacion")` directo. **No pasa por `/pago` ni por `/oportunidad`.**
-  - **Caso 2 (cubre pero fecha posterior)** → `navigate("/cobertura-fecha")`.
-  - **Caso 3 (no cubre)** → `navigate("/cobertura-no")`.
-- Eliminar el componente `CoverageBanner` y la rama `proceed()` que iba a `/oportunidad`.
+2. **Sura debería usar el escenario "no cubre" puro (Escenario 2 del brief)**. Hoy lo hace, solo hay que renumerar.
 
-### 4. Nueva ruta `src/routes/cobertura-no.tsx` (caso 3)
-Pantalla de decisión:
-- Mensaje: "Tu aseguradora no cubre esta cita."
-- Texto: "Puedes continuar como particular pagando el valor de la cita."
-- Resumen breve del slot seleccionado (fecha, hora, profesional, sede, valor).
-- Dos CTA:
-  - **Pagar como particular** → set `payParticularOverride=true`, `navigate("/pago")`.
-  - **Volver a buscar otra cita** → `navigate("/disponibilidad")` conservando `specialty` y `service` (no tocar el store salvo limpiar `selectedSlot`).
+3. **Compensar / Escenario 3**: el mensaje en `/cobertura-fecha` dice solo "la fecha más cercana...". El brief pide separar título y explicación: "Tu aseguradora cubre este servicio, pero no para la fecha seleccionada" + "La fecha más cercana disponible con cobertura de tu aseguradora es {fecha}".
 
-### 5. Nueva ruta `src/routes/cobertura-fecha.tsx` (caso 2)
-Pantalla de decisión con dos caminos:
-- Mensaje: "Tu aseguradora cubre este servicio, pero no para la fecha seleccionada."
-- Subtexto: "La fecha más cercana disponible con cobertura de tu aseguradora es {suggestedDate}."
-- Resumen de la cita actual.
-- Dos CTA:
-  - **Ver citas cubiertas por mi aseguradora** → `setDate(suggestedDate)`, limpiar `selectedSlot`, `navigate("/disponibilidad")`.
-  - **Pagar como particular y conservar esta cita** → set `payParticularOverride=true`, `navigate("/pago")`.
+4. **Botón "Ver citas cubiertas por mi aseguradora"** en `/cobertura-fecha`: hoy hace `setDate(suggestedDate)` y navega a `/disponibilidad`, pero **no marca al chat ni a la UI que esos resultados están filtrados por cobertura de aseguradora**. El usuario llega a disponibilidad sin contexto. Falta:
+   - Un mensaje del bot en el chat: "Te muestro las citas con cobertura de {aseguradora} desde {fecha}".
+   - Un badge/banner en `/disponibilidad` mientras `acceptedSuggestedDate` esté activo, indicando "Mostrando disponibilidad cubierta por {aseguradora}".
+   - Activar `setAcceptedSuggestedDate(true)` (hoy se setea en `false` al entrar al checkout pero nunca en `true`).
 
-### 6. `src/routes/confirmacion.tsx` — etiqueta de cobertura
-Cuando `paymentMethod === "none"` (cubierta por aseguradora), mostrar un badge verde:
-"Estado: Cubierta por tu aseguradora" en el bloque de detalles, encima del valor. Asegurar que el resumen incluya: Servicio, Profesional, Fecha, Hora, Tipo de atención (`slot.attention`), Aseguradora, Estado. Los seis ya existen salvo "Estado", se añade.
+5. **Confirmación cuando paga particular tras Escenario 2 o 3**: el brief no pide cambios visibles, pero hoy el badge "Cubierta por tu aseguradora" solo se muestra si `paymentMethod === "none"`. Está OK; solo verificar que no aparezca por error cuando `payParticularOverride` es true.
 
-### 7. `src/routeTree.gen.ts`
-Lo regenera el plugin de TanStack Router al añadir los archivos de ruta nuevos.
+6. **Mensaje de loader y copys**: el brief insiste en evitar tecnicismos. Revisar que el botón diga "Validando cobertura..." (ya está) y que los títulos de las pantallas de decisión no usen palabras como "Cobertura no disponible" en `<title>` (es interno, aceptable, pero el H1 ya está bien).
 
-## Flujo resultante
+7. **Chat bidireccional**: cuando el sistema enruta a `/cobertura-no` o `/cobertura-fecha`, el `ChatPanel` debe emitir un mensaje del bot explicando lo que pasó, para mantener la coherencia conversacional que ya implementamos en otros pasos.
 
-```text
-/checkout (submit)
-  └─ loader 1.2s → validateCoverage
-       ├─ Particular        → /pago
-       ├─ Caso 1 (cubre)    → /confirmacion (sin pago)
-       ├─ Caso 2 (fecha)    → /cobertura-fecha
-       │     ├─ Ver cubiertas  → /disponibilidad (date=suggested)
-       │     └─ Pagar particular → /pago
-       └─ Caso 3 (no cubre) → /cobertura-no
-             ├─ Pagar particular → /pago
-             └─ Volver a buscar  → /disponibilidad
-```
+## Cambios propuestos
 
-## Notas
+### `src/mocks/coverage.ts`
+- Renumerar el tipo `CoverageResult`:
+  - `case: 1` → cubre (igual).
+  - `case: 2` → no cubre (hoy es 3).
+  - `case: 3` → cubre pero en otra fecha, incluye `suggestedDate` (hoy es 2).
+- Ajustar las reglas de Sanitas (1), Sura (2), Compensar (1 o 3 según fecha).
 
-- En todos los caminos donde el usuario opta por particular, `selectedSlot` se conserva intacto.
-- En "Ver citas cubiertas" (caso 2), se cambia `date` y se limpia `selectedSlot` para que `/disponibilidad` recalcule.
-- La ruta `/oportunidad` deja de usarse después de validación de cobertura; queda accesible solo si en el futuro se vuelve a enrutar (no se elimina en este cambio).
-- Mensajes en lenguaje claro, sin "validación fallida" ni jerga técnica.
-- Cada transición que dispare validación o búsqueda usa loader visible.
+### `src/routes/checkout.tsx`
+- Actualizar el `switch` post-validación: `case 1 → confirmación`, `case 2 → /cobertura-no`, `case 3 → /cobertura-fecha`.
+- Después de routear a las pantallas de decisión, hacer `pushChat` con un mensaje del bot que resuma el resultado (p. ej. "{Aseguradora} no cubre esta cita. Puedes pagar como particular o buscar otra.").
+
+### `src/routes/cobertura-fecha.tsx`
+- Cambiar el chequeo de `coverage.case !== 2` por `!== 3`.
+- Reescribir el copy: título y subtítulo separados según brief.
+- En `verCubiertas()`: hacer `setAcceptedSuggestedDate(true)`, `pushChat({ from: "bot", text: "Te muestro las citas con cobertura de {aseguradora} desde {fecha}." })` y luego navegar.
+
+### `src/routes/cobertura-no.tsx`
+- Cambiar el chequeo implícito de `coverage.case` para alinearse al nuevo número 2 (validar que solo se renderice si coverage.case === 2; hoy no valida, así que solo agregar el guard).
+- En `pagarParticular()`: pushChat con "Continuamos con pago particular para tu cita seleccionada."
+- En `buscarOtra()`: pushChat con "Vamos a buscar otra cita para {servicio}." y limpiar `selectedSlot` (ya lo hace).
+
+### `src/routes/disponibilidad.tsx`
+- Si `acceptedSuggestedDate === true` y `aseguradora` está definida, mostrar un banner superior:
+  > Mostrando disponibilidad cubierta por **{aseguradora}** a partir del **{fecha}**.
+- Botón secundario en el banner: "Ver todas las disponibles" → `setAcceptedSuggestedDate(false)` y `setDate(undefined)`.
+
+### `src/routes/confirmacion.tsx`
+- Asegurar que el badge "Cubierta por tu aseguradora" solo aparezca cuando `paymentMethod === "none"` y `payParticularOverride !== true` (ya cumple, solo añadir la segunda condición por defensa).
+
+### `src/components/ChatPanel.tsx`
+- (Opcional, ligero) Detectar si la ruta cambia a `/cobertura-no`, `/cobertura-fecha` o `/confirmacion` con cobertura, y empujar mensajes contextuales si aún no se hizo desde el origen. La ruta principal ya es generar los mensajes desde el callsite (checkout / pantallas de decisión), así que aquí solo se documenta.
+
+## Detalles técnicos
+
+- El renumerado del enum no rompe nada porque `CoverageResult` solo se construye en `coverage.ts` y se consume en checkout + las dos pantallas de decisión.
+- `acceptedSuggestedDate` ya existe en el store; solo no se estaba activando.
+- No se requieren nuevas rutas, ni cambios en `routeTree.gen.ts`, ni nuevas dependencias.
+- No se modifica el flujo de Particular (sigue saltando validación y yendo directo a `/pago`).
+
+## Pruebas manuales sugeridas
+
+1. **Sanitas + Cardiología Primera vez** → loader → confirmación con badge "Cubierta por tu aseguradora", sin pasar por pago.
+2. **Sura + cualquier servicio** → loader → `/cobertura-no` → "Pagar como particular" → `/pago`. También probar "Volver a buscar otra cita".
+3. **Compensar + fecha < Ago 2026** → loader → `/cobertura-fecha` con copy correcto → "Ver citas cubiertas" → `/disponibilidad` con banner activo en Ago 2026 → seleccionar slot → checkout con Compensar → confirmación cubierta.
+4. **Compensar + fecha ≥ Ago 2026** → loader → confirmación cubierta directa.
+5. **Particular** → no muestra loader de cobertura, va directo a `/pago`.
+6. Revisar que el chat acompañe cada decisión con un mensaje contextual.
