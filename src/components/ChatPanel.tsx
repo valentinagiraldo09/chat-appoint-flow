@@ -59,6 +59,15 @@ function detectSpecialty(t: string): Specialty | undefined {
   return undefined;
 }
 
+function detectMgmtIntent(lower: string): Intent | null {
+  if (lower.includes("reagend") || lower.includes("cambiar mi cita") || lower.includes("mover mi cita")) return "reagendar";
+  if (lower.includes("cancel")) return "cancelar";
+  if (lower.includes("confirm")) return "confirmar";
+  if (lower.includes("pagar mi cita") || lower.includes("pagar la cita")) return "pagar";
+  if (lower.includes("mis citas") || lower.includes("ver mis citas")) return "reagendar";
+  return null;
+}
+
 const SUGGESTIONS = [
   "Mostrar solo en la mañana",
   "Quiero telemedicina",
