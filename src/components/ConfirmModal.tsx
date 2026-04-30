@@ -7,7 +7,6 @@ import { formatCOP } from "@/mocks/catalog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { rescheduleAppointment } from "@/mocks/appointments";
 
 export function ConfirmModal({
   slot,
@@ -22,33 +21,12 @@ export function ConfirmModal({
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
-  const intent = useBooking((s) => s.intent);
-  const currentAppointmentId = useBooking((s) => s.currentAppointmentId);
-  const pushChat = useBooking((s) => s.pushChat);
-  const setFlowResult = useBooking((s) => s.setFlowResult);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
-  const isReagendar = intent === "reagendar" && !!currentAppointmentId;
 
   function onConfirm() {
     if (!slot) return;
-    if (isReagendar && currentAppointmentId) {
-      rescheduleAppointment(currentAppointmentId, {
-        date: slot.date,
-        hour: slot.hour,
-        minute: slot.minute,
-        profesional: slot.profesional,
-        sede: slot.sede,
-        attention: slot.attention,
-        price: slot.price,
-      });
-      pushChat({ from: "system", text: `🔄 Cita reagendada para ${format(parseYmd(slot.date), "EEEE d 'de' MMMM", { locale: es })} a las ${formatTime(slot.hour, slot.minute)}.` });
-      setFlowResult("confirmed");
-      onOpenChange(false);
-      navigate({ to: "/mis-citas" });
-      return;
-    }
     setSelectedSlot(slot);
     onOpenChange(false);
     navigate({ to: "/checkout" });
@@ -57,7 +35,7 @@ export function ConfirmModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <h2 className="text-2xl font-bold">{isReagendar ? "¿Confirmar reagendamiento?" : "¿Avanzamos con esta cita?"}</h2>
+        <h2 className="text-2xl font-bold">¿Avanzamos con esta cita?</h2>
         <div className="mt-4 rounded-xl border border-border bg-muted/40 p-5">
           <div className="flex items-start justify-between">
             <div>
@@ -101,7 +79,7 @@ export function ConfirmModal({
             className="rounded-full bg-foreground text-background hover:bg-foreground/90"
             onClick={onConfirm}
           >
-            {isReagendar ? "Sí, reagendar" : "Sí, avanzar"}
+            Sí, avanzar
           </Button>
         </div>
       </DialogContent>

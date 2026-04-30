@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { ASEGURADORAS, TIPOS_DOCUMENTO } from "@/mocks/catalog";
-import { validateCoverage } from "@/mocks/coverage";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { cn } from "@/lib/utils";
@@ -59,18 +58,9 @@ function Field({
 function P4() {
   const navigate = useNavigate();
   const slot = useBooking((s) => s.selectedSlot);
-  const specialty = useBooking((s) => s.specialty);
-  const service = useBooking((s) => s.service);
   const setPatient = useBooking((s) => s.setPatient);
   const setAseguradora = useBooking((s) => s.setAseguradora);
-  const setCoverage = useBooking((s) => s.setCoverage);
-  const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
-  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
-  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
-  const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
-  const pushChat = useBooking((s) => s.pushChat);
 
-  const [validating, setValidating] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -102,51 +92,7 @@ function P4() {
       direccion: values.direccion,
     });
     setAseguradora(values.aseguradora);
-    setAcceptedSuggestedDate(false);
-
-    if (values.aseguradora === "Particular") {
-      setCoverage({ case: 1, message: "Pago particular" });
-      setPayParticularOverride(true);
-      navigate({ to: "/pago" });
-      return;
-    }
-
-    setValidating(true);
-    setTimeout(() => {
-      const result = validateCoverage(
-        values.aseguradora,
-        specialty ?? "",
-        service ?? "",
-        slot?.date,
-      );
-      setCoverage(result);
-      setValidating(false);
-
-      if (result.case === 1) {
-        // Cubierta por aseguradora → directo a confirmación, sin pago
-        setPayParticularOverride(false);
-        setPaymentMethod("none");
-        const code = `CIT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-        setConfirmationCode(code);
-        pushChat({
-          from: "bot",
-          text: `${values.aseguradora} cubre esta cita. La dejé confirmada sin pago.`,
-        });
-        navigate({ to: "/confirmacion" });
-      } else if (result.case === 2) {
-        pushChat({
-          from: "bot",
-          text: `${values.aseguradora} no cubre esta cita. Puedes pagar como particular o buscar otra.`,
-        });
-        navigate({ to: "/cobertura-no" });
-      } else {
-        pushChat({
-          from: "bot",
-          text: `${values.aseguradora} cubre el servicio, pero no para esta fecha. Te muestro alternativas.`,
-        });
-        navigate({ to: "/cobertura-fecha" });
-      }
-    }, 1200);
+    navigate({ to: "/pago" });
   }
 
   function onFiles(list: FileList | null) {
@@ -252,11 +198,9 @@ function P4() {
             <Button
               type="submit"
               size="lg"
-              disabled={validating}
               className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
             >
-              {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {validating ? "Validando cobertura..." : "Continuar"}
+              Continuar al pago
             </Button>
           </div>
         </form>
