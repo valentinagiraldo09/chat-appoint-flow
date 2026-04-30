@@ -175,10 +175,11 @@ function P0() {
     setSpecialty(s);
     setBubbles((b) => [...b, { from: "user", text: s }]);
     botSay(`Genial, busquemos disponibilidad para ${s}…`, () => {
-      setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+      transferChatAndGo(s);
     });
     setStep("other");
   }
+
 
   // ===== Vista inicial (hero) =====
   if (!inChat) {
