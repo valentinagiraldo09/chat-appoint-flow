@@ -20,6 +20,7 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
+import { AssistantLayout } from "@/components/AssistantLayout";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/disponibilidad")({
