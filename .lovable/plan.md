@@ -1,104 +1,106 @@
-# Prototipo funcional — Agendamiento médico con asistente
 
-Voy a construir un prototipo navegable end-to-end (P0 → P7) con datos mock dinámicos, estados simulados (loaders, validaciones, filtros) y un calendario inteligente conectado a la disponibilidad. Sin backend real; toda la lógica vive en el cliente.
+# Plan: implementar los 5 casos del asistente según el intent elegido en P0
 
-## Arquitectura y estado
+Quiero adaptar el asistente actual (`src/routes/index.tsx` + flujo P1→P5) para que el **intent seleccionado en P0** o detectado en el primer mensaje libre dispare uno de estos 5 sub-flujos, replicando la lógica de los flujos de WhatsApp que enviaste. Todo se mantiene como prototipo funcional con datos mock y persistencia en `sessionStorage` (ya existe en `useBooking`).
 
-- Stack actual: TanStack Start + React + Tailwind + shadcn/ui (ya instalado).
-- Una ruta por pantalla en `src/routes/`: `index.tsx` (P0), `disponibilidad.tsx` (P1), `horarios.tsx` (P2), `buscar-fecha.tsx` (P3), `checkout.tsx` (P4), `oportunidad.tsx` (P5), `pago.tsx` (P6), `confirmacion.tsx` (P7).
-- **Estado global del flujo** con Zustand (`src/store/booking.ts`): especialidad, servicio, fecha, slot seleccionado, filtros activos, datos del paciente, aseguradora, resultado de cobertura, método de pago. Persistencia en `sessionStorage` para sobrevivir refresh.
-- **Mocks dinámicos** (`src/mocks/`):
-  - `catalog.ts`: especialidades, servicios jerárquicos (Cardiología → Primera vez/Control, etc.), sedes (4+), profesionales (6+), tipos de atención, franjas, aseguradoras.
-  - `availability.ts`: generador determinístico (seed por fecha) que produce días disponibles del mes y, para cada día disponible, una lista variada de slots (hora, profesional, sede, tipo, precio). No se repite la misma data en días distintos.
-  - `coverage.ts`: lógica que decide caso 1/2/3 según aseguradora + servicio (determinístico, no random puro, para que sea reproducible).
+## 1. Nueva capa de mocks
 
-## P0 — Asistente inicial
+**`src/mocks/patients.ts`** (nuevo)
+- `MOCK_PATIENTS`: lista de pacientes con `documento`, `nombre`, `email`, `celular`, `telAlterno`. Al menos 2 documentos pre-cargados (ej. `1001370488` → "Valentina COCO" con cita activa, `1001370490` → paciente sin citas) y un caso “no existe” para el flujo nuevo.
+- `findPatient(doc)`, `createPatient(data)`.
 
-- Hero centrado con input grande (placeholder "¿Qué quieres hacer hoy?") y debajo chips de intención (Agendar, Reagendar, Cancelar, Confirmar, Pagar, Consultar).
-- Área tipo chat inline debajo: al elegir "Agendar una cita" o escribir texto que matchee keywords (`agendar`, `cita`, `doctor`, `reservar`, `turno`), aparece burbuja del asistente: "¿Qué especialidad necesitas?" + chips (Dermatología, Medicina General, Ginecología, Optometría, Pediatría, Cardiología).
-- Otras intenciones muestran respuesta corta + CTA placeholder ("Próximamente" o navegación equivalente) — el flujo principal es Agendar.
-- Al elegir especialidad → guarda en store y navega a P1.
-- Detección de keywords con un matcher determinístico (sin IA).
+**`src/mocks/appointments.ts`** (nuevo)
+- `MOCK_APPOINTMENTS`: array mutable en memoria con citas existentes asignadas a un documento (servicio, fecha futura, sede, profesional, modalidad, estado: `pendiente_pago | confirmada | cancelada`, precio, requiere cobro sí/no).
+- Helpers: `getAppointmentsByDoc`, `cancelAppointment`, `confirmAppointment`, `rescheduleAppointment(id, newSlot)`, `markPaid`.
+- Generación determinística para que cada documento siempre vea las mismas citas en la sesión.
 
-## P1 — Disponibilidad
+**`src/mocks/coverage.ts`** (ya existe) — añadir flag `requiresAgent` para EPS específicas (ej. "EPS Sura" cuando paciente es nuevo) → dispara el flujo "transferir a agente".
 
-- Header con barra de búsqueda: dropdown jerárquico de servicio (especialidad → sub-servicio), date picker inteligente, botón Buscar. **Sin aseguradora.**
-- Fila de filtros (chips/dropdowns con buscador interno usando `Command` de shadcn): Sede, Profesional, Tipo de atención, Franja. Filtros activos se muestran como chips removibles.
-- Resultados en dos secciones: "Lo más pronto disponible — Hoy" (3 cards: mañana/mediodía/tarde) y "Mañana" (3 cards). Cada card: hora, profesional, sede, tag de tipo de atención, precio en COP. Botón "Ver más" → P2. Botón "Buscar otra fecha" → P3.
-- Al cambiar cualquier filtro o fecha: loader skeleton ~600ms y se re-renderiza la lista filtrada desde el mock.
+## 2. Cambios en el store (`src/store/booking.ts`)
 
-### Calendario inteligente (P1 y P3)
+Añadir:
+- `intent?: "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar"`
+- `documento?: string`
+- `acceptedTerms: boolean`
+- `currentAppointmentId?: string` (para reagendar/cancelar/confirmar)
+- `flowResult?: "no_availability" | "transferred_to_agent" | "cancelled" | "confirmed" | "paid"` para mostrar pantalla final apropiada.
+- Setters correspondientes.
 
-- Popover con calendario mensual custom basado en `react-day-picker` (ya viene con shadcn).
-- Días con disponibilidad: borde/fondo verde suave, clickeables.
-- Días sin disponibilidad: gris, `disabled`, no clickeables.
-- Navegación entre meses respeta el mismo patrón.
-- Al seleccionar día disponible: cierra popover, dispara loader, reemplaza slots con los del nuevo día.
-- Link "Limpiar fecha" para volver a "lo más pronto".
+## 3. Refactor de P0 (`src/routes/index.tsx`)
 
-## P2 — Ver más horarios
+El asistente sigue siendo conversacional, pero después del intent inicial entra en una **máquina de estados** dentro del chat (no se navega aún) que pide:
 
-- Título con la fecha seleccionada, mismos filtros que P1 (compartidos vía store), grid completo de slots del día (12–20 cards generados por el mock).
-- Click en slot → modal de confirmación. Botón Atrás → P1.
+```text
+[gate] Términos y condiciones (chips Sí/No)
+   → [doc] Pedir número de documento
+        → si existe paciente: saludo + pedir intent (si no vino claro)
+        → si NO existe: pedir nombre, email, confirmar celular, tel alterno
+                          → registrar en mocks → continuar como agendar
+```
 
-## P3 — Buscar otra fecha
+Una vez identificado el paciente y el intent, navega al sub-flujo correspondiente. La barra de chat fija (ya existente) gestiona toda esta conversación.
 
-- Layout 2 columnas (desktop): izquierda lista de slots del día seleccionado, derecha calendario inteligente grande (heatmap: intensidad según cantidad de slots disponibles ese día).
-- Cambio de fecha → loader → nuevos slots a la izquierda, respetando filtros activos.
-- Mobile: calendario arriba, slots abajo.
+## 4. Sub-flujos por intent
 
-## Modal de confirmación
+### A. Agendar — sin disponibilidad
+- Tras elegir especialidad + servicio + aseguradora, si `findNextAvailableDate(...)` devuelve `null` para esa combinación específica (forzaremos esto cuando especialidad = "Dermatología" + servicio = "Procedimiento" como en el ejemplo, vía un override en mocks):
+  - Mensaje del bot: “Lo siento, por ahora no tengo citas disponibles para este sub-servicio…”
+  - Pantalla nueva `src/routes/sin-disponibilidad.tsx` con CTA “Notificarme cuando abra” (mock toast) y “Volver al inicio”.
 
-- Dialog centrado: fecha, hora, servicio, profesional, tipo atención, precio. Botones "Cerrar" y "Sí, avanzar" → guarda slot en store y navega a P4. Click fuera cierra.
+### B. Agendar — con disponibilidad y cobro (flujo principal ya existente)
+- Reutiliza `/disponibilidad` → `/horarios` → `/checkout` → **nuevo paso** “Confirmar datos de contacto” (chips Sí/No) → `/pago` → `/confirmacion`.
+- Añadir en `/checkout` la pantalla intermedia que muestra los datos del paciente actuales y permite confirmar/editar (replicando el “¿Tus datos siguen siendo los mismos?”).
+- Si la cita tiene `precio > 0` y aseguradora = Particular o `coverage.requiresPay`, mostrar paso de cobro con opciones “Pagar ahora / Pagar después”. Si “Pagar después” → ir directo a confirmación con estado `pendiente_pago`.
 
-## P4 — Checkout + validaciones
+### C. Confirmar asistencia (con cobro)
+- Nueva ruta `src/routes/mis-citas.tsx` que lista las citas mock del documento, mostrando estado.
+- Selección → detalle → si requiere pago: ir a `/pago` con flag `purpose=confirm`. Tras pagar: `markPaid` + pantalla “Cita pagada y confirmada”.
+- Si no requiere pago: confirmación directa.
 
-- Formulario (react-hook-form + zod): tipo documento (select), número, nombre, email, teléfono, dirección, checkbox tratamiento de datos (obligatorio), uploader opcional (máx 3 archivos / 15 MB, .jpg .png .pdf — validado en cliente, sin upload real).
-- **Sección aseguradora**: dropdown con EPS A, EPS B, EPS C, Particular.
-- Al hacer "Continuar": loader 1s simulando validación, luego se resuelve uno de 3 casos según mapping determinístico (aseguradora + servicio):
-  - **Caso 1 — Cubre**: banner verde "Tu aseguradora cubre esta cita" → P5.
-  - **Caso 2 — Cubre con disponibilidad posterior**: banner ámbar + dos botones "Tomar fecha sugerida (DD/MM)" o "Pagar particular" → ambos van a P5 con flag.
-  - **Caso 3 — No cubre**: banner rojo + botón "Pagar particular" → P5.
-- Si elige Particular en el dropdown, salta la validación y va directo a P5 como pago particular.
+### D. Reagendar (gestionar cita)
+- Misma `mis-citas.tsx` pero con acciones: **Reagendar** | **Cancelar**.
+- Reagendar → `/disponibilidad` precargado con la especialidad y sede de la cita original → al elegir slot → mismo paso de cobro/confirmación → `rescheduleAppointment` actualiza el mock → pantalla resumen final con todos los detalles (replicando el bloque “esta es la información de su cita” con recomendaciones).
 
-## P5 — Oportunidad de cita
+### E. Cancelar
+- Desde `mis-citas.tsx` → confirmar acción en modal (`ConfirmModal` ya existe) → `cancelAppointment` → toast “La cita se canceló con éxito” + estado actualizado en lista.
 
-- Pregunta "¿Encontraste la cita que querías?" con dos botones grandes Sí / No.
-- Si **No**: aparece el calendario inteligente con campo "fecha preferida" (registra preferencia en el store, no cambia la cita real).
-- Botón Continuar → P6.
+### F. Paciente nuevo + remitir a agente
+- Si en el flujo de creación de paciente, al pedir aseguradora el usuario elige una marcada como `requiresAgent` (mock: "EPS Sura" para pacientes nuevos):
+  - Bot dice “Te estoy conectando con uno de nuestros agentes…”
+  - Pantalla nueva `src/routes/agente.tsx` con loader animado y simulación “Agente conectado en ~30s” (estático, sin polling real).
 
-## P6 — Pago
+## 5. Sincronización con el ChatPanel lateral
 
-- Resumen completo de la cita (card con todos los datos del store).
-- Si cobertura completa (Caso 1 sin override a particular): opciones "Confirmar sin pago" y "Pagar en clínica".
-- Si particular: muestra valor + opciones "Pagar ahora" (loader 1.5s simulando pasarela) y "Pagar en clínica".
-- Continuar → P7.
+`ChatPanel` ya escucha cambios de filtros. Le añado:
+- Reconocimiento de comandos del nuevo dominio: “cancela mi cita”, “quiero reagendar”, “confirma mi asistencia” → cambian `intent` y navegan a `/mis-citas`.
+- Mensajes `system` cuando se complete una acción (cancelación, pago, reagendamiento) para que el usuario vea el eco bidireccional en el chat.
 
-## P7 — Confirmación
+## 6. Nuevas rutas a crear
 
-- Check verde grande, "Tu cita quedó confirmada", resumen (fecha, hora, servicio, profesional, tipo atención, sede si aplica, código de cita generado).
-- Acciones:
-  - **Descargar PDF**: genera PDF en cliente con `jspdf`.
-  - **Guardar en calendario**: descarga `.ics` generado en cliente.
-  - **Agendar otra cita**: limpia el store y vuelve a P0.
+```text
+src/routes/sin-disponibilidad.tsx   → flujo A
+src/routes/mis-citas.tsx            → flujos C, D, E (lista + detalle inline)
+src/routes/agente.tsx               → flujo F
+```
 
-## Detalles transversales
+Las rutas existentes `/disponibilidad`, `/horarios`, `/checkout`, `/pago`, `/confirmacion` se reutilizan, ajustando `/checkout` para incluir el paso de confirmación de datos de contacto y respetar `intent` (reagendar vs agendar nuevo).
 
-- Botón "Atrás" en cada pantalla (excepto P0 y P7) usando el router.
-- Skeletons en lugar de spinners cuando se cargan listas; spinner pequeño en validaciones/pago.
-- Responsive: en mobile las dos columnas de P3 colapsan, los filtros de P1 entran en un sheet, y el chat de P0 ocupa toda la pantalla.
-- Persistencia del flujo entre rutas vía Zustand + sessionStorage para que refrescar no rompa el prototipo.
-- Tipografía/espaciado neutros con tokens existentes (no se busca pixel-perfect con la referencia, pero los chips, cards y modales siguen el lenguaje visual de las imágenes: pill buttons, tags ámbar para tipo de atención, banner verde de "lo más pronto").
+## 7. Detalles técnicos
 
-## Dependencias nuevas
+- **Persistencia**: todo el estado nuevo va en `useBooking` (sessionStorage); las mutaciones de citas viven en módulo `appointments.ts` con `let` array (se resetea al recargar — aceptable para prototipo).
+- **Detección NLP en P0**: ampliar `detectIntent` para “confirmar mi cita”, “cancelar”, “reagendar” (ya existe parcial). El intent detectado salta el menú de chips si el documento ya está dado.
+- **Términos y condiciones**: gate único por sesión (`acceptedTerms` en store). Si ya aceptó, no se vuelve a pedir.
+- **Mensajería**: replicar tono y emojis de los flujos WA (mensajes del bot literalmente parecidos a los pegados, en español, con saltos de línea).
+- **Datos contacto editable**: dentro de `/checkout`, modal con form (nombre, email, celular, tel alterno) → al guardar actualiza el paciente mock.
 
-- `zustand` (estado global)
-- `react-hook-form` + `zod` + `@hookform/resolvers` (form P4)
-- `jspdf` (PDF de confirmación)
-- `date-fns` (manejo de fechas/heatmap)
-- `lucide-react` ya disponible.
+## 8. Orden de implementación
 
-## Notas técnicas
+1. Mocks: `patients.ts`, `appointments.ts`, ampliar `coverage.ts`.
+2. Store: añadir `intent`, `documento`, `acceptedTerms`, `currentAppointmentId`, `flowResult`.
+3. Refactor P0: máquina de estados gate → doc → (registro si nuevo) → enrutar por intent.
+4. Crear `sin-disponibilidad.tsx`, `mis-citas.tsx`, `agente.tsx`.
+5. Ajustar `/checkout` (paso confirmación contacto + soporte `intent=reagendar`) y `/pago` (soporte `purpose=confirm`).
+6. Ampliar `ChatPanel` con comandos de gestión.
+7. QA manual de los 5 flujos en preview.
 
-- Toda la "API" vive en `src/mocks/api.ts` exponiendo funciones async (`searchSlots`, `getDayAvailability`, `validateCoverage`) que devuelven `Promise` con `setTimeout` para simular latencia, así el código de UI ya queda preparado por si después se conecta a backend real.
-- Rutas tipadas TanStack; cada ruta con su `head()` propio.
+¿Apruebas este plan para que lo implemente?

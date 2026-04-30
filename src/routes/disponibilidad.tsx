@@ -152,6 +152,16 @@ function P1() {
     if (!specialty) navigate({ to: "/" });
   }, [specialty, navigate]);
 
+  // Redirect to "sin-disponibilidad" si no hay nada en los próximos 90 días
+  useEffect(() => {
+    if (!specialty || !service) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!findNextAvailableDate(today, specialty, service)) {
+      navigate({ to: "/sin-disponibilidad" });
+    }
+  }, [specialty, service, navigate]);
+
   const [loading, setLoading] = useState(true);
   const [, setTick] = useState(0);
   const [modalSlot, setModalSlot] = useState<Slot | null>(null);

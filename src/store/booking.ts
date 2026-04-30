@@ -13,6 +13,13 @@ export type Filters = {
 
 export type ChatMsg = { id: string; from: "bot" | "user" | "system"; text: string; ts: number };
 
+export type Intent =
+  | "agendar"
+  | "reagendar"
+  | "cancelar"
+  | "confirmar"
+  | "pagar"
+  | "consultar";
 
 export type Patient = {
   tipoDocumento: string;
@@ -23,10 +30,23 @@ export type Patient = {
   direccion: string;
 };
 
+export type FlowResult =
+  | "no_availability"
+  | "transferred_to_agent"
+  | "cancelled"
+  | "confirmed"
+  | "paid";
+
 export type BookingState = {
+  intent?: Intent;
+  documento?: string;
+  acceptedTerms: boolean;
+  currentAppointmentId?: string;
+  flowResult?: FlowResult;
+
   specialty?: string;
   service?: string;
-  date?: string; // yyyy-mm-dd, undefined = "lo más pronto"
+  date?: string;
   filters: Filters;
   selectedSlot?: Slot;
   patient?: Patient;
@@ -39,6 +59,12 @@ export type BookingState = {
   confirmationCode?: string;
   chat: ChatMsg[];
   filterSource?: "ui" | "chat" | "init";
+
+  setIntent: (i?: Intent) => void;
+  setDocumento: (d?: string) => void;
+  setAcceptedTerms: (v: boolean) => void;
+  setCurrentAppointmentId: (id?: string) => void;
+  setFlowResult: (r?: FlowResult) => void;
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
@@ -58,10 +84,16 @@ export type BookingState = {
   pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
   clearChat: () => void;
   reset: () => void;
+  resetBookingOnly: () => void;
 };
 
 
 const initial = {
+  intent: undefined,
+  documento: undefined,
+  acceptedTerms: false,
+  currentAppointmentId: undefined,
+  flowResult: undefined,
   specialty: undefined,
   service: undefined,
   date: undefined,
@@ -83,6 +115,11 @@ export const useBooking = create<BookingState>()(
   persist(
     (set) => ({
       ...initial,
+      setIntent: (i) => set({ intent: i }),
+      setDocumento: (d) => set({ documento: d }),
+      setAcceptedTerms: (v) => set({ acceptedTerms: v }),
+      setCurrentAppointmentId: (id) => set({ currentAppointmentId: id }),
+      setFlowResult: (r) => set({ flowResult: r }),
       setSpecialty: (s) => set({ specialty: s }),
       setService: (s) => set({ service: s }),
       setDate: (d) => set({ date: d }),
@@ -113,6 +150,24 @@ export const useBooking = create<BookingState>()(
         })),
       clearChat: () => set({ chat: [] }),
       reset: () => set({ ...initial }),
+      // Reset solo del flujo de booking, manteniendo paciente/intent/términos
+      resetBookingOnly: () =>
+        set({
+          specialty: undefined,
+          service: undefined,
+          date: undefined,
+          filters: {},
+          selectedSlot: undefined,
+          aseguradora: undefined,
+          coverage: undefined,
+          acceptedSuggestedDate: false,
+          payParticularOverride: false,
+          preferredDate: undefined,
+          paymentMethod: undefined,
+          confirmationCode: undefined,
+          flowResult: undefined,
+          currentAppointmentId: undefined,
+        }),
     }),
 
     {

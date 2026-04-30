@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Stethoscope, Mic } from "lucide-react";
-import { useBooking, type Filters } from "@/store/booking";
+import { useNavigate } from "@tanstack/react-router";
+import { useBooking, type Filters, type Intent } from "@/store/booking";
 import {
   SEDES,
   PROFESIONALES,
@@ -58,6 +59,15 @@ function detectSpecialty(t: string): Specialty | undefined {
   return undefined;
 }
 
+function detectMgmtIntent(lower: string): Intent | null {
+  if (lower.includes("reagend") || lower.includes("cambiar mi cita") || lower.includes("mover mi cita")) return "reagendar";
+  if (lower.includes("cancel")) return "cancelar";
+  if (lower.includes("confirm")) return "confirmar";
+  if (lower.includes("pagar mi cita") || lower.includes("pagar la cita")) return "pagar";
+  if (lower.includes("mis citas") || lower.includes("ver mis citas")) return "reagendar";
+  return null;
+}
+
 const SUGGESTIONS = [
   "Mostrar solo en la mañana",
   "Quiero telemedicina",
@@ -66,6 +76,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatPanel() {
+  const navigate = useNavigate();
   const chat = useBooking((s) => s.chat);
   const pushChat = useBooking((s) => s.pushChat);
   const clearChat = useBooking((s) => s.clearChat);
@@ -78,6 +89,8 @@ export function ChatPanel() {
   const resetFilters = useBooking((s) => s.resetFilters);
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const setService = useBooking((s) => s.setService);
+  const setIntent = useBooking((s) => s.setIntent);
+  const documento = useBooking((s) => s.documento);
 
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -151,6 +164,20 @@ export function ChatPanel() {
     const lower = text.toLowerCase();
     let acted = false;
     const applied: string[] = [];
+
+    // Comandos de gestión de citas
+    const mgmtIntent = detectMgmtIntent(lower);
+    if (mgmtIntent) {
+      if (!documento) {
+        botSay("Para gestionar tus citas necesito tu documento. Inicia el flujo desde el inicio.");
+        return true;
+      }
+      setIntent(mgmtIntent);
+      const verb = mgmtIntent === "reagendar" ? "reagendar" : mgmtIntent === "cancelar" ? "cancelar" : mgmtIntent === "confirmar" ? "confirmar" : "pagar";
+      botSay(`Te llevo a tus próximas citas para ${verb}…`);
+      setTimeout(() => navigate({ to: "/mis-citas" }), 400);
+      return true;
+    }
 
     // Limpiar filtros
     if (lower.includes("limpia") || lower.includes("quita") || lower.includes("remover") || lower.includes("borra") && lower.includes("filtro")) {
