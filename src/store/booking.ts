@@ -11,6 +11,9 @@ export type Filters = {
   franja?: Franja;
 };
 
+export type ChatMsg = { id: string; from: "bot" | "user" | "system"; text: string; ts: number };
+
+
 export type Patient = {
   tipoDocumento: string;
   numeroDocumento: string;
