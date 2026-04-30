@@ -17,6 +17,8 @@ import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoberturaParcialRouteImport } from './routes/cobertura.parcial'
+import { Route as CoberturaNoCubreRouteImport } from './routes/cobertura.no-cubre'
 
 const PagoRoute = PagoRouteImport.update({
   id: '/pago',
@@ -58,6 +60,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoberturaParcialRoute = CoberturaParcialRouteImport.update({
+  id: '/cobertura/parcial',
+  path: '/cobertura/parcial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoberturaNoCubreRoute = CoberturaNoCubreRouteImport.update({
+  id: '/cobertura/no-cubre',
+  path: '/cobertura/no-cubre',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +80,8 @@ export interface FileRoutesByFullPath {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
+  '/cobertura/parcial': typeof CoberturaParcialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +92,8 @@ export interface FileRoutesByTo {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
+  '/cobertura/parcial': typeof CoberturaParcialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +105,8 @@ export interface FileRoutesById {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
+  '/cobertura/parcial': typeof CoberturaParcialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +119,8 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/cobertura/no-cubre'
+    | '/cobertura/parcial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +131,8 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/cobertura/no-cubre'
+    | '/cobertura/parcial'
   id:
     | '__root__'
     | '/'
@@ -121,6 +143,8 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/cobertura/no-cubre'
+    | '/cobertura/parcial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +156,8 @@ export interface RootRouteChildren {
   HorariosRoute: typeof HorariosRoute
   OportunidadRoute: typeof OportunidadRoute
   PagoRoute: typeof PagoRoute
+  CoberturaNoCubreRoute: typeof CoberturaNoCubreRoute
+  CoberturaParcialRoute: typeof CoberturaParcialRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +218,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cobertura/parcial': {
+      id: '/cobertura/parcial'
+      path: '/cobertura/parcial'
+      fullPath: '/cobertura/parcial'
+      preLoaderRoute: typeof CoberturaParcialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cobertura/no-cubre': {
+      id: '/cobertura/no-cubre'
+      path: '/cobertura/no-cubre'
+      fullPath: '/cobertura/no-cubre'
+      preLoaderRoute: typeof CoberturaNoCubreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,7 +244,18 @@ const rootRouteChildren: RootRouteChildren = {
   HorariosRoute: HorariosRoute,
   OportunidadRoute: OportunidadRoute,
   PagoRoute: PagoRoute,
+  CoberturaNoCubreRoute: CoberturaNoCubreRoute,
+  CoberturaParcialRoute: CoberturaParcialRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

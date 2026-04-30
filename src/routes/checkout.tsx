@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { Loader2, Upload, ShieldCheck } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { ASEGURADORAS, TIPOS_DOCUMENTO } from "@/mocks/catalog";
-import { validateCoverage, type CoverageResult } from "@/mocks/coverage";
-import { parseYmd } from "@/mocks/availability";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { validateCoverage } from "@/mocks/coverage";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { cn } from "@/lib/utils";
@@ -68,10 +65,12 @@ function P4() {
   const setAseguradora = useBooking((s) => s.setAseguradora);
   const setCoverage = useBooking((s) => s.setCoverage);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
-  const setAcceptedSuggestedDate = useBooking((s) => s.setAcceptedSuggestedDate);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
+  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
+  const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
 
   const [validating, setValidating] = useState(false);
-  const [coverage, setLocalCoverage] = useState<CoverageResult | null>(null);
   const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -94,6 +93,7 @@ function P4() {
   });
 
   function onSubmit(values: FormValues) {
+    if (!slot) return;
     setPatient({
       tipoDocumento: values.tipoDocumento,
       numeroDocumento: values.numeroDocumento,
@@ -103,28 +103,45 @@ function P4() {
       direccion: values.direccion,
     });
     setAseguradora(values.aseguradora);
+    // limpiar flags previos
+    setCoverageOnly(false);
+    setCoverageMinDate(undefined);
+    setPayParticularOverride(false);
 
+    // Particular salta validación → directo a pago
     if (values.aseguradora === "Particular") {
-      const r: CoverageResult = { case: 1, message: "Pago particular" };
-      setCoverage(r);
+      setCoverage({ case: 1, message: "Pago particular" });
       setPayParticularOverride(true);
-      navigate({ to: "/oportunidad" });
+      navigate({ to: "/pago" });
       return;
     }
 
     setValidating(true);
+    const delay = 1100 + Math.floor(Math.random() * 400);
     setTimeout(() => {
-      const result = validateCoverage(values.aseguradora, specialty ?? "", service ?? "");
-      setLocalCoverage(result);
+      const result = validateCoverage(
+        values.aseguradora,
+        specialty ?? "",
+        service ?? "",
+        slot.date,
+      );
       setCoverage(result);
-      setValidating(false);
-    }, 1100);
-  }
 
-  function proceed(particular: boolean, acceptSuggested = false) {
-    setPayParticularOverride(particular);
-    setAcceptedSuggestedDate(acceptSuggested);
-    navigate({ to: "/oportunidad" });
+      if (result.case === 1) {
+        // Cubierta → confirmar directo, sin /pago
+        setPaymentMethod("none");
+        const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+        setConfirmationCode(code);
+        navigate({ to: "/confirmacion" });
+        return;
+      }
+      if (result.case === 2) {
+        navigate({ to: "/cobertura/parcial" });
+        return;
+      }
+      // Caso 3
+      navigate({ to: "/cobertura/no-cubre" });
+    }, delay);
   }
 
   function onFiles(list: FileList | null) {
@@ -139,6 +156,23 @@ function P4() {
   }
 
   if (!slot) return null;
+
+  if (validating) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex max-w-sm flex-col items-center gap-4 px-6 text-center">
+          <div className="rounded-full bg-emerald-100 p-4">
+            <ShieldCheck className="h-8 w-8 text-emerald-700" />
+          </div>
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Validando cobertura con tu aseguradora…</h2>
+          <p className="text-sm text-muted-foreground">
+            Esto solo toma un momento. Estamos verificando si tu cita queda cubierta.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -188,6 +222,9 @@ function P4() {
                 ))}
               </select>
             </Field>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Validaremos si tu aseguradora cubre esta cita después de confirmar tus datos.
+            </p>
           </div>
 
           <label className="flex items-start gap-2 pt-2 text-sm">
@@ -226,89 +263,16 @@ function P4() {
             )}
           </div>
 
-          {coverage && (
-            <CoverageBanner result={coverage} onProceed={proceed} />
-          )}
-
-          {!coverage && (
-            <div className="flex justify-center pt-6">
-              <Button
-                type="submit"
-                size="lg"
-                disabled={validating}
-                className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
-              >
-                {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {validating ? "Validando cobertura..." : "Continuar"}
-              </Button>
-            </div>
-          )}
+          <div className="flex justify-center pt-6">
+            <Button
+              type="submit"
+              size="lg"
+              className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+            >
+              Continuar
+            </Button>
+          </div>
         </form>
-      </div>
-    </div>
-  );
-}
-
-function CoverageBanner({
-  result,
-  onProceed,
-}: {
-  result: CoverageResult;
-  onProceed: (particular: boolean, acceptSuggested?: boolean) => void;
-}) {
-  if (result.case === 1) {
-    return (
-      <div className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-          <div>
-            <div className="font-semibold text-emerald-900">{result.message}</div>
-            <div className="text-sm text-emerald-800">Puedes continuar con tu cita.</div>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={() => onProceed(false)} className="rounded-full bg-foreground text-background">Continuar</Button>
-        </div>
-      </div>
-    );
-  }
-  if (result.case === 2) {
-    const d = parseYmd(result.suggestedDate);
-    return (
-      <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600" />
-          <div>
-            <div className="font-semibold text-amber-900">{result.message}</div>
-            <div className="text-sm text-amber-800 capitalize">
-              Disponibilidad cubierta a partir del {format(d, "EEEE d 'de' MMMM", { locale: es })}.
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="outline" onClick={() => onProceed(true)} className="rounded-full">
-            Pagar particular
-          </Button>
-          <Button onClick={() => onProceed(false, true)} className="rounded-full bg-foreground text-background">
-            Tomar fecha sugerida
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-4 rounded-xl border border-red-200 bg-red-50 p-5">
-      <div className="flex items-start gap-3">
-        <XCircle className="mt-0.5 h-5 w-5 text-red-600" />
-        <div>
-          <div className="font-semibold text-red-900">{result.message}</div>
-          <div className="text-sm text-red-800">Puedes continuar pagando como particular.</div>
-        </div>
-      </div>
-      <div className="flex justify-end">
-        <Button onClick={() => onProceed(true)} className="rounded-full bg-foreground text-background">
-          Pagar particular
-        </Button>
       </div>
     </div>
   );
