@@ -147,9 +147,10 @@ function P0() {
       if (sp) {
         setSpecialty(sp);
         botSay(`Genial, busquemos disponibilidad para ${sp}…`, () => {
-          setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+          transferChatAndGo(sp);
         });
         setStep("other");
+
       } else {
         botSay("No reconocí esa especialidad. Elige una de las opciones de abajo:");
       }
