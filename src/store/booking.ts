@@ -37,13 +37,15 @@ export type BookingState = {
   preferredDate?: string;
   paymentMethod?: "online" | "clinic" | "none";
   confirmationCode?: string;
+  chat: ChatMsg[];
+  filterSource?: "ui" | "chat" | "init";
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
   setDate: (d?: string) => void;
-  setFilter: <K extends keyof Filters>(k: K, v: Filters[K]) => void;
-  clearFilter: (k: keyof Filters) => void;
-  resetFilters: () => void;
+  setFilter: <K extends keyof Filters>(k: K, v: Filters[K], source?: "ui" | "chat") => void;
+  clearFilter: (k: keyof Filters, source?: "ui" | "chat") => void;
+  resetFilters: (source?: "ui" | "chat") => void;
   setSelectedSlot: (s?: Slot) => void;
   setPatient: (p: Patient) => void;
   setAseguradora: (a: string) => void;
@@ -53,8 +55,11 @@ export type BookingState = {
   setPreferredDate: (d?: string) => void;
   setPaymentMethod: (m: "online" | "clinic" | "none") => void;
   setConfirmationCode: (c: string) => void;
+  pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
+  clearChat: () => void;
   reset: () => void;
 };
+
 
 const initial = {
   specialty: undefined,
