@@ -90,12 +90,27 @@ function P0() {
     }, 450);
   }
 
+  function transferChatAndGo(specialty: string) {
+    // Transferir bubbles actuales al chat persistente
+    clearChat();
+    bubbles.forEach((b) => {
+      if (b.from === "user" || b.from === "bot") {
+        pushChat({ from: b.from, text: b.text });
+      }
+    });
+    pushChat({
+      from: "bot",
+      text: `Listo. Estoy mostrando disponibilidad para ${specialty}. Puedo aplicar filtros si me los pides aquí, o si los seleccionas en la interfaz te lo confirmo.`,
+    });
+    setTimeout(() => navigate({ to: "/disponibilidad" }), 500);
+  }
+
   function startAgendarFlow(prefilledSpecialty?: string | null) {
     reset();
     if (prefilledSpecialty) {
       setSpecialty(prefilledSpecialty);
       botSay(`Perfecto, busquemos disponibilidad para ${prefilledSpecialty}. Te llevo a la agenda…`, () => {
-        setTimeout(() => navigate({ to: "/disponibilidad" }), 600);
+        transferChatAndGo(prefilledSpecialty);
       });
       setStep("other");
     } else {
