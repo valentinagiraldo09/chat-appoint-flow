@@ -10,6 +10,7 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
+import { AssistantLayout } from "@/components/AssistantLayout";
 
 const search = z.object({ d: z.string().optional() });
 
