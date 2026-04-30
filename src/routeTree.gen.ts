@@ -9,8 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as HorariosRouteImport } from './routes/horarios'
+import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
+import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
 import { Route as IndexRouteImport } from './routes/index'
 
+const HorariosRoute = HorariosRouteImport.update({
+  id: '/horarios',
+  path: '/horarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisponibilidadRoute = DisponibilidadRouteImport.update({
+  id: '/disponibilidad',
+  path: '/disponibilidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuscarFechaRoute = BuscarFechaRouteImport.update({
+  id: '/buscar-fecha',
+  path: '/buscar-fecha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +37,61 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/buscar-fecha': typeof BuscarFechaRoute
+  '/disponibilidad': typeof DisponibilidadRoute
+  '/horarios': typeof HorariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/buscar-fecha': typeof BuscarFechaRoute
+  '/disponibilidad': typeof DisponibilidadRoute
+  '/horarios': typeof HorariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/buscar-fecha': typeof BuscarFechaRoute
+  '/disponibilidad': typeof DisponibilidadRoute
+  '/horarios': typeof HorariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
+  id: '__root__' | '/' | '/buscar-fecha' | '/disponibilidad' | '/horarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BuscarFechaRoute: typeof BuscarFechaRoute
+  DisponibilidadRoute: typeof DisponibilidadRoute
+  HorariosRoute: typeof HorariosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/horarios': {
+      id: '/horarios'
+      path: '/horarios'
+      fullPath: '/horarios'
+      preLoaderRoute: typeof HorariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disponibilidad': {
+      id: '/disponibilidad'
+      path: '/disponibilidad'
+      fullPath: '/disponibilidad'
+      preLoaderRoute: typeof DisponibilidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buscar-fecha': {
+      id: '/buscar-fecha'
+      path: '/buscar-fecha'
+      fullPath: '/buscar-fecha'
+      preLoaderRoute: typeof BuscarFechaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +104,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BuscarFechaRoute: BuscarFechaRoute,
+  DisponibilidadRoute: DisponibilidadRoute,
+  HorariosRoute: HorariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
