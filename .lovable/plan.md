@@ -1,106 +1,76 @@
+# Plan: Validaciones de cobertura por aseguradora
 
-# Plan: implementar los 5 casos del asistente según el intent elegido en P0
+Mantener la disponibilidad libre de cobertura. La validación se ejecuta cuando el paciente envía el formulario de datos personales en `/checkout`. Según el resultado, el flujo se ramifica en 3 caminos.
 
-Quiero adaptar el asistente actual (`src/routes/index.tsx` + flujo P1→P5) para que el **intent seleccionado en P0** o detectado en el primer mensaje libre dispare uno de estos 5 sub-flujos, replicando la lógica de los flujos de WhatsApp que enviaste. Todo se mantiene como prototipo funcional con datos mock y persistencia en `sessionStorage` (ya existe en `useBooking`).
+## Cambios por archivo
 
-## 1. Nueva capa de mocks
+### 1. `src/mocks/coverage.ts` — reglas deterministas más claras
+Mantener `validateCoverage(aseguradora, specialty, service, slotDate)` (añadir `slotDate`) con estos casos simulados:
+- **Particular** → no se llama validación, va directo a `/pago`.
+- **EPS Sanitas** → caso 1 (cubre).
+- **EPS Sura** → caso 3 (no cubre nunca → solo opción particular).
+- **EPS Compensar**:
+  - Si `slotDate < 2026-08-01` → caso 2 (cubre el servicio pero no la fecha; sugiere la primera disponibilidad ≥ Agosto 2026).
+  - Si `slotDate ≥ 2026-08-01` → caso 1.
+- Tipos: `case 1 | 2 | 3`. Caso 2 incluye `suggestedDate: string` (ymd).
 
-**`src/mocks/patients.ts`** (nuevo)
-- `MOCK_PATIENTS`: lista de pacientes con `documento`, `nombre`, `email`, `celular`, `telAlterno`. Al menos 2 documentos pre-cargados (ej. `1001370488` → "Valentina COCO" con cita activa, `1001370490` → paciente sin citas) y un caso “no existe” para el flujo nuevo.
-- `findPatient(doc)`, `createPatient(data)`.
+### 2. `src/store/booking.ts` — sin cambios estructurales
+Reutilizar `coverage`, `payParticularOverride`, `acceptedSuggestedDate`. Añadir helper `setDate` ya existe.
 
-**`src/mocks/appointments.ts`** (nuevo)
-- `MOCK_APPOINTMENTS`: array mutable en memoria con citas existentes asignadas a un documento (servicio, fecha futura, sede, profesional, modalidad, estado: `pendiente_pago | confirmada | cancelada`, precio, requiere cobro sí/no).
-- Helpers: `getAppointmentsByDoc`, `cancelAppointment`, `confirmAppointment`, `rescheduleAppointment(id, newSlot)`, `markPaid`.
-- Generación determinística para que cada documento siempre vea las mismas citas en la sesión.
+### 3. `src/routes/checkout.tsx` — loader y enrutamiento por caso
+Reemplazar el banner inline `CoverageBanner` por navegación a una pantalla intermedia de decisión:
+- Mantener el formulario y el loader actual ("Validando cobertura...") con duración ~1.2s.
+- Tras `validateCoverage`:
+  - **Particular** → `navigate("/pago")` directo.
+  - **Caso 1 (cubre)** → set `paymentMethod = "none"`, generar `confirmationCode`, `navigate("/confirmacion")` directo. **No pasa por `/pago` ni por `/oportunidad`.**
+  - **Caso 2 (cubre pero fecha posterior)** → `navigate("/cobertura-fecha")`.
+  - **Caso 3 (no cubre)** → `navigate("/cobertura-no")`.
+- Eliminar el componente `CoverageBanner` y la rama `proceed()` que iba a `/oportunidad`.
 
-**`src/mocks/coverage.ts`** (ya existe) — añadir flag `requiresAgent` para EPS específicas (ej. "EPS Sura" cuando paciente es nuevo) → dispara el flujo "transferir a agente".
+### 4. Nueva ruta `src/routes/cobertura-no.tsx` (caso 3)
+Pantalla de decisión:
+- Mensaje: "Tu aseguradora no cubre esta cita."
+- Texto: "Puedes continuar como particular pagando el valor de la cita."
+- Resumen breve del slot seleccionado (fecha, hora, profesional, sede, valor).
+- Dos CTA:
+  - **Pagar como particular** → set `payParticularOverride=true`, `navigate("/pago")`.
+  - **Volver a buscar otra cita** → `navigate("/disponibilidad")` conservando `specialty` y `service` (no tocar el store salvo limpiar `selectedSlot`).
 
-## 2. Cambios en el store (`src/store/booking.ts`)
+### 5. Nueva ruta `src/routes/cobertura-fecha.tsx` (caso 2)
+Pantalla de decisión con dos caminos:
+- Mensaje: "Tu aseguradora cubre este servicio, pero no para la fecha seleccionada."
+- Subtexto: "La fecha más cercana disponible con cobertura de tu aseguradora es {suggestedDate}."
+- Resumen de la cita actual.
+- Dos CTA:
+  - **Ver citas cubiertas por mi aseguradora** → `setDate(suggestedDate)`, limpiar `selectedSlot`, `navigate("/disponibilidad")`.
+  - **Pagar como particular y conservar esta cita** → set `payParticularOverride=true`, `navigate("/pago")`.
 
-Añadir:
-- `intent?: "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar"`
-- `documento?: string`
-- `acceptedTerms: boolean`
-- `currentAppointmentId?: string` (para reagendar/cancelar/confirmar)
-- `flowResult?: "no_availability" | "transferred_to_agent" | "cancelled" | "confirmed" | "paid"` para mostrar pantalla final apropiada.
-- Setters correspondientes.
+### 6. `src/routes/confirmacion.tsx` — etiqueta de cobertura
+Cuando `paymentMethod === "none"` (cubierta por aseguradora), mostrar un badge verde:
+"Estado: Cubierta por tu aseguradora" en el bloque de detalles, encima del valor. Asegurar que el resumen incluya: Servicio, Profesional, Fecha, Hora, Tipo de atención (`slot.attention`), Aseguradora, Estado. Los seis ya existen salvo "Estado", se añade.
 
-## 3. Refactor de P0 (`src/routes/index.tsx`)
+### 7. `src/routeTree.gen.ts`
+Lo regenera el plugin de TanStack Router al añadir los archivos de ruta nuevos.
 
-El asistente sigue siendo conversacional, pero después del intent inicial entra en una **máquina de estados** dentro del chat (no se navega aún) que pide:
-
-```text
-[gate] Términos y condiciones (chips Sí/No)
-   → [doc] Pedir número de documento
-        → si existe paciente: saludo + pedir intent (si no vino claro)
-        → si NO existe: pedir nombre, email, confirmar celular, tel alterno
-                          → registrar en mocks → continuar como agendar
-```
-
-Una vez identificado el paciente y el intent, navega al sub-flujo correspondiente. La barra de chat fija (ya existente) gestiona toda esta conversación.
-
-## 4. Sub-flujos por intent
-
-### A. Agendar — sin disponibilidad
-- Tras elegir especialidad + servicio + aseguradora, si `findNextAvailableDate(...)` devuelve `null` para esa combinación específica (forzaremos esto cuando especialidad = "Dermatología" + servicio = "Procedimiento" como en el ejemplo, vía un override en mocks):
-  - Mensaje del bot: “Lo siento, por ahora no tengo citas disponibles para este sub-servicio…”
-  - Pantalla nueva `src/routes/sin-disponibilidad.tsx` con CTA “Notificarme cuando abra” (mock toast) y “Volver al inicio”.
-
-### B. Agendar — con disponibilidad y cobro (flujo principal ya existente)
-- Reutiliza `/disponibilidad` → `/horarios` → `/checkout` → **nuevo paso** “Confirmar datos de contacto” (chips Sí/No) → `/pago` → `/confirmacion`.
-- Añadir en `/checkout` la pantalla intermedia que muestra los datos del paciente actuales y permite confirmar/editar (replicando el “¿Tus datos siguen siendo los mismos?”).
-- Si la cita tiene `precio > 0` y aseguradora = Particular o `coverage.requiresPay`, mostrar paso de cobro con opciones “Pagar ahora / Pagar después”. Si “Pagar después” → ir directo a confirmación con estado `pendiente_pago`.
-
-### C. Confirmar asistencia (con cobro)
-- Nueva ruta `src/routes/mis-citas.tsx` que lista las citas mock del documento, mostrando estado.
-- Selección → detalle → si requiere pago: ir a `/pago` con flag `purpose=confirm`. Tras pagar: `markPaid` + pantalla “Cita pagada y confirmada”.
-- Si no requiere pago: confirmación directa.
-
-### D. Reagendar (gestionar cita)
-- Misma `mis-citas.tsx` pero con acciones: **Reagendar** | **Cancelar**.
-- Reagendar → `/disponibilidad` precargado con la especialidad y sede de la cita original → al elegir slot → mismo paso de cobro/confirmación → `rescheduleAppointment` actualiza el mock → pantalla resumen final con todos los detalles (replicando el bloque “esta es la información de su cita” con recomendaciones).
-
-### E. Cancelar
-- Desde `mis-citas.tsx` → confirmar acción en modal (`ConfirmModal` ya existe) → `cancelAppointment` → toast “La cita se canceló con éxito” + estado actualizado en lista.
-
-### F. Paciente nuevo + remitir a agente
-- Si en el flujo de creación de paciente, al pedir aseguradora el usuario elige una marcada como `requiresAgent` (mock: "EPS Sura" para pacientes nuevos):
-  - Bot dice “Te estoy conectando con uno de nuestros agentes…”
-  - Pantalla nueva `src/routes/agente.tsx` con loader animado y simulación “Agente conectado en ~30s” (estático, sin polling real).
-
-## 5. Sincronización con el ChatPanel lateral
-
-`ChatPanel` ya escucha cambios de filtros. Le añado:
-- Reconocimiento de comandos del nuevo dominio: “cancela mi cita”, “quiero reagendar”, “confirma mi asistencia” → cambian `intent` y navegan a `/mis-citas`.
-- Mensajes `system` cuando se complete una acción (cancelación, pago, reagendamiento) para que el usuario vea el eco bidireccional en el chat.
-
-## 6. Nuevas rutas a crear
+## Flujo resultante
 
 ```text
-src/routes/sin-disponibilidad.tsx   → flujo A
-src/routes/mis-citas.tsx            → flujos C, D, E (lista + detalle inline)
-src/routes/agente.tsx               → flujo F
+/checkout (submit)
+  └─ loader 1.2s → validateCoverage
+       ├─ Particular        → /pago
+       ├─ Caso 1 (cubre)    → /confirmacion (sin pago)
+       ├─ Caso 2 (fecha)    → /cobertura-fecha
+       │     ├─ Ver cubiertas  → /disponibilidad (date=suggested)
+       │     └─ Pagar particular → /pago
+       └─ Caso 3 (no cubre) → /cobertura-no
+             ├─ Pagar particular → /pago
+             └─ Volver a buscar  → /disponibilidad
 ```
 
-Las rutas existentes `/disponibilidad`, `/horarios`, `/checkout`, `/pago`, `/confirmacion` se reutilizan, ajustando `/checkout` para incluir el paso de confirmación de datos de contacto y respetar `intent` (reagendar vs agendar nuevo).
+## Notas
 
-## 7. Detalles técnicos
-
-- **Persistencia**: todo el estado nuevo va en `useBooking` (sessionStorage); las mutaciones de citas viven en módulo `appointments.ts` con `let` array (se resetea al recargar — aceptable para prototipo).
-- **Detección NLP en P0**: ampliar `detectIntent` para “confirmar mi cita”, “cancelar”, “reagendar” (ya existe parcial). El intent detectado salta el menú de chips si el documento ya está dado.
-- **Términos y condiciones**: gate único por sesión (`acceptedTerms` en store). Si ya aceptó, no se vuelve a pedir.
-- **Mensajería**: replicar tono y emojis de los flujos WA (mensajes del bot literalmente parecidos a los pegados, en español, con saltos de línea).
-- **Datos contacto editable**: dentro de `/checkout`, modal con form (nombre, email, celular, tel alterno) → al guardar actualiza el paciente mock.
-
-## 8. Orden de implementación
-
-1. Mocks: `patients.ts`, `appointments.ts`, ampliar `coverage.ts`.
-2. Store: añadir `intent`, `documento`, `acceptedTerms`, `currentAppointmentId`, `flowResult`.
-3. Refactor P0: máquina de estados gate → doc → (registro si nuevo) → enrutar por intent.
-4. Crear `sin-disponibilidad.tsx`, `mis-citas.tsx`, `agente.tsx`.
-5. Ajustar `/checkout` (paso confirmación contacto + soporte `intent=reagendar`) y `/pago` (soporte `purpose=confirm`).
-6. Ampliar `ChatPanel` con comandos de gestión.
-7. QA manual de los 5 flujos en preview.
-
-¿Apruebas este plan para que lo implemente?
+- En todos los caminos donde el usuario opta por particular, `selectedSlot` se conserva intacto.
+- En "Ver citas cubiertas" (caso 2), se cambia `date` y se limpia `selectedSlot` para que `/disponibilidad` recalcule.
+- La ruta `/oportunidad` deja de usarse después de validación de cobertura; queda accesible solo si en el futuro se vuelve a enrutar (no se elimina en este cambio).
+- Mensajes en lenguaje claro, sin "validación fallida" ni jerga técnica.
+- Cada transición que dispare validación o búsqueda usa loader visible.
