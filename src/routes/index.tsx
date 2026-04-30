@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, Calendar, RefreshCw, X, CheckCircle2, CreditCard, Info } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { SPECIALTIES } from "@/mocks/catalog";
@@ -45,6 +45,10 @@ function P0() {
   const [input, setInput] = useState("");
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [step, setStep] = useState<"intent" | "specialty" | "other">("intent");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function handleIntent(intent: string, label?: string) {
     if (label) setBubbles((b) => [...b, { from: "user", text: label }]);
@@ -108,12 +112,14 @@ function P0() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="¿Qué quieres hacer hoy?"
-              className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground"
+              placeholder={mounted ? "¿Qué quieres hacer hoy?" : "Cargando asistente..."}
+              disabled={!mounted}
+              className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground disabled:opacity-60"
             />
             <button
               onClick={handleSend}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90"
+              disabled={!mounted}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
             </button>
@@ -125,7 +131,8 @@ function P0() {
             <button
               key={it.intent}
               onClick={() => handleIntent(it.intent, it.label)}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-foreground hover:bg-muted"
+              disabled={!mounted}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <it.icon className="h-4 w-4" />
               {it.label}
