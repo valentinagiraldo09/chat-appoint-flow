@@ -188,14 +188,19 @@ function detectDate(t: string): { key: DateChipKey; label: string; iso?: string 
       return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
     }
   }
-  if (/ma[ñn]ana/.test(l)) {
+  if (fuzzyHas(l, "manana") && !/de la manana/.test(l)) {
     const d = new Date(); d.setDate(d.getDate() + 1);
     return { key: "pick", label: "Mañana", iso: d.toISOString().slice(0, 10) };
   }
-  if (/lo m[aá]s pronto|cuanto antes|urgente|hoy/.test(l)) return { key: "asap", label: "Lo más pronto posible" };
-  if (/esta semana/.test(l)) return { key: "this-week", label: "Esta semana" };
-  if (/pr[oó]xima semana|siguiente semana/.test(l)) return { key: "next-week", label: "La próxima semana" };
-  if (/15 d[ií]as|quincena|dos semanas/.test(l)) return { key: "in-15-days", label: "En 15 días" };
+  if (fuzzyMatch(l, [[["lo mas pronto", "cuanto antes", "urgente", "hoy"], true]])) return { key: "asap", label: "Lo más pronto posible" };
+  if (fuzzyHas(l, "esta semana")) return { key: "this-week", label: "Esta semana" };
+  if (fuzzyMatch(l, [[["proxima semana", "siguiente semana"], true]])) return { key: "next-week", label: "La próxima semana" };
+  if (fuzzyMatch(l, [[["15 dias", "quincena", "dos semanas"], true]])) return { key: "in-15-days", label: "En 15 días" };
+  // Días de la semana → esta semana
+  const dias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+  for (const d of dias) {
+    if (fuzzyHas(l, d)) return { key: "this-week", label: "Esta semana" };
+  }
   return undefined;
 }
 
