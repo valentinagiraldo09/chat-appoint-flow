@@ -35,6 +35,7 @@ type Draft = {
   eps?: string;
   dateKey?: DateChipKey;
   dateLabel?: string;
+  dateISO?: string;
 };
 
 type Bubble =
@@ -44,7 +45,8 @@ type Bubble =
   | { id: string; kind: "appt-card"; flow: FlowKind }
   | { id: string; kind: "cancel-confirm" }
   | { id: string; kind: "post-cancel" }
-  | { id: string; kind: "post-confirm" };
+  | { id: string; kind: "post-confirm" }
+  | { id: string; kind: "date-input" };
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -91,8 +93,39 @@ function detectEPS(t: string): string | undefined {
   return undefined;
 }
 
-function detectDate(t: string): { key: DateChipKey; label: string } | undefined {
+const MONTHS: Record<string, number> = {
+  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+  julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+};
+
+function detectDate(t: string): { key: DateChipKey; label: string; iso?: string } | undefined {
   const l = t.toLowerCase();
+  // Fechas específicas: "12 de mayo", "12/05", "12-05-2026"
+  const m1 = l.match(/(\d{1,2})\s*(?:de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?:\s+de\s+(\d{4}))?/);
+  if (m1) {
+    const day = parseInt(m1[1], 10);
+    const month = MONTHS[m1[2]];
+    const year = m1[3] ? parseInt(m1[3], 10) : new Date().getFullYear();
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
+    }
+  }
+  const m2 = l.match(/(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?/);
+  if (m2) {
+    const day = parseInt(m2[1], 10);
+    const month = parseInt(m2[2], 10) - 1;
+    let year = m2[3] ? parseInt(m2[3], 10) : new Date().getFullYear();
+    if (year < 100) year += 2000;
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
+    }
+  }
+  if (/ma[ñn]ana/.test(l)) {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return { key: "pick", label: "Mañana", iso: d.toISOString().slice(0, 10) };
+  }
   if (/lo m[aá]s pronto|cuanto antes|urgente|hoy/.test(l)) return { key: "asap", label: "Lo más pronto posible" };
   if (/esta semana/.test(l)) return { key: "this-week", label: "Esta semana" };
   if (/pr[oó]xima semana|siguiente semana/.test(l)) return { key: "next-week", label: "La próxima semana" };
@@ -106,7 +139,7 @@ function parseMessage(text: string) {
   const service = detectService(text, specialty);
   const eps = detectEPS(text);
   const date = detectDate(text);
-  return { intent, specialty, service, eps, dateKey: date?.key, dateLabel: date?.label };
+  return { intent, specialty, service, eps, dateKey: date?.key, dateLabel: date?.label, dateISO: date?.iso };
 }
 
 function nextAgendarStep(d: Draft): AgendarStep {
@@ -114,6 +147,7 @@ function nextAgendarStep(d: Draft): AgendarStep {
   if (!d.service) return "service";
   if (!d.eps) return "eps";
   if (!d.dateKey) return "date";
+  if (d.dateKey === "pick" && !d.dateISO) return "date";
   return "ready";
 }
 
@@ -189,7 +223,7 @@ function P0() {
       if (d.specialty) setSpecialty(d.specialty);
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
-      if (d.dateKey) setPreferredDate(dateChipToISO(d.dateKey));
+      if (d.dateKey) setPreferredDate(d.dateISO ?? dateChipToISO(d.dateKey));
       // Transferir chat lateral
       clearChat();
       bubbles.forEach((b) => {
@@ -258,6 +292,7 @@ function P0() {
       if (parsed.dateKey) {
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
+        d.dateISO = parsed.dateISO;
       }
       setDraft(d);
       askAgendar(nextAgendarStep(d), d);
@@ -294,8 +329,23 @@ function P0() {
     askAgendar(nextAgendarStep(d), d);
   }
   function pickDate(key: DateChipKey, label: string) {
+    if (key === "pick") {
+      userSay("Elegir fecha");
+      botSay("Perfecto, ¿para qué fecha quieres consultar?", () =>
+        addBubble({ kind: "date-input" }),
+      );
+      return;
+    }
     userSay(label);
-    const d = { ...draft, dateKey: key, dateLabel: label };
+    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+  function pickSpecificDate(iso: string) {
+    const d0 = new Date(iso + "T00:00:00");
+    const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    userSay(label);
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
@@ -442,6 +492,7 @@ function P0() {
               onPickService={pickService}
               onPickEPS={pickEPS}
               onPickDate={pickDate}
+              onPickSpecificDate={pickSpecificDate}
               onSubmitDoc={submitDoc}
               onCardAction={onCardAction}
               onConfirmCancel={confirmCancel}
@@ -655,6 +706,30 @@ function ApptCard({ flow, onAction, disabled }: { flow: FlowKind; onAction: () =
   );
 }
 
+function DateInput({ onSubmit, disabled }: { onSubmit: (iso: string) => void; disabled: boolean }) {
+  const [v, setV] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-10">
+      <input
+        type="date"
+        value={v}
+        min={today}
+        onChange={(e) => setV(e.target.value)}
+        disabled={disabled}
+        className="rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-foreground/40 disabled:opacity-60"
+      />
+      <button
+        disabled={disabled || !v}
+        onClick={() => onSubmit(v)}
+        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+      >
+        Continuar
+      </button>
+    </div>
+  );
+}
+
 function BubbleRenderer(props: {
   bubble: Bubble;
   isLast: boolean;
@@ -666,6 +741,7 @@ function BubbleRenderer(props: {
   onPickService: (s: string) => void;
   onPickEPS: (s: string) => void;
   onPickDate: (k: DateChipKey, l: string) => void;
+  onPickSpecificDate: (iso: string) => void;
   onSubmitDoc: (doc: string, f: FlowKind) => void;
   onCardAction: (f: FlowKind) => void;
   onConfirmCancel: (yes: boolean) => void;
@@ -675,6 +751,7 @@ function BubbleRenderer(props: {
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
+  if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
   if (b.kind === "appt-card") return <ApptCard flow={b.flow} disabled={!isLast && props.idStep !== "show-card"} onAction={() => props.onCardAction(b.flow)} />;
   if (b.kind === "cancel-confirm") {
     return (
