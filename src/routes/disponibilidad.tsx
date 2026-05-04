@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBooking } from "@/store/booking";
-import { SPECIALTIES, SERVICES, type Specialty } from "@/mocks/catalog";
+import { SPECIALTIES, SERVICES, EPS_OPTIONS, type Specialty } from "@/mocks/catalog";
 import {
   filterSlots,
   generateSlots,
@@ -230,6 +230,9 @@ function P1() {
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
             <div className="flex-1">
+              <AseguradoraPicker />
+            </div>
+            <div className="flex-1">
               <ServicePicker />
             </div>
             <div className="flex-1">
@@ -331,3 +334,36 @@ function P1() {
   );
 }
 
+function AseguradoraPicker() {
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const setAseguradora = useBooking((s) => s.setAseguradora);
+  const [open, setOpen] = useState(false);
+  const label = aseguradora ?? "Selecciona aseguradora";
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="flex w-full items-center justify-between rounded-full border border-border bg-background px-4 py-3 text-left text-sm font-medium hover:border-foreground">
+          <span className="truncate">{label}</span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[260px] p-2">
+        {EPS_OPTIONS.map((eps) => (
+          <button
+            key={eps}
+            onClick={() => {
+              setAseguradora(eps);
+              setOpen(false);
+            }}
+            className={cn(
+              "block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted",
+              aseguradora === eps && "bg-emerald-50 font-semibold text-emerald-700",
+            )}
+          >
+            {eps}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
