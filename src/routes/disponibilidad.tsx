@@ -399,12 +399,10 @@ function SectionCard({
 function EmptyState({
   specialty,
   aseguradora,
-  onPickDate,
   onWaitlist,
 }: {
   specialty?: string;
   aseguradora?: string;
-  onPickDate: () => void;
   onWaitlist: () => void;
 }) {
   return (
@@ -415,9 +413,6 @@ function EmptyState({
         No hay citas disponibles para {specialty} con {aseguradora} en este momento.
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <Button onClick={onPickDate} variant="outline" className="rounded-full">
-          Buscar en otras fechas
-        </Button>
         <Button onClick={onWaitlist} className="rounded-full">
           Inscribirme en lista de espera
         </Button>
