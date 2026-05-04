@@ -295,6 +295,17 @@ function P1() {
                 />
               )}
 
+              {estado === "estado-1" && nextSection && (
+                <SectionCard
+                  label="Siguiente día con disponibilidad"
+                  date={nextSection.date}
+                  slots={nextSection.slots}
+                  full={nextSection.full}
+                  hidePrice
+                  onSelect={setModalSlot}
+                />
+              )}
+
               {estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
                 <div className="rounded-xl border-2 border-[#FFA800] bg-[#FFFBEF] p-5">
                   <div className="flex items-center gap-2">
