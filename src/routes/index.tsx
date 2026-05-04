@@ -93,8 +93,39 @@ function detectEPS(t: string): string | undefined {
   return undefined;
 }
 
-function detectDate(t: string): { key: DateChipKey; label: string } | undefined {
+const MONTHS: Record<string, number> = {
+  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+  julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+};
+
+function detectDate(t: string): { key: DateChipKey; label: string; iso?: string } | undefined {
   const l = t.toLowerCase();
+  // Fechas específicas: "12 de mayo", "12/05", "12-05-2026"
+  const m1 = l.match(/(\d{1,2})\s*(?:de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)(?:\s+de\s+(\d{4}))?/);
+  if (m1) {
+    const day = parseInt(m1[1], 10);
+    const month = MONTHS[m1[2]];
+    const year = m1[3] ? parseInt(m1[3], 10) : new Date().getFullYear();
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
+    }
+  }
+  const m2 = l.match(/(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?/);
+  if (m2) {
+    const day = parseInt(m2[1], 10);
+    const month = parseInt(m2[2], 10) - 1;
+    let year = m2[3] ? parseInt(m2[3], 10) : new Date().getFullYear();
+    if (year < 100) year += 2000;
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
+    }
+  }
+  if (/ma[ñn]ana/.test(l)) {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return { key: "pick", label: "Mañana", iso: d.toISOString().slice(0, 10) };
+  }
   if (/lo m[aá]s pronto|cuanto antes|urgente|hoy/.test(l)) return { key: "asap", label: "Lo más pronto posible" };
   if (/esta semana/.test(l)) return { key: "this-week", label: "Esta semana" };
   if (/pr[oó]xima semana|siguiente semana/.test(l)) return { key: "next-week", label: "La próxima semana" };
@@ -108,7 +139,7 @@ function parseMessage(text: string) {
   const service = detectService(text, specialty);
   const eps = detectEPS(text);
   const date = detectDate(text);
-  return { intent, specialty, service, eps, dateKey: date?.key, dateLabel: date?.label };
+  return { intent, specialty, service, eps, dateKey: date?.key, dateLabel: date?.label, dateISO: date?.iso };
 }
 
 function nextAgendarStep(d: Draft): AgendarStep {
