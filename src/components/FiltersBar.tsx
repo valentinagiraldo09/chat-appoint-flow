@@ -140,6 +140,7 @@ export function FiltersBar({ slotPool = [] }: { slotPool?: Slot[] }) {
         value={filters.attention}
         onSelect={(v) => setFilter("attention", v as Filters["attention"])}
         onClear={() => clearFilter("attention")}
+        searchable={false}
       />
       <FilterDropdown
         label="Franja"
@@ -148,6 +149,7 @@ export function FiltersBar({ slotPool = [] }: { slotPool?: Slot[] }) {
         value={filters.franja}
         onSelect={(v) => setFilter("franja", v as Filters["franja"])}
         onClear={() => clearFilter("franja")}
+        searchable={false}
       />
     </div>
   );
