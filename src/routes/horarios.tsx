@@ -39,10 +39,14 @@ function P2() {
   }, [d, filters.sede, filters.profesional, filters.attention, filters.franja]);
 
   const date = d ? parseYmd(d) : new Date();
-  const slots = useMemo(() => {
+  const allSlotsForDay = useMemo(() => {
     if (!specialty || !service) return [];
-    return filterSlots(generateSlots(date, specialty, service), filters);
-  }, [date, specialty, service, filters]);
+    return generateSlots(date, specialty, service);
+  }, [date, specialty, service]);
+  const slots = useMemo(
+    () => filterSlots(allSlotsForDay, filters),
+    [allSlotsForDay, filters],
+  );
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -58,7 +62,7 @@ function P2() {
         </div>
 
         <div className="mx-auto max-w-6xl px-4 py-8">
-          <FiltersBar />
+          <FiltersBar slotPool={allSlotsForDay} />
           <p className="mt-6 text-sm text-muted-foreground capitalize">
             Todos los horarios disponibles para el {format(date, "EEEE d 'de' MMMM", { locale: es })}
           </p>
