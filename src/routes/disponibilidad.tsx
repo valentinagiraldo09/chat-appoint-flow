@@ -184,8 +184,20 @@ function P1() {
         : today;
     const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service), filters);
-    return { date: first, slots: all.slice(0, 6), full: all };
+    return { date: first, slots: all.slice(0, 3), full: all };
   }, [specialty, service, date, filters, estado]);
+
+  // Following day section (only for estado-1): next available date after epsSection
+  const nextSection = useMemo(() => {
+    if (estado !== "estado-1" || !epsSection || !specialty || !service) return null;
+    const after = new Date(epsSection.date);
+    after.setDate(after.getDate() + 1);
+    const next = findNextAvailableDate(after, specialty, service);
+    if (!next) return null;
+    const all = filterSlots(generateSlots(next, specialty, service), filters);
+    if (all.length === 0) return null;
+    return { date: next, slots: all.slice(0, 3), full: all };
+  }, [estado, epsSection, specialty, service, filters]);
 
   // Particular nearer slot for estado-2
   const particularSection = useMemo(() => {
