@@ -51,46 +51,112 @@ type Bubble =
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 // ---------- Parser ----------
-function detectIntent(t: string): FlowKind {
-  if (/reagend/i.test(t)) return "reagendar";
-  if (/cancel/i.test(t)) return "cancelar";
-  if (/confirm/i.test(t)) return "confirmar";
-  if (/agend|cita|reservar|turno|consulta|doctor|especialista/i.test(t)) return "agendar";
-  return null;
+// Normaliza texto: minúsculas + sin acentos
+function norm(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function detectSpecialty(t: string): Specialty | undefined {
-  const l = t.toLowerCase();
-  const map: Array<[RegExp, Specialty]> = [
-    [/cardio|coraz[oó]n/, "Cardiología"],
-    [/derma|piel/, "Dermatología"],
-    [/medicina general|m[eé]dico general|general/, "Medicina General"],
-    [/gineco/, "Ginecología"],
-    [/optome|vista|ojos|lentes/, "Optometría"],
-    [/pediat|ni[ñn]o|hijo/, "Pediatría"],
-  ];
-  for (const [re, sp] of map) if (re.test(l)) return sp;
+// Distancia de Levenshtein
+function lev(a: string, b: string): number {
+  if (a === b) return 0;
+  const al = a.length, bl = b.length;
+  if (!al) return bl;
+  if (!bl) return al;
+  const v: number[] = Array(bl + 1);
+  for (let j = 0; j <= bl; j++) v[j] = j;
+  for (let i = 1; i <= al; i++) {
+    let prev = i - 1;
+    v[0] = i;
+    for (let j = 1; j <= bl; j++) {
+      const tmp = v[j];
+      v[j] = Math.min(
+        v[j] + 1,
+        v[j - 1] + 1,
+        prev + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+      prev = tmp;
+    }
+  }
+  return v[bl];
+}
+
+// Umbral por longitud de keyword
+function tol(k: string): number {
+  if (k.length <= 4) return 1;
+  if (k.length <= 7) return 2;
+  return 3;
+}
+
+// ¿La frase contiene el keyword (frase de N palabras) con tolerancia a typos?
+function fuzzyHas(text: string, keyword: string): boolean {
+  const T = norm(text);
+  const K = norm(keyword);
+  if (T.includes(K)) return true;
+  const tokens = T.split(/[^a-z0-9ñ]+/).filter(Boolean);
+  const kw = K.split(/\s+/);
+  const n = kw.length;
+  const t = tol(K.replace(/\s+/g, ""));
+  for (let i = 0; i + n <= tokens.length; i++) {
+    const chunk = tokens.slice(i, i + n).join(" ");
+    if (lev(chunk, K) <= t) return true;
+  }
+  // también intentar contra cada token si keyword es 1 palabra y largo similar
+  if (n === 1) {
+    for (const tok of tokens) {
+      if (Math.abs(tok.length - K.length) <= t && lev(tok, K) <= t) return true;
+    }
+  }
+  return false;
+}
+
+// Devuelve la primera coincidencia fuzzy
+function fuzzyMatch<T>(text: string, entries: Array<[string[], T]>): T | undefined {
+  for (const [keys, val] of entries) {
+    for (const k of keys) if (fuzzyHas(text, k)) return val;
+  }
   return undefined;
 }
 
+function detectIntent(t: string): FlowKind {
+  return fuzzyMatch<FlowKind>(t, [
+    [["reagendar", "reagenda", "cambiar cita", "mover cita"], "reagendar"],
+    [["cancelar", "cancela", "anular"], "cancelar"],
+    [["confirmar asistencia", "confirmar", "confirma"], "confirmar"],
+    [["pagar", "pago"], "pagar"],
+    [["consultar informacion", "informacion", "consultar"], "consultar"],
+    [["agendar", "agenda", "cita", "reservar", "turno", "doctor", "especialista"], "agendar"],
+  ]) ?? null;
+}
+
+function detectSpecialty(t: string): Specialty | undefined {
+  return fuzzyMatch<Specialty>(t, [
+    [["cardiologia", "cardio", "corazon"], "Cardiología"],
+    [["dermatologia", "derma", "piel"], "Dermatología"],
+    [["medicina general", "medico general", "general"], "Medicina General"],
+    [["ginecologia", "gineco"], "Ginecología"],
+    [["optometria", "optome", "vista", "ojos", "lentes"], "Optometría"],
+    [["pediatria", "pediatra", "nino", "hijo"], "Pediatría"],
+  ]);
+}
+
 function detectService(t: string, sp?: Specialty): string | undefined {
-  const l = t.toLowerCase();
-  if (/primera vez|primer[ao]/.test(l)) return "Primera vez";
-  if (/control|seguimiento/.test(l)) return "Control";
-  if (/procedimiento/.test(l) && sp === "Dermatología") return "Procedimiento";
-  if (/citolog/.test(l) && sp === "Ginecología") return "Citología";
-  if (/crecimiento/.test(l) && sp === "Pediatría") return "Crecimiento y desarrollo";
+  if (fuzzyMatch(t, [[["primera vez", "primera", "primer"], true]])) return "Primera vez";
+  if (fuzzyMatch(t, [[["control", "seguimiento"], true]])) return "Control";
+  if (sp === "Dermatología" && fuzzyHas(t, "procedimiento")) return "Procedimiento";
+  if (sp === "Ginecología" && fuzzyHas(t, "citologia")) return "Citología";
+  if (sp === "Pediatría" && fuzzyHas(t, "crecimiento")) return "Crecimiento y desarrollo";
   return undefined;
 }
 
 function detectEPS(t: string): string | undefined {
-  const l = t.toLowerCase();
-  if (/nueva eps/.test(l)) return "Nueva EPS";
-  if (/sanitas/.test(l)) return "EPS Sanitas";
-  if (/sura/.test(l)) return "EPS Sura";
-  if (/compensar/.test(l)) return "EPS Compensar";
-  if (/particular|sin eps|pago propio/.test(l)) return "Particular";
-  return undefined;
+  return fuzzyMatch<string>(t, [
+    [["nueva eps"], "Nueva EPS"],
+    [["sanitas"], "EPS Sanitas"],
+    [["sura"], "EPS Sura"],
+    [["compensar"], "EPS Compensar"],
+    [["fomag"], "Fomag"],
+    [["particular", "sin eps", "pago propio"], "Particular"],
+  ]);
 }
 
 const MONTHS: Record<string, number> = {
@@ -122,14 +188,19 @@ function detectDate(t: string): { key: DateChipKey; label: string; iso?: string 
       return { key: "pick", label: d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" }), iso: d.toISOString().slice(0, 10) };
     }
   }
-  if (/ma[ñn]ana/.test(l)) {
+  if (fuzzyHas(l, "manana") && !/de la manana/.test(l)) {
     const d = new Date(); d.setDate(d.getDate() + 1);
     return { key: "pick", label: "Mañana", iso: d.toISOString().slice(0, 10) };
   }
-  if (/lo m[aá]s pronto|cuanto antes|urgente|hoy/.test(l)) return { key: "asap", label: "Lo más pronto posible" };
-  if (/esta semana/.test(l)) return { key: "this-week", label: "Esta semana" };
-  if (/pr[oó]xima semana|siguiente semana/.test(l)) return { key: "next-week", label: "La próxima semana" };
-  if (/15 d[ií]as|quincena|dos semanas/.test(l)) return { key: "in-15-days", label: "En 15 días" };
+  if (fuzzyMatch(l, [[["lo mas pronto", "cuanto antes", "urgente", "hoy"], true]])) return { key: "asap", label: "Lo más pronto posible" };
+  if (fuzzyHas(l, "esta semana")) return { key: "this-week", label: "Esta semana" };
+  if (fuzzyMatch(l, [[["proxima semana", "siguiente semana"], true]])) return { key: "next-week", label: "La próxima semana" };
+  if (fuzzyMatch(l, [[["15 dias", "quincena", "dos semanas"], true]])) return { key: "in-15-days", label: "En 15 días" };
+  // Días de la semana → esta semana
+  const dias = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+  for (const d of dias) {
+    if (fuzzyHas(l, d)) return { key: "this-week", label: "Esta semana" };
+  }
   return undefined;
 }
 
