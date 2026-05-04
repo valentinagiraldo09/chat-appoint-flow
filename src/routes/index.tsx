@@ -144,8 +144,9 @@ function P0() {
 
   const inChat = bubbles.length > 0;
 
-  const addBubble = (b: Omit<Bubble, "id">) =>
+  function addBubble<T extends Omit<Bubble, "id">>(b: T) {
     setBubbles((bs) => [...bs, { ...b, id: uid() } as Bubble]);
+  }
 
   const botSay = (text: string, after?: () => void) => {
     setTyping(true);
