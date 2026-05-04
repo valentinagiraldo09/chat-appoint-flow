@@ -16,6 +16,33 @@ import {
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
+
+// Pick up to 3 slots spread across morning / midday / afternoon
+function spreadSlots(all: Slot[]): Slot[] {
+  if (all.length <= 3) return all;
+  const morning = all.filter((s) => s.hour < 12);
+  const midday = all.filter((s) => s.hour >= 12 && s.hour < 15);
+  const afternoon = all.filter((s) => s.hour >= 15);
+  const buckets = [morning, midday, afternoon];
+  const picked: Slot[] = [];
+  const pickedIds = new Set<string>();
+  for (const b of buckets) {
+    const choice = b[Math.floor(b.length / 2)] ?? b[0];
+    if (choice && !pickedIds.has(choice.id)) {
+      picked.push(choice);
+      pickedIds.add(choice.id);
+    }
+  }
+  // Fill remaining from any bucket if some were empty
+  for (const s of all) {
+    if (picked.length >= 3) break;
+    if (!pickedIds.has(s.id)) {
+      picked.push(s);
+      pickedIds.add(s.id);
+    }
+  }
+  return picked.sort((a, b) => a.hour * 60 + a.minute - (b.hour * 60 + b.minute));
+}
 import { getEstadoDisponibilidad } from "@/mocks/disponibilidadStates";
 import { SmartCalendar } from "@/components/SmartCalendar";
 import { FiltersBar } from "@/components/FiltersBar";
