@@ -316,16 +316,6 @@ function P1() {
                 </section>
               ))}
 
-          {!loading && (
-            <div className="flex justify-center pt-4">
-              <Link
-                to="/buscar-fecha"
-                className="rounded-full border border-foreground bg-background px-6 py-3 text-sm font-semibold hover:bg-muted"
-              >
-                Buscar otra fecha
-              </Link>
-            </div>
-          )}
         </div>
       </div>
 
