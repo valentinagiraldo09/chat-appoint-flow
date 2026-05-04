@@ -149,6 +149,22 @@ export function getMonthAvailability(
   return set;
 }
 
+export function opcionesFiltro(
+  slots: Slot[],
+  filters: SlotFilters,
+  key: keyof SlotFilters,
+): Set<string> {
+  const rest: SlotFilters = { ...filters };
+  delete rest[key];
+  const filtered = filterSlots(slots, rest);
+  const out = new Set<string>();
+  for (const s of filtered) {
+    if (key === "franja") out.add(franjaForHour(s.hour));
+    else out.add(s[key] as string);
+  }
+  return out;
+}
+
 export function formatTime(hour: number, minute: number): string {
   const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
   const ampm = hour < 12 ? "AM" : "PM";
