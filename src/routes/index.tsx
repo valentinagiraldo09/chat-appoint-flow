@@ -11,6 +11,7 @@ import {
   type DateChipKey,
   type Specialty,
 } from "@/mocks/catalog";
+import { hasAvailability, findNextAvailableDate, parseYmd, ymd } from "@/mocks/availability";
 import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,8 @@ type Bubble =
   | { id: string; kind: "cancel-confirm" }
   | { id: string; kind: "post-cancel" }
   | { id: string; kind: "post-confirm" }
-  | { id: string; kind: "date-input" };
+  | { id: string; kind: "date-input" }
+  | { id: string; kind: "date-suggest"; iso: string; label: string };
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -295,6 +297,8 @@ function P0() {
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
       if (d.dateKey) setPreferredDate(d.dateISO ?? dateChipToISO(d.dateKey));
+      if (d.dateISO) useBooking.getState().setDate(d.dateISO);
+      else useBooking.getState().setDate(undefined);
       // Transferir chat lateral
       clearChat();
       bubbles.forEach((b) => {
@@ -353,7 +357,6 @@ function P0() {
     setInput("");
     userSay(text);
 
-    // Si estamos en medio de un paso de agendar, intentar reconocer la respuesta libre
     if (flow === "agendar" && agStep) {
       const parsed = parseMessage(text);
       const d: Draft = { ...draft };
@@ -366,11 +369,14 @@ function P0() {
         d.dateISO = parsed.dateISO;
       }
       setDraft(d);
+      if (parsed.dateISO && d.specialty && d.service) {
+        validateSpecificDate(d, parsed.dateISO);
+        return;
+      }
       askAgendar(nextAgendarStep(d), d);
       return;
     }
 
-    // Mensaje libre inicial
     const parsed = parseMessage(text);
     const intent: FlowKind = parsed.intent ?? (parsed.specialty ? "agendar" : null);
     if (intent) {
@@ -380,7 +386,6 @@ function P0() {
     }
   }
 
-  // ===== Selecciones por chip =====
   function pickSpecialty(s: Specialty) {
     userSay(s);
     const d = { ...draft, specialty: s };
@@ -413,12 +418,50 @@ function P0() {
     askAgendar(nextAgendarStep(d), d);
   }
   function pickSpecificDate(iso: string) {
-    const d0 = new Date(iso + "T00:00:00");
+    const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     userSay(label);
     const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
     setDraft(d);
+    if (d.specialty && d.service) {
+      validateSpecificDate(d, iso);
+      return;
+    }
     askAgendar(nextAgendarStep(d), d);
+  }
+
+  function validateSpecificDate(d: Draft, iso: string) {
+    const target = parseYmd(iso);
+    if (hasAvailability(target, d.specialty!, d.service!)) {
+      askAgendar(nextAgendarStep(d), d);
+      return;
+    }
+    const next = findNextAvailableDate(new Date(target.getTime() + 86400000), d.specialty!, d.service!);
+    const targetLabel = target.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+    if (!next) {
+      botSay(`No encontré disponibilidad para el ${targetLabel} ni en los próximos días. ¿Quieres elegir otra fecha?`, () =>
+        addBubble({ kind: "date-input" }),
+      );
+      return;
+    }
+    const nextIso = ymd(next);
+    const nextLabel = next.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+    botSay(`No hay disponibilidad para el ${targetLabel}. La fecha más cercana disponible es el ${nextLabel}. ¿Quieres tomar esa?`, () =>
+      addBubble({ kind: "date-suggest", iso: nextIso, label: nextLabel }),
+    );
+  }
+
+  function acceptSuggestedDate(iso: string, label: string) {
+    const capLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    userSay(`Sí, el ${label}`);
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+
+  function rejectSuggestedDate() {
+    userSay("No, prefiero otra fecha");
+    botSay("Claro, elige la fecha que prefieras:", () => addBubble({ kind: "date-input" }));
   }
 
   // ===== Identificación / cards =====
@@ -576,6 +619,8 @@ function P0() {
                   userSay("No, gracias");
                 }
               }}
+              onAcceptSuggestedDate={acceptSuggestedDate}
+              onRejectSuggestedDate={rejectSuggestedDate}
             />;
           })}
 
@@ -817,12 +862,34 @@ function BubbleRenderer(props: {
   onCardAction: (f: FlowKind) => void;
   onConfirmCancel: (yes: boolean) => void;
   onPostCancel: (again: boolean) => void;
+  onAcceptSuggestedDate: (iso: string, label: string) => void;
+  onRejectSuggestedDate: () => void;
 }) {
   const { bubble: b, isLast } = props;
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
   if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
+  if (b.kind === "date-suggest") {
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        <button
+          disabled={!isLast}
+          onClick={() => props.onAcceptSuggestedDate(b.iso, b.label)}
+          className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+        >
+          Sí, tomar el {b.label}
+        </button>
+        <button
+          disabled={!isLast}
+          onClick={() => props.onRejectSuggestedDate()}
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40"
+        >
+          Elegir otra fecha
+        </button>
+      </div>
+    );
+  }
   if (b.kind === "appt-card") return <ApptCard flow={b.flow} disabled={!isLast && props.idStep !== "show-card"} onAction={() => props.onCardAction(b.flow)} />;
   if (b.kind === "cancel-confirm") {
     return (
