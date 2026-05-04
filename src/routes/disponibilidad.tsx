@@ -402,17 +402,6 @@ function SectionCard({
             ))}
           </div>
         )}
-        {full.length > slots.length && (
-          <div className="mt-3 flex justify-end">
-            <Link
-              to="/horarios"
-              search={{ d: ymd(date) }}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              Ver más horarios →
-            </Link>
-          </div>
-        )}
       </div>
     </section>
   );
