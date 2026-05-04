@@ -230,6 +230,9 @@ function P1() {
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
             <div className="flex-1">
+              <AseguradoraPicker />
+            </div>
+            <div className="flex-1">
               <ServicePicker />
             </div>
             <div className="flex-1">
