@@ -8,39 +8,50 @@ import {
 import { Input } from "@/components/ui/input";
 import { useBooking, type Filters } from "@/store/booking";
 import { SEDES, PROFESIONALES, ATTENTION_TYPES, FRANJAS } from "@/mocks/catalog";
+import { opcionesFiltro, type Slot } from "@/mocks/availability";
 import { cn } from "@/lib/utils";
 
 function FilterDropdown({
   label,
   options,
+  available,
   value,
   onSelect,
   onClear,
 }: {
   label: string;
   options: string[];
+  available: Set<string>;
   value?: string;
   onSelect: (v: string) => void;
   onClear: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const filtered = options.filter((o) => o.toLowerCase().includes(q.toLowerCase()));
+  // Show options that are either available given current filters,
+  // or the currently selected one (so user can clear it).
+  const visibleOptions = options.filter(
+    (o) => available.has(o) || value === o,
+  );
+  const filtered = visibleOptions.filter((o) =>
+    o.toLowerCase().includes(q.toLowerCase()),
+  );
   const active = !!value;
+  const disabled = visibleOptions.length === 0;
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
       <PopoverTrigger asChild>
         <button
+          disabled={disabled}
           className={cn(
             "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
             active
               ? "bg-foreground text-background border-foreground"
               : "border-border bg-background hover:border-foreground",
+            disabled && "cursor-not-allowed opacity-40 hover:border-border",
           )}
         >
-          <span>
-            {active ? `${label}: ${value}` : label}
-          </span>
+          <span>{active ? `${label}: ${value}` : label}</span>
           {active ? (
             <X
               className="h-4 w-4"
@@ -89,10 +100,15 @@ function FilterDropdown({
   );
 }
 
-export function FiltersBar() {
+export function FiltersBar({ slotPool = [] }: { slotPool?: Slot[] }) {
   const filters = useBooking((s) => s.filters);
   const setFilter = useBooking((s) => s.setFilter);
   const clearFilter = useBooking((s) => s.clearFilter);
+
+  const sedeAvail = opcionesFiltro(slotPool, filters, "sede");
+  const profAvail = opcionesFiltro(slotPool, filters, "profesional");
+  const attAvail = opcionesFiltro(slotPool, filters, "attention");
+  const franjaAvail = opcionesFiltro(slotPool, filters, "franja");
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -100,6 +116,7 @@ export function FiltersBar() {
       <FilterDropdown
         label="Sede"
         options={SEDES}
+        available={sedeAvail}
         value={filters.sede}
         onSelect={(v) => setFilter("sede", v)}
         onClear={() => clearFilter("sede")}
@@ -107,6 +124,7 @@ export function FiltersBar() {
       <FilterDropdown
         label="Profesional"
         options={PROFESIONALES}
+        available={profAvail}
         value={filters.profesional}
         onSelect={(v) => setFilter("profesional", v)}
         onClear={() => clearFilter("profesional")}
@@ -114,6 +132,7 @@ export function FiltersBar() {
       <FilterDropdown
         label="Tipo de atención"
         options={ATTENTION_TYPES as unknown as string[]}
+        available={attAvail}
         value={filters.attention}
         onSelect={(v) => setFilter("attention", v as Filters["attention"])}
         onClear={() => clearFilter("attention")}
@@ -121,6 +140,7 @@ export function FiltersBar() {
       <FilterDropdown
         label="Franja"
         options={FRANJAS as unknown as string[]}
+        available={franjaAvail}
         value={filters.franja}
         onSelect={(v) => setFilter("franja", v as Filters["franja"])}
         onClear={() => clearFilter("franja")}
