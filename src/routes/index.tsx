@@ -291,6 +291,7 @@ function P0() {
       if (parsed.dateKey) {
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
+        d.dateISO = parsed.dateISO;
       }
       setDraft(d);
       askAgendar(nextAgendarStep(d), d);
