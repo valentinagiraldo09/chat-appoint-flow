@@ -11,6 +11,7 @@ import {
   type DateChipKey,
   type Specialty,
 } from "@/mocks/catalog";
+import { hasAvailability, findNextAvailableDate, parseYmd, ymd } from "@/mocks/availability";
 import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
