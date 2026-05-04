@@ -223,7 +223,7 @@ function P1() {
     if (!next) return null;
     const all = filterSlots(generateSlots(next, specialty, service), filters);
     if (all.length === 0) return null;
-    return { date: next, slots: all.slice(0, 3), full: all };
+    return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters]);
 
   // Particular nearer slot for estado-2
