@@ -346,7 +346,7 @@ function SectionCard({
   hidePrice,
   onSelect,
 }: {
-  label: string;
+  label?: string;
   date: Date;
   slots: Slot[];
   full: Slot[];
@@ -356,12 +356,9 @@ function SectionCard({
   return (
     <section>
       <div className="rounded-t-xl bg-emerald-100/70 px-5 py-3">
-        <div className="flex items-center gap-2 text-base font-semibold">
-          <Star className="h-4 w-4 fill-foreground" />
-          <span>{label}</span>
-          <span className="text-muted-foreground capitalize">
-            · {format(date, "EEEE d 'de' MMMM", { locale: es })}
-          </span>
+        <div className="flex items-center gap-2 text-base font-semibold capitalize">
+          {label && <span className="capitalize-none">{label} · </span>}
+          <span>{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
         </div>
       </div>
       <div className="rounded-b-xl border border-t-0 border-border bg-background p-4">
