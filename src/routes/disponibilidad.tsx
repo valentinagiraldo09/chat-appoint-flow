@@ -338,17 +338,6 @@ function P1() {
                       <SlotCard key={slot.id} slot={slot} onClick={() => setModalSlot(slot)} />
                     ))}
                   </div>
-                  {particularSection.full.length > particularSection.slots.length && (
-                    <div className="mt-3 flex justify-end">
-                      <Link
-                        to="/horarios"
-                        search={{ d: ymd(particularSection.date) }}
-                        className="text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        Ver más opciones particulares →
-                      </Link>
-                    </div>
-                  )}
                 </div>
               )}
             </>
