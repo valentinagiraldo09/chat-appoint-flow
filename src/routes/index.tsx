@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 // ---------- Tipos ----------
-type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | null;
+type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
 type AgendarStep = "specialty" | "service" | "eps" | "date" | "ready";
 type IdStep = "ask-doc" | "show-card" | "confirm-cancel" | "done";
 
