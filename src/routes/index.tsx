@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 // ---------- Tipos ----------
-type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | null;
+type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
 type AgendarStep = "specialty" | "service" | "eps" | "date" | "ready";
 type IdStep = "ask-doc" | "show-card" | "confirm-cancel" | "done";
 
@@ -232,6 +232,13 @@ function P0() {
       botSay("¿Cuál es tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "confirmar" }),
       );
+    } else if (intent === "pagar") {
+      botSay("Para pagar tu cita necesito identificarte. ¿Cuál es tu número de documento?", () =>
+        addBubble({ kind: "doc-input", flow: "pagar" }),
+      );
+      setIdStep("ask-doc");
+    } else if (intent === "consultar") {
+      botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
     }
   }
 
@@ -375,17 +382,20 @@ function P0() {
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {[
-              { label: "Agendar una cita", intent: "agendar" as const },
-              { label: "Reagendar mi cita", intent: "reagendar" as const },
-              { label: "Cancelar mi cita", intent: "cancelar" as const },
-              { label: "Confirmar asistencia", intent: "confirmar" as const },
+              { label: "Agendar una cita", icon: "🗓", intent: "agendar" as const },
+              { label: "Reagendar mi cita", icon: "🔄", intent: "reagendar" as const },
+              { label: "Cancelar mi cita", icon: "✕", intent: "cancelar" as const },
+              { label: "Confirmar asistencia", icon: "🕐", intent: "confirmar" as const },
+              { label: "Pagar mi cita", icon: "💳", intent: "pagar" as const },
+              { label: "Consultar información", icon: "ℹ", intent: "consultar" as const },
             ].map((it) => (
               <button
                 key={it.intent}
-                onClick={() => startFlow(it.intent, { label: it.label })}
+                onClick={() => startFlow(it.intent as FlowKind, { label: it.label })}
                 disabled={!mounted}
-                className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted disabled:opacity-60"
               >
+                <span aria-hidden className="text-base leading-none">{it.icon}</span>
                 {it.label}
               </button>
             ))}
