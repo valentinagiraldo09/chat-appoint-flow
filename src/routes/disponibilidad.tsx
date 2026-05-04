@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBooking } from "@/store/booking";
-import { SPECIALTIES, SERVICES, type Specialty } from "@/mocks/catalog";
+import { SPECIALTIES, SERVICES, EPS_OPTIONS, type Specialty } from "@/mocks/catalog";
 import {
   filterSlots,
   generateSlots,
