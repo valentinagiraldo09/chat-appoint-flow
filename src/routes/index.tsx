@@ -297,6 +297,8 @@ function P0() {
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
       if (d.dateKey) setPreferredDate(d.dateISO ?? dateChipToISO(d.dateKey));
+      if (d.dateISO) useBooking.getState().setDate(d.dateISO);
+      else useBooking.getState().setDate(undefined);
       // Transferir chat lateral
       clearChat();
       bubbles.forEach((b) => {
