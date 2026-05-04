@@ -15,7 +15,6 @@ import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as BuscarFechaRouteImport } from './routes/buscar-fecha'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoberturaParcialRouteImport } from './routes/cobertura.parcial'
 import { Route as CoberturaNoCubreRouteImport } from './routes/cobertura.no-cubre'
@@ -50,11 +49,6 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BuscarFechaRoute = BuscarFechaRouteImport.update({
-  id: '/buscar-fecha',
-  path: '/buscar-fecha',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,7 +67,6 @@ const CoberturaNoCubreRoute = CoberturaNoCubreRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
@@ -85,7 +78,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
@@ -98,7 +90,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/buscar-fecha': typeof BuscarFechaRoute
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
@@ -112,7 +103,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/buscar-fecha'
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
@@ -124,7 +114,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/buscar-fecha'
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
@@ -136,7 +125,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/buscar-fecha'
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
@@ -149,7 +137,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BuscarFechaRoute: typeof BuscarFechaRoute
   CheckoutRoute: typeof CheckoutRoute
   ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
@@ -204,13 +191,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/buscar-fecha': {
-      id: '/buscar-fecha'
-      path: '/buscar-fecha'
-      fullPath: '/buscar-fecha'
-      preLoaderRoute: typeof BuscarFechaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -237,7 +217,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BuscarFechaRoute: BuscarFechaRoute,
   CheckoutRoute: CheckoutRoute,
   ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
