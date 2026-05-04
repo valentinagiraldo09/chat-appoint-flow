@@ -55,6 +55,32 @@ export const FRANJAS: Franja[] = ["Mañana", "Tarde", "Noche"];
 
 export const ASEGURADORAS = ["EPS Sanitas", "EPS Sura", "EPS Compensar", "Particular"];
 
+export const EPS_OPTIONS = ["Nueva EPS", "EPS Sanitas", "EPS Sura", "EPS Compensar", "Particular"];
+
+export type DateChipKey = "asap" | "this-week" | "next-week" | "in-15-days" | "pick";
+
+export const DATE_CHIPS: { key: DateChipKey; label: string }[] = [
+  { key: "asap", label: "Lo más pronto posible" },
+  { key: "this-week", label: "Esta semana" },
+  { key: "next-week", label: "La próxima semana" },
+  { key: "in-15-days", label: "En 15 días" },
+  { key: "pick", label: "Elegir fecha" },
+];
+
+export function dateChipToISO(key: DateChipKey): string | undefined {
+  const now = new Date();
+  if (key === "asap") return undefined;
+  const add = (d: number) => {
+    const x = new Date(now);
+    x.setDate(x.getDate() + d);
+    return x.toISOString().slice(0, 10);
+  };
+  if (key === "this-week") return add(2);
+  if (key === "next-week") return add(7);
+  if (key === "in-15-days") return add(15);
+  return undefined;
+}
+
 export const TIPOS_DOCUMENTO = ["Cédula de ciudadanía", "Cédula de extranjería", "Pasaporte", "Tarjeta de identidad"];
 
 export function franjaForHour(hour: number): Franja {

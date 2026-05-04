@@ -1,229 +1,391 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Calendar, RefreshCw, X, CheckCircle2, CreditCard, Info, Mic, Stethoscope } from "lucide-react";
+import { Send, Plus, MapPin, Clock, Stethoscope } from "lucide-react";
 import { useBooking } from "@/store/booking";
-import { SPECIALTIES } from "@/mocks/catalog";
+import {
+  SPECIALTIES,
+  SERVICES,
+  EPS_OPTIONS,
+  DATE_CHIPS,
+  dateChipToISO,
+  type DateChipKey,
+  type Specialty,
+} from "@/mocks/catalog";
+import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asistente de citas médicas" },
-      { name: "description", content: "Agenda, reagenda o paga tu cita médica con un asistente conversacional." },
+      { title: "Asistente Coco — Gestiona tu cita fácil y rápido" },
+      { name: "description", content: "Agenda, reagenda, cancela o confirma tu cita médica con Coco." },
     ],
   }),
   component: P0,
 });
 
-const INTENTS = [
-  { label: "Agendar una cita", icon: Calendar, intent: "agendar" as const },
-  { label: "Reagendar mi cita", icon: RefreshCw, intent: "reagendar" as const },
-  { label: "Cancelar mi cita", icon: X, intent: "cancelar" as const },
-  { label: "Confirmar asistencia", icon: CheckCircle2, intent: "confirmar" as const },
-  { label: "Pagar mi cita", icon: CreditCard, intent: "pagar" as const },
-  { label: "Consultar información", icon: Info, intent: "consultar" as const },
-];
+// ---------- Tipos ----------
+type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | null;
+type AgendarStep = "specialty" | "service" | "eps" | "date" | "ready";
+type IdStep = "ask-doc" | "show-card" | "confirm-cancel" | "done";
 
-const KEYWORDS_AGENDAR = ["agendar", "agenda", "cita", "doctor", "doctora", "reservar", "turno", "consulta", "especialista"];
+type Draft = {
+  specialty?: Specialty;
+  service?: string;
+  eps?: string;
+  dateKey?: DateChipKey;
+  dateLabel?: string;
+};
 
-type Bubble = { from: "bot" | "user"; text: string };
+type Bubble =
+  | { id: string; kind: "msg"; from: "bot" | "user"; text: string }
+  | { id: string; kind: "summary"; items: string[] }
+  | { id: string; kind: "doc-input"; flow: FlowKind }
+  | { id: string; kind: "appt-card"; flow: FlowKind }
+  | { id: string; kind: "cancel-confirm" }
+  | { id: string; kind: "post-cancel" }
+  | { id: string; kind: "post-confirm" };
 
-function detectIntent(text: string): string | null {
-  const t = text.toLowerCase();
-  if (KEYWORDS_AGENDAR.some((k) => t.includes(k))) return "agendar";
-  if (t.includes("reagend")) return "reagendar";
-  if (t.includes("cancel")) return "cancelar";
-  if (t.includes("confirm")) return "confirmar";
-  if (t.includes("pag")) return "pagar";
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+// ---------- Parser ----------
+function detectIntent(t: string): FlowKind {
+  if (/reagend/i.test(t)) return "reagendar";
+  if (/cancel/i.test(t)) return "cancelar";
+  if (/confirm/i.test(t)) return "confirmar";
+  if (/agend|cita|reservar|turno|consulta|doctor|especialista/i.test(t)) return "agendar";
   return null;
 }
 
-// Detecta especialidad escrita libremente (con sinónimos comunes)
-function detectSpecialty(text: string): string | null {
-  const t = text.toLowerCase();
-  const map: Array<{ key: string; aliases: string[] }> = [
-    { key: "Cardiología", aliases: ["cardio", "corazón", "corazon", "cardiolog"] },
-    { key: "Dermatología", aliases: ["derma", "piel", "dermatolog"] },
-    { key: "Medicina General", aliases: ["medicina general", "general", "médico general", "medico general"] },
-    { key: "Ginecología", aliases: ["gineco", "ginecolog"] },
-    { key: "Optometría", aliases: ["optome", "vista", "ojos", "lentes"] },
-    { key: "Pediatría", aliases: ["pediat", "niño", "nino", "hijo"] },
+function detectSpecialty(t: string): Specialty | undefined {
+  const l = t.toLowerCase();
+  const map: Array<[RegExp, Specialty]> = [
+    [/cardio|coraz[oó]n/, "Cardiología"],
+    [/derma|piel/, "Dermatología"],
+    [/medicina general|m[eé]dico general|general/, "Medicina General"],
+    [/gineco/, "Ginecología"],
+    [/optome|vista|ojos|lentes/, "Optometría"],
+    [/pediat|ni[ñn]o|hijo/, "Pediatría"],
   ];
-  for (const m of map) {
-    if (m.aliases.some((a) => t.includes(a))) return m.key;
-  }
-  return null;
+  for (const [re, sp] of map) if (re.test(l)) return sp;
+  return undefined;
+}
+
+function detectService(t: string, sp?: Specialty): string | undefined {
+  const l = t.toLowerCase();
+  if (/primera vez|primer[ao]/.test(l)) return "Primera vez";
+  if (/control|seguimiento/.test(l)) return "Control";
+  if (/procedimiento/.test(l) && sp === "Dermatología") return "Procedimiento";
+  if (/citolog/.test(l) && sp === "Ginecología") return "Citología";
+  if (/crecimiento/.test(l) && sp === "Pediatría") return "Crecimiento y desarrollo";
+  return undefined;
+}
+
+function detectEPS(t: string): string | undefined {
+  const l = t.toLowerCase();
+  if (/nueva eps/.test(l)) return "Nueva EPS";
+  if (/sanitas/.test(l)) return "EPS Sanitas";
+  if (/sura/.test(l)) return "EPS Sura";
+  if (/compensar/.test(l)) return "EPS Compensar";
+  if (/particular|sin eps|pago propio/.test(l)) return "Particular";
+  return undefined;
+}
+
+function detectDate(t: string): { key: DateChipKey; label: string } | undefined {
+  const l = t.toLowerCase();
+  if (/lo m[aá]s pronto|cuanto antes|urgente|hoy/.test(l)) return { key: "asap", label: "Lo más pronto posible" };
+  if (/esta semana/.test(l)) return { key: "this-week", label: "Esta semana" };
+  if (/pr[oó]xima semana|siguiente semana/.test(l)) return { key: "next-week", label: "La próxima semana" };
+  if (/15 d[ií]as|quincena|dos semanas/.test(l)) return { key: "in-15-days", label: "En 15 días" };
+  return undefined;
+}
+
+function parseMessage(text: string) {
+  const intent = detectIntent(text);
+  const specialty = detectSpecialty(text);
+  const service = detectService(text, specialty);
+  const eps = detectEPS(text);
+  const date = detectDate(text);
+  return { intent, specialty, service, eps, dateKey: date?.key, dateLabel: date?.label };
+}
+
+function nextAgendarStep(d: Draft): AgendarStep {
+  if (!d.specialty) return "specialty";
+  if (!d.service) return "service";
+  if (!d.eps) return "eps";
+  if (!d.dateKey) return "date";
+  return "ready";
 }
 
 function P0() {
   const navigate = useNavigate();
   const setSpecialty = useBooking((s) => s.setSpecialty);
+  const setService = useBooking((s) => s.setService);
+  const setAseguradora = useBooking((s) => s.setAseguradora);
+  const setPreferredDate = useBooking((s) => s.setPreferredDate);
   const reset = useBooking((s) => s.reset);
   const pushChat = useBooking((s) => s.pushChat);
   const clearChat = useBooking((s) => s.clearChat);
+
   const [input, setInput] = useState("");
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
-  const [step, setStep] = useState<"idle" | "intent" | "specialty" | "other">("idle");
-  const [mounted, setMounted] = useState(false);
+  const [flow, setFlow] = useState<FlowKind>(null);
+  const [agStep, setAgStep] = useState<AgendarStep | null>(null);
+  const [idStep, setIdStep] = useState<IdStep | null>(null);
+  const [draft, setDraft] = useState<Draft>({});
   const [typing, setTyping] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [bubbles, typing]);
 
   const inChat = bubbles.length > 0;
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [bubbles, typing]);
+  function addBubble(b: Omit<Bubble, "id"> | Record<string, unknown>) {
+    setBubbles((bs) => [...bs, { ...b, id: uid() } as Bubble]);
+  }
 
-  function botSay(text: string, after?: () => void) {
+  const botSay = (text: string, after?: () => void) => {
     setTyping(true);
     setTimeout(() => {
-      setBubbles((b) => [...b, { from: "bot", text }]);
+      addBubble({ kind: "msg", from: "bot", text });
       setTyping(false);
       after?.();
     }, 450);
-  }
+  };
 
-  function transferChatAndGo(specialty: string) {
-    // Transferir bubbles actuales al chat persistente
-    clearChat();
-    bubbles.forEach((b) => {
-      if (b.from === "user" || b.from === "bot") {
-        pushChat({ from: b.from, text: b.text });
-      }
-    });
-    pushChat({
-      from: "bot",
-      text: `Listo. Estoy mostrando disponibilidad para ${specialty}. Puedo aplicar filtros si me los pides aquí, o si los seleccionas en la interfaz te lo confirmo.`,
-    });
-    setTimeout(() => navigate({ to: "/disponibilidad" }), 500);
-  }
+  const userSay = (text: string) => addBubble({ kind: "msg", from: "user", text });
 
-  function startAgendarFlow(prefilledSpecialty?: string | null) {
-    reset();
-    if (prefilledSpecialty) {
-      setSpecialty(prefilledSpecialty);
-      botSay(`Perfecto, busquemos disponibilidad para ${prefilledSpecialty}. Te llevo a la agenda…`, () => {
-        transferChatAndGo(prefilledSpecialty);
-      });
-      setStep("other");
-    } else {
-      botSay("Perfecto. ¿Qué especialidad necesitas?", () => setStep("specialty"));
+  // ===== AGENDAR =====
+  function askAgendar(step: AgendarStep, d: Draft) {
+    setAgStep(step);
+    if (step === "specialty") {
+      botSay("Perfecto. ¿Qué especialidad necesitas?");
+    } else if (step === "service") {
+      botSay(`Genial, busquemos disponibilidad para ${d.specialty}. ¿Es primera vez o es un control?`);
+    } else if (step === "eps") {
+      botSay("¿Con qué aseguradora o EPS vas a tomar la cita?");
+    } else if (step === "date") {
+      botSay("¿Desde cuándo quieres tu cita?");
+    } else if (step === "ready") {
+      finishAgendar(d);
     }
   }
 
-  function handleIntent(intent: string, label?: string, prefilledSpecialty?: string | null) {
-    if (label) setBubbles((b) => [...b, { from: "user", text: label }]);
+  function finishAgendar(d: Draft) {
+    botSay("Listo. Tengo todo lo que necesito. Voy a mostrarte la disponibilidad disponible para ti.", () => {
+      addBubble({
+        kind: "summary",
+        items: [
+          `${d.specialty} ${d.service?.toLowerCase()}`,
+          d.eps!,
+          d.dateLabel!,
+        ],
+      });
+      // Persistir en store
+      if (d.specialty) setSpecialty(d.specialty);
+      if (d.service) setService(d.service);
+      if (d.eps) setAseguradora(d.eps);
+      if (d.dateKey) setPreferredDate(dateChipToISO(d.dateKey));
+      // Transferir chat lateral
+      clearChat();
+      bubbles.forEach((b) => {
+        if (b.kind === "msg") pushChat({ from: b.from, text: b.text });
+      });
+      pushChat({
+        from: "bot",
+        text: `Estoy mostrando disponibilidad para ${d.specialty} — ${d.service} (${d.eps}, ${d.dateLabel}). Pídeme filtros aquí o úsalos en la interfaz.`,
+      });
+      setTimeout(() => navigate({ to: "/disponibilidad" }), 700);
+    });
+    setAgStep(null);
+  }
+
+  function startFlow(intent: FlowKind, opts?: { skipUserBubble?: boolean; label?: string; parsed?: Partial<Draft> }) {
+    if (!opts?.skipUserBubble && opts?.label) userSay(opts.label);
+    setFlow(intent);
     if (intent === "agendar") {
-      startAgendarFlow(prefilledSpecialty);
-    } else {
-      const map: Record<string, string> = {
-        reagendar: "Para reagendar necesitamos el código de tu cita. (Demo: esta opción no está implementada en el prototipo).",
-        cancelar: "Lamentamos que tengas que cancelar. (Demo: esta opción no está implementada en el prototipo).",
-        confirmar: "Confirma tu asistencia con el código que te enviamos. (Demo: prototipo).",
-        pagar: "Puedes pagar una cita pendiente con tu código. (Demo: prototipo).",
-        consultar: "Cuéntame qué información necesitas y te ayudo. (Demo: prototipo).",
-      };
-      botSay(map[intent]);
-      setStep("other");
+      const d: Draft = { ...draft, ...(opts?.parsed ?? {}) };
+      setDraft(d);
+      const step = nextAgendarStep(d);
+      // Mensaje inicial contextual
+      if (opts?.parsed?.specialty && step !== "specialty") {
+        botSay(`Entendido, te ayudo a agendar tu cita de ${opts.parsed.specialty}.`, () => askAgendar(step, d));
+      } else {
+        askAgendar(step, d);
+      }
+    } else if (intent === "reagendar") {
+      setIdStep("ask-doc");
+      botSay("Para reagendar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+        addBubble({ kind: "doc-input", flow: "reagendar" }),
+      );
+    } else if (intent === "cancelar") {
+      setIdStep("ask-doc");
+      botSay("Para cancelar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+        addBubble({ kind: "doc-input", flow: "cancelar" }),
+      );
+    } else if (intent === "confirmar") {
+      setIdStep("ask-doc");
+      botSay("¿Cuál es tu número de documento?", () =>
+        addBubble({ kind: "doc-input", flow: "confirmar" }),
+      );
     }
   }
 
   function handleSend() {
     const text = input.trim();
     if (!text) return;
-    setBubbles((b) => [...b, { from: "user", text }]);
     setInput("");
+    userSay(text);
 
-    // Si estamos pidiendo especialidad, intentar reconocerla del texto
-    if (step === "specialty") {
-      const sp = detectSpecialty(text);
-      if (sp) {
-        setSpecialty(sp);
-        botSay(`Genial, busquemos disponibilidad para ${sp}…`, () => {
-          transferChatAndGo(sp);
-        });
-        setStep("other");
-
-      } else {
-        botSay("No reconocí esa especialidad. Elige una de las opciones de abajo:");
+    // Si estamos en medio de un paso de agendar, intentar reconocer la respuesta libre
+    if (flow === "agendar" && agStep) {
+      const parsed = parseMessage(text);
+      const d: Draft = { ...draft };
+      if (parsed.specialty) d.specialty = parsed.specialty;
+      if (parsed.service) d.service = parsed.service;
+      if (parsed.eps) d.eps = parsed.eps;
+      if (parsed.dateKey) {
+        d.dateKey = parsed.dateKey;
+        d.dateLabel = parsed.dateLabel;
       }
+      setDraft(d);
+      askAgendar(nextAgendarStep(d), d);
       return;
     }
 
-    const intent = detectIntent(text);
-    const sp = detectSpecialty(text);
-
+    // Mensaje libre inicial
+    const parsed = parseMessage(text);
+    const intent: FlowKind = parsed.intent ?? (parsed.specialty ? "agendar" : null);
     if (intent) {
-      // Si en el primer mensaje ya viene especialidad, saltar la pregunta
-      handleIntent(intent, undefined, sp);
-    } else if (sp) {
-      // Mencionó especialidad sin verbo claro → asumir agendar
-      handleIntent("agendar", undefined, sp);
+      startFlow(intent, { skipUserBubble: true, parsed });
     } else {
-      botSay("Puedo ayudarte a agendar, reagendar, cancelar, confirmar o pagar una cita. ¿Qué quieres hacer?");
+      botSay("Puedo ayudarte a agendar, reagendar, cancelar o confirmar tu cita. ¿Qué necesitas?");
     }
   }
 
-  function pickSpecialty(s: string) {
-    setSpecialty(s);
-    setBubbles((b) => [...b, { from: "user", text: s }]);
-    botSay(`Genial, busquemos disponibilidad para ${s}…`, () => {
-      transferChatAndGo(s);
-    });
-    setStep("other");
+  // ===== Selecciones por chip =====
+  function pickSpecialty(s: Specialty) {
+    userSay(s);
+    const d = { ...draft, specialty: s };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+  function pickService(s: string) {
+    userSay(s);
+    const d = { ...draft, service: s };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+  function pickEPS(s: string) {
+    userSay(s);
+    const d = { ...draft, eps: s };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+  function pickDate(key: DateChipKey, label: string) {
+    userSay(label);
+    const d = { ...draft, dateKey: key, dateLabel: label };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
   }
 
+  // ===== Identificación / cards =====
+  function submitDoc(_doc: string, f: FlowKind) {
+    setIdStep("show-card");
+    if (f === "confirmar") {
+      addBubble({ kind: "appt-card", flow: f });
+    } else {
+      botSay("Encontré tus citas activas:", () => addBubble({ kind: "appt-card", flow: f }));
+    }
+  }
 
-  // ===== Vista inicial (hero) =====
+  function onCardAction(f: FlowKind) {
+    if (f === "reagendar") {
+      reset();
+      setSpecialty("Dermatología");
+      setService("Primera vez");
+      navigate({ to: "/disponibilidad" });
+    } else if (f === "cancelar") {
+      setIdStep("confirm-cancel");
+      botSay("¿Confirmas que quieres cancelar esta cita?", () => addBubble({ kind: "cancel-confirm" }));
+    } else if (f === "confirmar") {
+      botSay("✓ Tu asistencia quedó confirmada. Te esperamos el jueves 8 de mayo a las 9:15 AM.");
+      setIdStep("done");
+    }
+  }
+
+  function confirmCancel(yes: boolean) {
+    if (yes) {
+      userSay("Sí, cancelar");
+      botSay("✓ Tu cita fue cancelada exitosamente. ¿Quieres agendar una nueva cita?", () =>
+        addBubble({ kind: "post-cancel" }),
+      );
+      setIdStep("done");
+    } else {
+      userSay("No, volver");
+      setIdStep("show-card");
+    }
+  }
+
+  function newConversation() {
+    setBubbles([]);
+    setFlow(null);
+    setAgStep(null);
+    setIdStep(null);
+    setDraft({});
+    reset();
+  }
+
+  // ============ ESTADO 1 — Hero ============
   if (!inChat) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50/40 via-background to-background">
-        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 pb-16 pt-12 md:pt-24">
-          <header className="mb-10 text-center">
-            <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              <Stethoscope className="h-6 w-6" />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Hola, soy tu asistente médico</h1>
-            <p className="mt-2 text-muted-foreground">¿En qué te ayudo hoy?</p>
-          </header>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+        <div className="w-full max-w-xl">
+          <div className="mb-10 flex flex-col items-center text-center">
+            <CocoLogo className="mb-8 h-16 w-auto" />
+            <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+              Gestiona tu cita fácil y rápido
+            </h1>
+          </div>
 
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+          <div className="rounded-2xl border border-border bg-card p-2 shadow-sm transition focus-within:border-foreground/40 focus-within:shadow-md">
             <div className="flex items-center gap-2 px-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder={mounted ? "Escribe lo que necesitas… ej: Quiero una cita de dermatología" : "Cargando asistente..."}
+                placeholder="¿Cómo puedo ayudarte?"
                 disabled={!mounted}
                 className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground disabled:opacity-60"
               />
               <button
                 onClick={handleSend}
-                disabled={!mounted}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                disabled={!mounted || !input.trim()}
                 aria-label="Enviar"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background transition hover:bg-foreground/90 disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {INTENTS.map((it) => (
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {[
+              { label: "Agendar una cita", intent: "agendar" as const },
+              { label: "Reagendar mi cita", intent: "reagendar" as const },
+              { label: "Cancelar mi cita", intent: "cancelar" as const },
+              { label: "Confirmar asistencia", intent: "confirmar" as const },
+            ].map((it) => (
               <button
                 key={it.intent}
-                onClick={() => handleIntent(it.intent, it.label)}
+                onClick={() => startFlow(it.intent, { label: it.label })}
                 disabled={!mounted}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium transition hover:border-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted disabled:opacity-60"
               >
-                <it.icon className="h-4 w-4" />
                 {it.label}
               </button>
             ))}
@@ -233,27 +395,21 @@ function P0() {
     );
   }
 
-  // ===== Vista chat (barra fija abajo) =====
+  // ============ ESTADO 2 — Chat ============
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Header chat */}
-      <header className="border-b border-border bg-card/80 backdrop-blur">
+      {/* Header */}
+      <header className="border-b border-border bg-background">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-            <Stethoscope className="h-5 w-5" />
-          </div>
+          <CocoLogo className="h-8 w-auto" />
           <div className="flex-1">
-            <p className="text-sm font-semibold leading-tight">Asistente médico</p>
-            <p className="text-xs text-emerald-600">● en línea</p>
+            <p className="text-sm font-semibold leading-tight">Asistente Coco</p>
           </div>
           <button
-            onClick={() => {
-              setBubbles([]);
-              setStep("idle");
-              reset();
-            }}
-            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+            onClick={newConversation}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
           >
+            <Plus className="h-3.5 w-3.5" />
             Nueva conversación
           </button>
         </div>
@@ -262,94 +418,293 @@ function P0() {
       {/* Mensajes */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-3 px-4 py-6">
-          {bubbles.map((b, i) => (
-            <div
-              key={i}
-              className={cn(
-                "flex items-end gap-2",
-                b.from === "user" ? "justify-end" : "justify-start",
-              )}
-            >
-              {b.from === "bot" && (
-                <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                  <Stethoscope className="h-3.5 w-3.5" />
-                </div>
-              )}
-              <div
-                className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
-                  b.from === "bot"
-                    ? "rounded-bl-sm bg-muted text-foreground"
-                    : "rounded-br-sm bg-foreground text-background",
-                )}
-              >
-                {b.text}
-              </div>
-            </div>
-          ))}
+          {bubbles.map((b, i) => {
+            const isLast = i === bubbles.length - 1;
+            return <BubbleRenderer
+              key={b.id}
+              bubble={b}
+              isLast={isLast}
+              draft={draft}
+              flow={flow}
+              agStep={agStep}
+              idStep={idStep}
+              onPickSpecialty={pickSpecialty}
+              onPickService={pickService}
+              onPickEPS={pickEPS}
+              onPickDate={pickDate}
+              onSubmitDoc={submitDoc}
+              onCardAction={onCardAction}
+              onConfirmCancel={confirmCancel}
+              onPostCancel={(again) => {
+                if (again) {
+                  userSay("Agendar nueva cita");
+                  newConversation();
+                  setTimeout(() => startFlow("agendar", { skipUserBubble: true }), 100);
+                } else {
+                  userSay("No, gracias");
+                }
+              }}
+            />;
+          })}
 
-          {typing && (
-            <div className="flex items-end gap-2">
-              <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                <Stethoscope className="h-3.5 w-3.5" />
-              </div>
-              <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
-                <div className="flex gap-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" />
-                </div>
-              </div>
-            </div>
-          )}
+          {typing && <TypingIndicator />}
 
-          {step === "specialty" && !typing && (
-            <div className="flex flex-wrap gap-2 pl-9 pt-2">
-              {SPECIALTIES.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => pickSpecialty(s)}
-                  className="rounded-full border border-emerald-500 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+          {/* Chips contextuales al final del flujo */}
+          {!typing && flow === "agendar" && agStep && (
+            <ChipsRow draft={draft} agStep={agStep}
+              onPickSpecialty={pickSpecialty}
+              onPickService={pickService}
+              onPickEPS={pickEPS}
+              onPickDate={pickDate}
+            />
           )}
         </div>
       </div>
 
-      {/* Barra de escritura fija */}
-      <div className="border-t border-border bg-card/80 backdrop-blur">
+      {/* Input */}
+      <div className="border-t border-border bg-background">
         <div className="mx-auto max-w-3xl px-4 py-3">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 shadow-sm">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-foreground/40">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Escribí tu consulta..."
-              className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Escribe tu consulta..."
+              className="flex-1 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
               autoFocus
             />
             <button
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-              aria-label="Dictar"
-            >
-              <Mic className="h-4 w-4" />
-            </button>
-            <button
               onClick={handleSend}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90"
+              disabled={!input.trim()}
               aria-label="Enviar"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Las respuestas son automáticas y pueden contener errores. No compartas datos personales.
-          </p>
         </div>
       </div>
     </div>
   );
+}
+
+// ============ Subcomponentes ============
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-end gap-2">
+      <BotAvatar />
+      <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
+        <div className="flex gap-1">
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/60" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BotAvatar() {
+  return (
+    <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-card">
+      <CocoLogo className="h-5 w-auto" />
+    </div>
+  );
+}
+
+function MsgBubble({ from, text }: { from: "bot" | "user"; text: string }) {
+  return (
+    <div className={cn("flex items-end gap-2", from === "user" ? "justify-end" : "justify-start")}>
+      {from === "bot" && <BotAvatar />}
+      <div
+        className={cn(
+          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          from === "bot"
+            ? "rounded-bl-sm bg-muted text-foreground"
+            : "rounded-br-sm bg-foreground text-background",
+        )}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
+function ChipsRow({
+  draft, agStep, onPickSpecialty, onPickService, onPickEPS, onPickDate,
+}: {
+  draft: Draft; agStep: AgendarStep;
+  onPickSpecialty: (s: Specialty) => void;
+  onPickService: (s: string) => void;
+  onPickEPS: (s: string) => void;
+  onPickDate: (k: DateChipKey, l: string) => void;
+}) {
+  const wrap = "flex flex-wrap gap-2 pl-10";
+  const chip = "rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted";
+  if (agStep === "specialty") {
+    return (
+      <div className={wrap}>
+        {SPECIALTIES.map((s) => (
+          <button key={s} className={chip} onClick={() => onPickSpecialty(s)}>{s}</button>
+        ))}
+      </div>
+    );
+  }
+  if (agStep === "service" && draft.specialty) {
+    return (
+      <div className={wrap}>
+        {SERVICES[draft.specialty].map((s) => (
+          <button key={s} className={chip} onClick={() => onPickService(s)}>{s}</button>
+        ))}
+      </div>
+    );
+  }
+  if (agStep === "eps") {
+    return (
+      <div className={wrap}>
+        {EPS_OPTIONS.map((s) => (
+          <button key={s} className={chip} onClick={() => onPickEPS(s)}>{s}</button>
+        ))}
+      </div>
+    );
+  }
+  if (agStep === "date") {
+    return (
+      <div className={wrap}>
+        {DATE_CHIPS.map((d) => (
+          <button key={d.key} className={chip} onClick={() => onPickDate(d.key, d.label)}>{d.label}</button>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
+
+function SummaryChips({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-2 pl-10">
+      {items.map((it) => (
+        <span key={it} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+          ✓ {it}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DocInput({ onSubmit, disabled }: { onSubmit: (v: string) => void; disabled: boolean }) {
+  const [v, setV] = useState("");
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-10">
+      <input
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        disabled={disabled}
+        placeholder="Número de documento"
+        className="w-56 rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-foreground/40 disabled:opacity-60"
+      />
+      <button
+        disabled={disabled || !v.trim()}
+        onClick={() => onSubmit(v.trim())}
+        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+      >
+        Continuar
+      </button>
+    </div>
+  );
+}
+
+function ApptCard({ flow, onAction, disabled }: { flow: FlowKind; onAction: () => void; disabled: boolean }) {
+  const labelMap: Record<string, string> = {
+    reagendar: "Reagendar esta cita →",
+    cancelar: "Cancelar esta cita",
+    confirmar: "Confirmar asistencia",
+  };
+  return (
+    <div className="ml-10 max-w-md rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <p className="text-sm font-semibold text-foreground">Dermatología primera vez</p>
+      <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+        <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Jueves 8 de mayo · 9:15 AM</p>
+        <p className="flex items-center gap-1.5"><Stethoscope className="h-3.5 w-3.5" /> Dra. María Rodríguez</p>
+        <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Sede Centro</p>
+      </div>
+      <button
+        onClick={onAction}
+        disabled={disabled}
+        className={cn(
+          "mt-3 w-full rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-40",
+          flow === "cancelar"
+            ? "border border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
+            : "bg-foreground text-background hover:bg-foreground/90",
+        )}
+      >
+        {flow ? labelMap[flow] : "Continuar"}
+      </button>
+    </div>
+  );
+}
+
+function BubbleRenderer(props: {
+  bubble: Bubble;
+  isLast: boolean;
+  draft: Draft;
+  flow: FlowKind;
+  agStep: AgendarStep | null;
+  idStep: IdStep | null;
+  onPickSpecialty: (s: Specialty) => void;
+  onPickService: (s: string) => void;
+  onPickEPS: (s: string) => void;
+  onPickDate: (k: DateChipKey, l: string) => void;
+  onSubmitDoc: (doc: string, f: FlowKind) => void;
+  onCardAction: (f: FlowKind) => void;
+  onConfirmCancel: (yes: boolean) => void;
+  onPostCancel: (again: boolean) => void;
+}) {
+  const { bubble: b, isLast } = props;
+  if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
+  if (b.kind === "summary") return <SummaryChips items={b.items} />;
+  if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
+  if (b.kind === "appt-card") return <ApptCard flow={b.flow} disabled={!isLast && props.idStep !== "show-card"} onAction={() => props.onCardAction(b.flow)} />;
+  if (b.kind === "cancel-confirm") {
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        <button
+          disabled={!isLast}
+          onClick={() => props.onConfirmCancel(true)}
+          className="rounded-full border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/20 disabled:opacity-40"
+        >
+          Sí, cancelar
+        </button>
+        <button
+          disabled={!isLast}
+          onClick={() => props.onConfirmCancel(false)}
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40"
+        >
+          No, volver
+        </button>
+      </div>
+    );
+  }
+  if (b.kind === "post-cancel") {
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        <button
+          disabled={!isLast}
+          onClick={() => props.onPostCancel(true)}
+          className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+        >
+          Agendar nueva cita
+        </button>
+        <button
+          disabled={!isLast}
+          onClick={() => props.onPostCancel(false)}
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40"
+        >
+          No, gracias
+        </button>
+      </div>
+    );
+  }
+  return null;
 }
