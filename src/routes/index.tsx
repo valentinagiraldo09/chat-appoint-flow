@@ -35,6 +35,7 @@ type Draft = {
   eps?: string;
   dateKey?: DateChipKey;
   dateLabel?: string;
+  dateISO?: string;
 };
 
 type Bubble =
@@ -44,7 +45,8 @@ type Bubble =
   | { id: string; kind: "appt-card"; flow: FlowKind }
   | { id: string; kind: "cancel-confirm" }
   | { id: string; kind: "post-cancel" }
-  | { id: string; kind: "post-confirm" };
+  | { id: string; kind: "post-confirm" }
+  | { id: string; kind: "date-input" };
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
