@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { type Slot, formatTime, parseYmd } from "@/mocks/availability";
-import { formatCOP } from "@/mocks/catalog";
+import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ export function ConfirmModal({
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
+  const aseguradora = useBooking((s) => s.aseguradora);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
@@ -57,7 +58,13 @@ export function ConfirmModal({
             </div>
             <div>{slot.profesional}</div>
             {slot.attention === "Presencial" && (
-              <div className="text-muted-foreground">{slot.sede}</div>
+              <div className="text-muted-foreground">
+                {slot.sede}
+                {SEDE_ADDRESSES[slot.sede] && ` · ${SEDE_ADDRESSES[slot.sede]}`}
+              </div>
+            )}
+            {aseguradora && (
+              <div className="text-muted-foreground">Aseguradora: {aseguradora}</div>
             )}
           </div>
           <div className="mt-4 flex justify-end">
