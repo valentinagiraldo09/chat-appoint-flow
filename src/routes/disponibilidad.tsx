@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronDown, Zap, AlertTriangle, CalendarX } from "lucide-react";
 import { format } from "date-fns";
