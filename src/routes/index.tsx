@@ -232,6 +232,13 @@ function P0() {
       botSay("¿Cuál es tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "confirmar" }),
       );
+    } else if (intent === "pagar") {
+      botSay("Para pagar tu cita necesito identificarte. ¿Cuál es tu número de documento?", () =>
+        addBubble({ kind: "doc-input", flow: "pagar" }),
+      );
+      setIdStep("ask-doc");
+    } else if (intent === "consultar") {
+      botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
     }
   }
 
