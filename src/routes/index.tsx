@@ -147,6 +147,7 @@ function nextAgendarStep(d: Draft): AgendarStep {
   if (!d.service) return "service";
   if (!d.eps) return "eps";
   if (!d.dateKey) return "date";
+  if (d.dateKey === "pick" && !d.dateISO) return "date";
   return "ready";
 }
 
