@@ -211,7 +211,7 @@ function P1() {
         : today;
     const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service), filters);
-    return { date: first, slots: all.slice(0, 3), full: all };
+    return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, date, filters, estado]);
 
   // Following day section (only for estado-1): next available date after epsSection
