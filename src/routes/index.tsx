@@ -860,12 +860,34 @@ function BubbleRenderer(props: {
   onCardAction: (f: FlowKind) => void;
   onConfirmCancel: (yes: boolean) => void;
   onPostCancel: (again: boolean) => void;
+  onAcceptSuggestedDate: (iso: string, label: string) => void;
+  onRejectSuggestedDate: () => void;
 }) {
   const { bubble: b, isLast } = props;
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
   if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
+  if (b.kind === "date-suggest") {
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        <button
+          disabled={!isLast}
+          onClick={() => props.onAcceptSuggestedDate(b.iso, b.label)}
+          className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+        >
+          Sí, tomar el {b.label}
+        </button>
+        <button
+          disabled={!isLast}
+          onClick={() => props.onRejectSuggestedDate()}
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-40"
+        >
+          Elegir otra fecha
+        </button>
+      </div>
+    );
+  }
   if (b.kind === "appt-card") return <ApptCard flow={b.flow} disabled={!isLast && props.idStep !== "show-card"} onAction={() => props.onCardAction(b.flow)} />;
   if (b.kind === "cancel-confirm") {
     return (
