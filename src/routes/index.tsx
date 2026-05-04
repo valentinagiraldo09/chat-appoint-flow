@@ -144,7 +144,7 @@ function P0() {
 
   const inChat = bubbles.length > 0;
 
-  function addBubble<T extends Omit<Bubble, "id">>(b: T) {
+  function addBubble(b: Omit<Bubble, "id"> | Record<string, unknown>) {
     setBubbles((bs) => [...bs, { ...b, id: uid() } as Bubble]);
   }
 
