@@ -220,8 +220,7 @@ function P1() {
   }
 
   return (
-    <AssistantLayout>
-      <div className="min-h-full bg-muted/30">
+    <div className="min-h-screen bg-muted/30">
 
       <div className="border-b border-border bg-muted/60">
         <div className="mx-auto max-w-6xl px-4 py-6">
@@ -328,8 +327,7 @@ function P1() {
       </div>
 
       <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
-      </div>
-    </AssistantLayout>
+    </div>
   );
 }
 
