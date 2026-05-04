@@ -223,7 +223,7 @@ function P0() {
       if (d.specialty) setSpecialty(d.specialty);
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
-      if (d.dateKey) setPreferredDate(dateChipToISO(d.dateKey));
+      if (d.dateKey) setPreferredDate(d.dateISO ?? dateChipToISO(d.dateKey));
       // Transferir chat lateral
       clearChat();
       bubbles.forEach((b) => {
