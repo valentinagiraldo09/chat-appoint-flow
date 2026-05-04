@@ -717,6 +717,7 @@ function BubbleRenderer(props: {
   onPickService: (s: string) => void;
   onPickEPS: (s: string) => void;
   onPickDate: (k: DateChipKey, l: string) => void;
+  onPickSpecificDate: (iso: string) => void;
   onSubmitDoc: (doc: string, f: FlowKind) => void;
   onCardAction: (f: FlowKind) => void;
   onConfirmCancel: (yes: boolean) => void;
@@ -726,6 +727,7 @@ function BubbleRenderer(props: {
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
+  if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
   if (b.kind === "appt-card") return <ApptCard flow={b.flow} disabled={!isLast && props.idStep !== "show-card"} onAction={() => props.onCardAction(b.flow)} />;
   if (b.kind === "cancel-confirm") {
     return (
