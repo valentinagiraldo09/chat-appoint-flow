@@ -296,10 +296,6 @@ function P1() {
             <EmptyState
               specialty={specialty}
               aseguradora={aseguradora}
-              onPickDate={() => {
-                // navigate to /horarios as a calendar fallback
-                navigate({ to: "/horarios", search: { d: ymd(new Date()) } });
-              }}
               onWaitlist={() => setWaitlistOpen(true)}
             />
           ) : (
