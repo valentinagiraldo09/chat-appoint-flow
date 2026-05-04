@@ -355,7 +355,6 @@ function P0() {
     setInput("");
     userSay(text);
 
-    // Si estamos en medio de un paso de agendar, intentar reconocer la respuesta libre
     if (flow === "agendar" && agStep) {
       const parsed = parseMessage(text);
       const d: Draft = { ...draft };
@@ -368,11 +367,14 @@ function P0() {
         d.dateISO = parsed.dateISO;
       }
       setDraft(d);
+      if (parsed.dateISO && d.specialty && d.service) {
+        validateSpecificDate(d, parsed.dateISO);
+        return;
+      }
       askAgendar(nextAgendarStep(d), d);
       return;
     }
 
-    // Mensaje libre inicial
     const parsed = parseMessage(text);
     const intent: FlowKind = parsed.intent ?? (parsed.specialty ? "agendar" : null);
     if (intent) {
@@ -382,7 +384,6 @@ function P0() {
     }
   }
 
-  // ===== Selecciones por chip =====
   function pickSpecialty(s: Specialty) {
     userSay(s);
     const d = { ...draft, specialty: s };
@@ -415,12 +416,50 @@ function P0() {
     askAgendar(nextAgendarStep(d), d);
   }
   function pickSpecificDate(iso: string) {
-    const d0 = new Date(iso + "T00:00:00");
+    const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     userSay(label);
     const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
     setDraft(d);
+    if (d.specialty && d.service) {
+      validateSpecificDate(d, iso);
+      return;
+    }
     askAgendar(nextAgendarStep(d), d);
+  }
+
+  function validateSpecificDate(d: Draft, iso: string) {
+    const target = parseYmd(iso);
+    if (hasAvailability(target, d.specialty!, d.service!)) {
+      askAgendar(nextAgendarStep(d), d);
+      return;
+    }
+    const next = findNextAvailableDate(new Date(target.getTime() + 86400000), d.specialty!, d.service!);
+    const targetLabel = target.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+    if (!next) {
+      botSay(`No encontré disponibilidad para el ${targetLabel} ni en los próximos días. ¿Quieres elegir otra fecha?`, () =>
+        addBubble({ kind: "date-input" }),
+      );
+      return;
+    }
+    const nextIso = ymd(next);
+    const nextLabel = next.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+    botSay(`No hay disponibilidad para el ${targetLabel}. La fecha más cercana disponible es el ${nextLabel}. ¿Quieres tomar esa?`, () =>
+      addBubble({ kind: "date-suggest", iso: nextIso, label: nextLabel }),
+    );
+  }
+
+  function acceptSuggestedDate(iso: string, label: string) {
+    const capLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    userSay(`Sí, el ${label}`);
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+
+  function rejectSuggestedDate() {
+    userSay("No, prefiero otra fecha");
+    botSay("Claro, elige la fecha que prefieras:", () => addBubble({ kind: "date-input" }));
   }
 
   // ===== Identificación / cards =====
