@@ -706,6 +706,30 @@ function ApptCard({ flow, onAction, disabled }: { flow: FlowKind; onAction: () =
   );
 }
 
+function DateInput({ onSubmit, disabled }: { onSubmit: (iso: string) => void; disabled: boolean }) {
+  const [v, setV] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-10">
+      <input
+        type="date"
+        value={v}
+        min={today}
+        onChange={(e) => setV(e.target.value)}
+        disabled={disabled}
+        className="rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-foreground/40 disabled:opacity-60"
+      />
+      <button
+        disabled={disabled || !v}
+        onClick={() => onSubmit(v)}
+        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
+      >
+        Continuar
+      </button>
+    </div>
+  );
+}
+
 function BubbleRenderer(props: {
   bubble: Bubble;
   isLast: boolean;
