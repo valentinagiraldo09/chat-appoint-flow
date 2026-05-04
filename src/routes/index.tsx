@@ -492,6 +492,7 @@ function P0() {
               onPickService={pickService}
               onPickEPS={pickEPS}
               onPickDate={pickDate}
+              onPickSpecificDate={pickSpecificDate}
               onSubmitDoc={submitDoc}
               onCardAction={onCardAction}
               onConfirmCancel={confirmCancel}
