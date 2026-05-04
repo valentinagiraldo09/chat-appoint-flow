@@ -215,18 +215,28 @@ function P1() {
   }, [specialty, service, date, filters, minDate]);
 
   // Pool of unfiltered slots used to compute cross-filter options.
+  // Must mirror the dates actually displayed in `sections` so that
+  // available filter options match the slots shown.
   const slotPool = useMemo(() => {
     if (!specialty || !service) return [];
-    let target: Date | null = null;
-    if (date) target = parseYmd(date);
-    else {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const startFrom = minDate && minDate > today ? minDate : today;
-      target = findNextAvailableDate(startFrom, specialty, service);
+    if (date) {
+      const d = parseYmd(date);
+      if (minDate && d < minDate) return [];
+      return generateSlots(d, specialty, service);
     }
-    if (!target) return [];
-    return generateSlots(target, specialty, service);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startFrom = minDate && minDate > today ? minDate : today;
+    const first = findNextAvailableDate(startFrom, specialty, service);
+    if (!first) return [];
+    const second = findNextAvailableDate(
+      new Date(first.getTime() + 24 * 3600 * 1000),
+      specialty,
+      service,
+    );
+    const pool = generateSlots(first, specialty, service);
+    if (second) pool.push(...generateSlots(second, specialty, service));
+    return pool;
   }, [specialty, service, date, minDate]);
 
   function clearCoverageFilter() {
