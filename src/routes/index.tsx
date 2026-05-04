@@ -616,6 +616,7 @@ function P0() {
                 } else {
                   userSay("No, gracias");
                 }
+              }}
               onAcceptSuggestedDate={acceptSuggestedDate}
               onRejectSuggestedDate={rejectSuggestedDate}
             />;
