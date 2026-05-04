@@ -244,11 +244,6 @@ function P1() {
           <div className="text-lg font-semibold">
             {specialty} {service && <span className="text-muted-foreground">· {service}</span>}
           </div>
-          {aseguradora && (
-            <div className="text-sm text-muted-foreground">
-              {aseguradora} · Esta semana
-            </div>
-          )}
         </div>
 
         {estado === "estado-3" && (
