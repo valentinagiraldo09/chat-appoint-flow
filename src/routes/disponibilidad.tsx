@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, Star, Zap, AlertTriangle, CalendarX } from "lucide-react";
+import { Search, ChevronDown, Zap, AlertTriangle, CalendarX } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -239,13 +239,6 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* Header contextual */}
-        <div className="mb-4">
-          <div className="text-lg font-semibold">
-            {specialty} {service && <span className="text-muted-foreground">· {service}</span>}
-          </div>
-        </div>
-
         {estado === "estado-3" && (
           <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#FFA800] bg-[#FFF6E5] p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#B36B00]" />
@@ -280,13 +273,7 @@ function P1() {
             <>
               {epsSection && (
                 <SectionCard
-                  label={
-                    estado === "estado-1"
-                      ? "Próxima disponibilidad"
-                      : estado === "estado-3"
-                        ? "Disponibilidad particular"
-                        : "Próxima disponibilidad con tu aseguradora"
-                  }
+                  label={!date ? "Lo más pronto disponible" : undefined}
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
@@ -297,7 +284,6 @@ function P1() {
 
               {estado === "estado-1" && nextSection && (
                 <SectionCard
-                  label="Siguiente día con disponibilidad"
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
@@ -360,7 +346,7 @@ function SectionCard({
   hidePrice,
   onSelect,
 }: {
-  label: string;
+  label?: string;
   date: Date;
   slots: Slot[];
   full: Slot[];
@@ -370,12 +356,9 @@ function SectionCard({
   return (
     <section>
       <div className="rounded-t-xl bg-emerald-100/70 px-5 py-3">
-        <div className="flex items-center gap-2 text-base font-semibold">
-          <Star className="h-4 w-4 fill-foreground" />
-          <span>{label}</span>
-          <span className="text-muted-foreground capitalize">
-            · {format(date, "EEEE d 'de' MMMM", { locale: es })}
-          </span>
+        <div className="flex items-center gap-2 text-base font-semibold capitalize">
+          {label && <span className="capitalize-none">{label} · </span>}
+          <span>{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
         </div>
       </div>
       <div className="rounded-b-xl border border-t-0 border-border bg-background p-4">
