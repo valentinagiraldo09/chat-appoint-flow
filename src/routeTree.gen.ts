@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PagoRouteImport } from './routes/pago'
 import { Route as OportunidadRouteImport } from './routes/oportunidad'
-import { Route as HorariosRouteImport } from './routes/horarios'
 import { Route as DisponibilidadRouteImport } from './routes/disponibilidad'
 import { Route as ConfirmacionRouteImport } from './routes/confirmacion'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -27,11 +26,6 @@ const PagoRoute = PagoRouteImport.update({
 const OportunidadRoute = OportunidadRouteImport.update({
   id: '/oportunidad',
   path: '/oportunidad',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HorariosRoute = HorariosRouteImport.update({
-  id: '/horarios',
-  path: '/horarios',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DisponibilidadRoute = DisponibilidadRouteImport.update({
@@ -70,7 +64,6 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
-  '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
@@ -81,7 +74,6 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
-  '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
@@ -93,7 +85,6 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/confirmacion': typeof ConfirmacionRoute
   '/disponibilidad': typeof DisponibilidadRoute
-  '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
@@ -106,7 +97,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
-    | '/horarios'
     | '/oportunidad'
     | '/pago'
     | '/cobertura/no-cubre'
@@ -117,7 +107,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
-    | '/horarios'
     | '/oportunidad'
     | '/pago'
     | '/cobertura/no-cubre'
@@ -128,7 +117,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/confirmacion'
     | '/disponibilidad'
-    | '/horarios'
     | '/oportunidad'
     | '/pago'
     | '/cobertura/no-cubre'
@@ -140,7 +128,6 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ConfirmacionRoute: typeof ConfirmacionRoute
   DisponibilidadRoute: typeof DisponibilidadRoute
-  HorariosRoute: typeof HorariosRoute
   OportunidadRoute: typeof OportunidadRoute
   PagoRoute: typeof PagoRoute
   CoberturaNoCubreRoute: typeof CoberturaNoCubreRoute
@@ -161,13 +148,6 @@ declare module '@tanstack/react-router' {
       path: '/oportunidad'
       fullPath: '/oportunidad'
       preLoaderRoute: typeof OportunidadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/horarios': {
-      id: '/horarios'
-      path: '/horarios'
-      fullPath: '/horarios'
-      preLoaderRoute: typeof HorariosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/disponibilidad': {
@@ -220,7 +200,6 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ConfirmacionRoute: ConfirmacionRoute,
   DisponibilidadRoute: DisponibilidadRoute,
-  HorariosRoute: HorariosRoute,
   OportunidadRoute: OportunidadRoute,
   PagoRoute: PagoRoute,
   CoberturaNoCubreRoute: CoberturaNoCubreRoute,

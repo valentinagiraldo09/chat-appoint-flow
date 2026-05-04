@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, ChevronDown, Zap, AlertTriangle, CalendarX } from "lucide-react";
 import { format } from "date-fns";
@@ -12,7 +12,6 @@ import {
   filterSlots,
   generateSlots,
   parseYmd,
-  ymd,
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
@@ -296,10 +295,6 @@ function P1() {
             <EmptyState
               specialty={specialty}
               aseguradora={aseguradora}
-              onPickDate={() => {
-                // navigate to /horarios as a calendar fallback
-                navigate({ to: "/horarios", search: { d: ymd(new Date()) } });
-              }}
               onWaitlist={() => setWaitlistOpen(true)}
             />
           ) : (
@@ -342,17 +337,6 @@ function P1() {
                       <SlotCard key={slot.id} slot={slot} onClick={() => setModalSlot(slot)} />
                     ))}
                   </div>
-                  {particularSection.full.length > particularSection.slots.length && (
-                    <div className="mt-3 flex justify-end">
-                      <Link
-                        to="/horarios"
-                        search={{ d: ymd(particularSection.date) }}
-                        className="text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        Ver más opciones particulares →
-                      </Link>
-                    </div>
-                  )}
                 </div>
               )}
             </>
@@ -406,17 +390,6 @@ function SectionCard({
             ))}
           </div>
         )}
-        {full.length > slots.length && (
-          <div className="mt-3 flex justify-end">
-            <Link
-              to="/horarios"
-              search={{ d: ymd(date) }}
-              className="text-sm font-medium text-blue-600 hover:underline"
-            >
-              Ver más horarios →
-            </Link>
-          </div>
-        )}
       </div>
     </section>
   );
@@ -425,12 +398,10 @@ function SectionCard({
 function EmptyState({
   specialty,
   aseguradora,
-  onPickDate,
   onWaitlist,
 }: {
   specialty?: string;
   aseguradora?: string;
-  onPickDate: () => void;
   onWaitlist: () => void;
 }) {
   return (
@@ -441,9 +412,6 @@ function EmptyState({
         No hay citas disponibles para {specialty} con {aseguradora} en este momento.
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <Button onClick={onPickDate} variant="outline" className="rounded-full">
-          Buscar en otras fechas
-        </Button>
         <Button onClick={onWaitlist} className="rounded-full">
           Inscribirme en lista de espera
         </Button>
