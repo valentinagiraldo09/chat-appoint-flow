@@ -7,7 +7,7 @@ export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: (
   return (
     <button
       onClick={onClick}
-      className="group w-full overflow-hidden rounded-xl border border-border bg-card text-left transition hover:border-foreground hover:shadow-md"
+      className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card text-left transition hover:border-foreground hover:shadow-md"
     >
       <div className="flex items-center justify-between gap-2 bg-muted px-4 py-3">
         <div className="flex items-center gap-2 text-lg font-bold">
