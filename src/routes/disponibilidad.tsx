@@ -236,13 +236,19 @@ function P1() {
     return { date: first, slots: all.slice(0, 1), full: all };
   }, [specialty, service, filters]);
 
+  // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
+  // can cross-restrict (sede ↔ profesional ↔ atención ↔ franja) consistently.
   const slotPool = useMemo(() => {
-    if (!epsSection) return [];
-    const pool = generateSlots(epsSection.date, specialty!, service!);
-    if (estado === "estado-2" && particularSection)
-      pool.push(...generateSlots(particularSection.date, specialty!, service!));
+    if (!epsSection || !specialty || !service) return [];
+    const pool: Slot[] = [];
+    const start = new Date(epsSection.date);
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      pool.push(...generateSlots(d, specialty, service));
+    }
     return pool;
-  }, [epsSection, particularSection, estado, specialty, service]);
+  }, [epsSection, specialty, service]);
 
   const showFilters = estado !== "estado-4";
 

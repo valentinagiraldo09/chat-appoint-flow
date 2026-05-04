@@ -80,7 +80,7 @@ export function SmartCalendar({ specialty, service, value, onSelect, onClear, in
           );
         })}
       </div>
-      {onClear && value && (
+      {onClear && (
         <button
           onClick={onClear}
           className="mt-3 w-full text-center text-sm text-blue-600 hover:underline"

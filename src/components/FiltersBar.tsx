@@ -18,6 +18,7 @@ function FilterDropdown({
   value,
   onSelect,
   onClear,
+  searchable = true,
 }: {
   label: string;
   options: string[];
@@ -25,6 +26,7 @@ function FilterDropdown({
   value?: string;
   onSelect: (v: string) => void;
   onClear: () => void;
+  searchable?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -66,15 +68,17 @@ function FilterDropdown({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-3">
-        <div className="relative mb-2">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="rounded-full pl-9"
-          />
-        </div>
+        {searchable && (
+          <div className="relative mb-2">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="rounded-full pl-9"
+            />
+          </div>
+        )}
         <div className="max-h-64 overflow-y-auto">
           {filtered.length === 0 && (
             <div className="px-2 py-3 text-sm text-muted-foreground">Sin resultados</div>
@@ -136,6 +140,7 @@ export function FiltersBar({ slotPool = [] }: { slotPool?: Slot[] }) {
         value={filters.attention}
         onSelect={(v) => setFilter("attention", v as Filters["attention"])}
         onClear={() => clearFilter("attention")}
+        searchable={false}
       />
       <FilterDropdown
         label="Franja"
@@ -144,6 +149,7 @@ export function FiltersBar({ slotPool = [] }: { slotPool?: Slot[] }) {
         value={filters.franja}
         onSelect={(v) => setFilter("franja", v as Filters["franja"])}
         onClear={() => clearFilter("franja")}
+        searchable={false}
       />
     </div>
   );
