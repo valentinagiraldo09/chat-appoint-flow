@@ -12,7 +12,6 @@ import {
   filterSlots,
   generateSlots,
   parseYmd,
-  ymd,
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
