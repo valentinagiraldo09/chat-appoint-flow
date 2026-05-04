@@ -328,8 +328,23 @@ function P0() {
     askAgendar(nextAgendarStep(d), d);
   }
   function pickDate(key: DateChipKey, label: string) {
+    if (key === "pick") {
+      userSay("Elegir fecha");
+      botSay("Perfecto, ¿para qué fecha quieres consultar?", () =>
+        addBubble({ kind: "date-input" }),
+      );
+      return;
+    }
     userSay(label);
-    const d = { ...draft, dateKey: key, dateLabel: label };
+    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined };
+    setDraft(d);
+    askAgendar(nextAgendarStep(d), d);
+  }
+  function pickSpecificDate(iso: string) {
+    const d0 = new Date(iso + "T00:00:00");
+    const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    userSay(label);
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
