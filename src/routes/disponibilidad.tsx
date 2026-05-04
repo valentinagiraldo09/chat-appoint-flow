@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, Star } from "lucide-react";
+import { Search, ChevronDown, Star, Zap, AlertTriangle, CalendarX } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { SPECIALTIES, SERVICES, EPS_OPTIONS, type Specialty } from "@/mocks/catalog";
 import {
@@ -15,10 +16,12 @@ import {
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
+import { getEstadoDisponibilidad } from "@/mocks/disponibilidadStates";
 import { SmartCalendar } from "@/components/SmartCalendar";
 import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { BackButton } from "@/components/BackButton";
 
 import { cn } from "@/lib/utils";
