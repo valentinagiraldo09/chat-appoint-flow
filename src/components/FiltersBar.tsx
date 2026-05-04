@@ -18,6 +18,7 @@ function FilterDropdown({
   value,
   onSelect,
   onClear,
+  searchable = true,
 }: {
   label: string;
   options: string[];
@@ -25,6 +26,7 @@ function FilterDropdown({
   value?: string;
   onSelect: (v: string) => void;
   onClear: () => void;
+  searchable?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
