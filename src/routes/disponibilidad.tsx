@@ -331,3 +331,36 @@ function P1() {
   );
 }
 
+function AseguradoraPicker() {
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const setAseguradora = useBooking((s) => s.setAseguradora);
+  const [open, setOpen] = useState(false);
+  const label = aseguradora ?? "Selecciona aseguradora";
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="flex w-full items-center justify-between rounded-full border border-border bg-background px-4 py-3 text-left text-sm font-medium hover:border-foreground">
+          <span className="truncate">{label}</span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[260px] p-2">
+        {EPS_OPTIONS.map((eps) => (
+          <button
+            key={eps}
+            onClick={() => {
+              setAseguradora(eps);
+              setOpen(false);
+            }}
+            className={cn(
+              "block w-full rounded px-3 py-2 text-left text-sm hover:bg-muted",
+              aseguradora === eps && "bg-emerald-50 font-semibold text-emerald-700",
+            )}
+          >
+            {eps}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
