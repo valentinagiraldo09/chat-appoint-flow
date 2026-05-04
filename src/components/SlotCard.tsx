@@ -14,14 +14,7 @@ export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: (
           <Clock className="h-4 w-4 text-muted-foreground" />
           {formatTime(slot.hour, slot.minute)}
         </div>
-        <span
-          className={cn(
-            "rounded-md border px-2 py-0.5 text-xs font-medium bg-background",
-            slot.attention === "Telemedicina" && "border-amber-400 text-amber-700",
-            slot.attention === "Presencial" && "border-amber-400 text-foreground",
-            slot.attention === "Telefónica" && "border-sky-400 text-sky-700",
-          )}
-        >
+        <span className="rounded-md border border-amber-400 bg-amber-100 px-2 py-0.5 text-xs font-medium text-foreground">
           {slot.attention}
         </span>
       </div>
