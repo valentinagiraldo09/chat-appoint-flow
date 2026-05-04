@@ -3,7 +3,7 @@ import { type Slot, formatTime } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
 import { cn } from "@/lib/utils";
 
-export function SlotCard({ slot, onClick }: { slot: Slot; onClick?: () => void }) {
+export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: () => void; hidePrice?: boolean }) {
   return (
     <button
       onClick={onClick}
@@ -35,11 +35,13 @@ export function SlotCard({ slot, onClick }: { slot: Slot; onClick?: () => void }
           <div className="text-xs">{SEDE_ADDRESSES[slot.sede]}</div>
         </div>
       )}
-      <div className="mt-3 flex justify-end">
-        <span className="rounded-md bg-muted px-2 py-1 text-sm font-bold">
-          {formatCOP(slot.price)}
-        </span>
-      </div>
+      {!hidePrice && (
+        <div className="mt-3 flex justify-end">
+          <span className="rounded-md bg-muted px-2 py-1 text-sm font-bold">
+            {formatCOP(slot.price)}
+          </span>
+        </div>
+      )}
     </button>
   );
 }

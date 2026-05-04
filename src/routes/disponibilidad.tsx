@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, Star } from "lucide-react";
+import { Search, ChevronDown, Star, Zap, AlertTriangle, CalendarX } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { SPECIALTIES, SERVICES, EPS_OPTIONS, type Specialty } from "@/mocks/catalog";
 import {
@@ -15,10 +16,12 @@ import {
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
+import { getEstadoDisponibilidad } from "@/mocks/disponibilidadStates";
 import { SmartCalendar } from "@/components/SmartCalendar";
 import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { BackButton } from "@/components/BackButton";
 
 import { cn } from "@/lib/utils";
@@ -138,11 +141,7 @@ function P1() {
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
-  const coverageOnly = useBooking((s) => s.coverageOnly);
-  const coverageMinDate = useBooking((s) => s.coverageMinDate);
   const aseguradora = useBooking((s) => s.aseguradora);
-  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
-  const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
 
   // Default service if none picked
   useEffect(() => {
@@ -160,93 +159,56 @@ function P1() {
   const [loading, setLoading] = useState(true);
   const [, setTick] = useState(0);
   const [modalSlot, setModalSlot] = useState<Slot | null>(null);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
-  // simulate loader on filter / date / service change
+  const estado = getEstadoDisponibilidad(specialty, aseguradora);
+
   useEffect(() => {
     setLoading(true);
     const t = setTimeout(() => {
       setLoading(false);
       setTick((x) => x + 1);
-    }, 600);
+    }, 500);
     return () => clearTimeout(t);
-  }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, coverageOnly, coverageMinDate]);
+  }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, estado]);
 
-  const minDate = coverageOnly && coverageMinDate ? parseYmd(coverageMinDate) : null;
-
-  const sections = useMemo(() => {
-    if (!specialty || !service) return [];
-    if (date) {
-      const d = parseYmd(date);
-      if (minDate && d < minDate) {
-        return [{ title: "", subtitle: format(d, "EEEE d 'de' MMMM", { locale: es }), date: d, slots: [], full: [] }];
-      }
-      const all = filterSlots(generateSlots(d, specialty, service), filters);
-      return [{ title: "", subtitle: format(d, "EEEE d 'de' MMMM", { locale: es }), date: d, slots: all.slice(0, 6), full: all }];
-    }
+  // EPS slots: artificially pushed further in the future for estado-2
+  const epsSection = useMemo(() => {
+    if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startFrom = minDate && minDate > today ? minDate : today;
+    const startFrom = date
+      ? parseYmd(date)
+      : estado === "estado-2"
+        ? new Date(today.getTime() + 10 * 86400000)
+        : today;
     const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
-    const second = findNextAvailableDate(new Date(first.getTime() + 24 * 3600 * 1000), specialty, service);
-    const out = [];
-    const firstSlots = filterSlots(generateSlots(first, specialty, service), filters);
-    out.push({
-      title: "Lo más pronto disponible",
-      subtitle:
-        ymd(first) === ymd(today)
-          ? `Hoy · ${format(first, "EEEE d 'de' MMMM", { locale: es })}`
-          : format(first, "EEEE d 'de' MMMM", { locale: es }),
-      date: first,
-      slots: firstSlots.slice(0, 3),
-      full: firstSlots,
-    });
-    if (second) {
-      const secondSlots = filterSlots(generateSlots(second, specialty, service), filters);
-      const isTomorrow = (second.getTime() - today.getTime()) / 86400000 < 2;
-      out.push({
-        title: isTomorrow ? "Mañana" : "",
-        subtitle: format(second, "EEEE d 'de' MMMM", { locale: es }),
-        date: second,
-        slots: secondSlots.slice(0, 3),
-        full: secondSlots,
-      });
-    }
-    return out;
-  }, [specialty, service, date, filters, minDate]);
+    const all = filterSlots(generateSlots(first, specialty, service), filters);
+    return { date: first, slots: all.slice(0, 6), full: all };
+  }, [specialty, service, date, filters, estado]);
 
-  // Pool of unfiltered slots used to compute cross-filter options.
-  // Must mirror the dates actually displayed in `sections` so that
-  // available filter options match the slots shown.
-  const slotPool = useMemo(() => {
-    if (!specialty || !service) return [];
-    if (date) {
-      const d = parseYmd(date);
-      if (minDate && d < minDate) return [];
-      return generateSlots(d, specialty, service);
-    }
+  // Particular nearer slot for estado-2
+  const particularSection = useMemo(() => {
+    if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startFrom = minDate && minDate > today ? minDate : today;
-    const first = findNextAvailableDate(startFrom, specialty, service);
-    if (!first) return [];
-    const second = findNextAvailableDate(
-      new Date(first.getTime() + 24 * 3600 * 1000),
-      specialty,
-      service,
-    );
-    const pool = generateSlots(first, specialty, service);
-    if (second) pool.push(...generateSlots(second, specialty, service));
-    return pool;
-  }, [specialty, service, date, minDate]);
+    const first = findNextAvailableDate(today, specialty, service) ?? today;
+    const all = filterSlots(generateSlots(first, specialty, service), filters);
+    return { date: first, slots: all.slice(0, 1), full: all };
+  }, [specialty, service, filters]);
 
-  function clearCoverageFilter() {
-    setCoverageOnly(false);
-    setCoverageMinDate(undefined);
-  }
+  const slotPool = useMemo(() => {
+    if (!epsSection) return [];
+    const pool = generateSlots(epsSection.date, specialty!, service!);
+    if (estado === "estado-2" && particularSection)
+      pool.push(...generateSlots(particularSection.date, specialty!, service!));
+    return pool;
+  }, [epsSection, particularSection, estado, specialty, service]);
+
+  const showFilters = estado !== "estado-4";
 
   return (
     <div className="min-h-screen bg-muted/30">
-
       <div className="border-b border-border bg-muted/60">
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-5 flex items-center gap-4">
@@ -254,15 +216,9 @@ function P1() {
             <h1 className="text-2xl font-bold md:text-3xl">¿Qué cita quieres?</h1>
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
-            <div className="flex-1">
-              <AseguradoraPicker />
-            </div>
-            <div className="flex-1">
-              <ServicePicker />
-            </div>
-            <div className="flex-1">
-              <DatePickerField />
-            </div>
+            <div className="flex-1"><AseguradoraPicker /></div>
+            <div className="flex-1"><ServicePicker /></div>
+            <div className="flex-1"><DatePickerField /></div>
             <button className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-foreground/90">
               <Search className="h-4 w-4" /> Buscar
             </button>
@@ -271,80 +227,193 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        <FiltersBar slotPool={slotPool} />
+        {/* Header contextual */}
+        <div className="mb-4">
+          <div className="text-lg font-semibold">
+            {specialty} {service && <span className="text-muted-foreground">· {service}</span>}
+          </div>
+          {aseguradora && (
+            <div className="text-sm text-muted-foreground">
+              {aseguradora} · Esta semana
+            </div>
+          )}
+        </div>
 
-        {coverageOnly && (
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-800">
-            <Star className="h-3 w-3" />
-            Solo cubiertas por {aseguradora ?? "tu aseguradora"}
-            {coverageMinDate && (
-              <span className="text-emerald-700">
-                · desde {format(parseYmd(coverageMinDate), "MMM yyyy", { locale: es })}
-              </span>
-            )}
-            <button
-              onClick={clearCoverageFilter}
-              className="ml-1 rounded-full bg-emerald-200/60 px-1.5 py-0.5 text-[10px] hover:bg-emerald-200"
-            >
-              Quitar
-            </button>
+        {estado === "estado-3" && (
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#FFA800] bg-[#FFF6E5] p-4 text-sm">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#B36B00]" />
+            <div>
+              Tu aseguradora no tiene cobertura para este servicio en este centro.
+              Te mostramos la disponibilidad disponible.
+            </div>
           </div>
         )}
 
+        {showFilters && <FiltersBar slotPool={slotPool} />}
+
         <div className="mt-6 space-y-6">
-          {loading
-            ? [0, 1].map((i) => (
-                <div key={i}>
-                  <Skeleton className="h-12 w-full rounded-xl" />
-                  <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    {[0, 1, 2].map((j) => (
-                      <Skeleton key={j} className="h-44 rounded-xl" />
-                    ))}
-                  </div>
-                </div>
-              ))
-            : sections.map((sec, i) => (
-                <section key={i}>
-                  <div className="rounded-t-xl bg-emerald-100/70 px-5 py-3">
-                    <div className="flex items-center gap-2 text-base font-semibold">
-                      {sec.title && <Star className="h-4 w-4 fill-foreground" />}
-                      {sec.title && <span>{sec.title}</span>}
-                      <span className="text-muted-foreground capitalize">
-                        {sec.title ? `   ${sec.subtitle}` : sec.subtitle}
-                      </span>
+          {loading ? (
+            <div>
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {[0, 1, 2].map((j) => <Skeleton key={j} className="h-44 rounded-xl" />)}
+              </div>
+            </div>
+          ) : estado === "estado-4" ? (
+            <EmptyState
+              specialty={specialty}
+              aseguradora={aseguradora}
+              onPickDate={() => {
+                // navigate to /horarios as a calendar fallback
+                navigate({ to: "/horarios", search: { d: ymd(new Date()) } });
+              }}
+              onWaitlist={() => setWaitlistOpen(true)}
+            />
+          ) : (
+            <>
+              {epsSection && (
+                <SectionCard
+                  label={
+                    estado === "estado-1"
+                      ? "Próxima disponibilidad"
+                      : estado === "estado-3"
+                        ? "Disponibilidad particular"
+                        : "Próxima disponibilidad con tu aseguradora"
+                  }
+                  date={epsSection.date}
+                  slots={epsSection.slots}
+                  full={epsSection.full}
+                  hidePrice={estado === "estado-1" || estado === "estado-2"}
+                  onSelect={setModalSlot}
+                />
+              )}
+
+              {estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
+                <div className="rounded-xl border-2 border-[#FFA800] bg-[#FFFBEF] p-5">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-[#B36B00]" />
+                    <div>
+                      <div className="font-semibold">¿Quieres una cita antes?</div>
+                      <div className="text-sm text-muted-foreground capitalize">
+                        Disponibilidad particular el{" "}
+                        {format(particularSection.date, "EEEE d 'de' MMMM", { locale: es })}
+                      </div>
                     </div>
                   </div>
-                  <div className="rounded-b-xl border border-t-0 border-border bg-background p-4">
-                    {sec.slots.length === 0 ? (
-                      <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                        No hay horarios con esos filtros para este día.
-                      </div>
-                    ) : (
-                      <div className="grid gap-3 md:grid-cols-3">
-                        {sec.slots.map((slot) => (
-                          <SlotCard key={slot.id} slot={slot} onClick={() => setModalSlot(slot)} />
-                        ))}
-                      </div>
-                    )}
-                    {sec.full.length > sec.slots.length && (
-                      <div className="mt-3 flex justify-end">
-                        <Link
-                          to="/horarios"
-                          search={{ d: ymd(sec.date) }}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          Ver más
-                        </Link>
-                      </div>
-                    )}
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    {particularSection.slots.map((slot) => (
+                      <SlotCard key={slot.id} slot={slot} onClick={() => setModalSlot(slot)} />
+                    ))}
                   </div>
-                </section>
-              ))}
-
+                  {particularSection.full.length > particularSection.slots.length && (
+                    <div className="mt-3 flex justify-end">
+                      <Link
+                        to="/horarios"
+                        search={{ d: ymd(particularSection.date) }}
+                        className="text-sm font-medium text-blue-600 hover:underline"
+                      >
+                        Ver más opciones particulares →
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
       <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
+      <WaitlistDialog
+        open={waitlistOpen}
+        onOpenChange={setWaitlistOpen}
+        specialty={specialty}
+        aseguradora={aseguradora}
+      />
+    </div>
+  );
+}
+
+function SectionCard({
+  label,
+  date,
+  slots,
+  full,
+  hidePrice,
+  onSelect,
+}: {
+  label: string;
+  date: Date;
+  slots: Slot[];
+  full: Slot[];
+  hidePrice?: boolean;
+  onSelect: (s: Slot) => void;
+}) {
+  return (
+    <section>
+      <div className="rounded-t-xl bg-emerald-100/70 px-5 py-3">
+        <div className="flex items-center gap-2 text-base font-semibold">
+          <Star className="h-4 w-4 fill-foreground" />
+          <span>{label}</span>
+          <span className="text-muted-foreground capitalize">
+            · {format(date, "EEEE d 'de' MMMM", { locale: es })}
+          </span>
+        </div>
+      </div>
+      <div className="rounded-b-xl border border-t-0 border-border bg-background p-4">
+        {slots.length === 0 ? (
+          <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+            No hay horarios con esos filtros para este día.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-3">
+            {slots.map((slot) => (
+              <SlotCard key={slot.id} slot={slot} hidePrice={hidePrice} onClick={() => onSelect(slot)} />
+            ))}
+          </div>
+        )}
+        {full.length > slots.length && (
+          <div className="mt-3 flex justify-end">
+            <Link
+              to="/horarios"
+              search={{ d: ymd(date) }}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              Ver más horarios →
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EmptyState({
+  specialty,
+  aseguradora,
+  onPickDate,
+  onWaitlist,
+}: {
+  specialty?: string;
+  aseguradora?: string;
+  onPickDate: () => void;
+  onWaitlist: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-12 text-center">
+      <CalendarX className="mx-auto h-12 w-12" strokeWidth={1.5} style={{ color: "#B7B7B7" }} />
+      <h3 className="mt-4 text-xl font-semibold">No encontramos disponibilidad</h3>
+      <p className="mt-2 text-sm text-muted-foreground">
+        No hay citas disponibles para {specialty} con {aseguradora} en este momento.
+      </p>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Button onClick={onPickDate} variant="outline" className="rounded-full">
+          Buscar en otras fechas
+        </Button>
+        <Button onClick={onWaitlist} className="rounded-full">
+          Inscribirme en lista de espera
+        </Button>
+      </div>
     </div>
   );
 }
