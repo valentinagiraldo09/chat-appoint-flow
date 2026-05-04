@@ -273,13 +273,7 @@ function P1() {
             <>
               {epsSection && (
                 <SectionCard
-                  label={
-                    estado === "estado-1"
-                      ? "Próxima disponibilidad"
-                      : estado === "estado-3"
-                        ? "Disponibilidad particular"
-                        : "Próxima disponibilidad con tu aseguradora"
-                  }
+                  label={!date ? "Lo más pronto disponible" : undefined}
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
@@ -290,7 +284,6 @@ function P1() {
 
               {estado === "estado-1" && nextSection && (
                 <SectionCard
-                  label="Siguiente día con disponibilidad"
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
