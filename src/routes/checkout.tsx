@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Upload, ShieldCheck } from "lucide-react";
 import { useBooking } from "@/store/booking";
-import { ASEGURADORAS, TIPOS_DOCUMENTO } from "@/mocks/catalog";
+import { TIPOS_DOCUMENTO } from "@/mocks/catalog";
 import { validateCoverage } from "@/mocks/coverage";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
