@@ -1,101 +1,63 @@
-## Rediseño UX/UI de la pantalla `/validacion` (P5)
+## Rediseño del caso "Sin cobertura" en `/validacion`
 
-### Objetivo
-Hoy cada caso (ok / límite / lista negra / sin cobertura / sin disponibilidad) usa un banner de color saturado + cards genéricas. Funciona pero se siente como un "error de formulario". Vamos a pasarlo a un layout tipo **resultado de gestión** consistente con el resto del flujo (mismo lenguaje visual de `/checkout` y `ConfirmModal`), donde:
+Aplicamos los cambios solo al bloque `result.kind === "sin_cobertura"` de `src/routes/validacion.tsx`. Tono, header y demás casos se mantienen.
 
-- El estado se comunica con un ícono en círculo + título + subtítulo claro, sin grandes fondos rojos/amarillos.
-- La cita que el paciente intentó tomar **siempre es visible arriba** como "tarjeta resumen" (anclaje emocional: no perder el contexto de lo que estaba agendando).
-- Las acciones se jerarquizan: **una sola CTA primaria recomendada** + acciones secundarias claramente menores.
-- Cada caso explica con lenguaje humano qué pasó y cuál es el siguiente paso, no etiquetas internas.
+### Cambios visuales (referencia mockup)
 
-### Layout común (nuevo)
+```
+        [ icono info ]
+   Tu aseguradora no cubre este servicio
 
-```text
-┌──────────────────────────────────────────┐
-│  ← Volver                                │
-├──────────────────────────────────────────┤
-│  [icono] Estado en una línea             │  ← header sobrio
-│  Subtítulo explicativo (1-2 líneas)      │
-├──────────────────────────────────────────┤
-│  Resumen de la cita que intentabas       │  ← SIEMPRE visible
-│  Especialidad · Servicio                 │     (compacto, gris suave)
-│  Fecha · Hora · Profesional · Sede       │
-├──────────────────────────────────────────┤
-│  [ CTA primaria recomendada ]            │  ← una sola, full-width
-│                                          │
-│  Otras opciones                          │  ← secundarias en lista
-│  → Opción B                              │
-│  → Opción C                              │
-└──────────────────────────────────────────┘
+   ┌─────────────────────────────────────┐
+   │  Cardiología · Primera vez          │  ← resumen compacto (sin "Cita que intentabas agendar")
+   │  Mié 12 may · 10:30 · Dr. Pérez     │
+   └─────────────────────────────────────┘
+
+   Tenemos estas opciones para ti
+
+   ┌─────────────────────────────────────┐
+   │  Cita particular sugerida           │
+   │  Mié 12 may · 10:30                 │
+   │  Dr. Pérez · Sede Norte             │
+   │  Particular        $ 180.000        │
+   │  [   Agendar esta cita   ]          │
+   └─────────────────────────────────────┘
+
+   ┌─────────────────────────────────────┐
+   │  Lista de espera                    │
+   │  Te avisamos cuando se libere…      │
+   │  [   Inscribirme   ]                │
+   └─────────────────────────────────────┘
 ```
 
-Componentes nuevos en `src/components/validacion/`:
-- `ResultHeader.tsx` — ícono en círculo (tono suave, no fondo saturado), título, subtítulo. Variantes: success, warning, info, blocked.
-- `IntentSummary.tsx` — resumen de la cita intentada (specialty/service/slot) con estilo "card silencioso".
-- `ActionList.tsx` — primaria + lista de secundarias con flecha derecha.
-- `SuggestedSlotCard.tsx` — variante cuando hay un slot particular sugerido (reutilizable para Límite y Sin cobertura).
+### Componentes
 
-### Por caso
+1. **`IntentSummary` (`src/components/validacion/IntentSummary.tsx`)** — añadir prop opcional `compact?: boolean`.
+   - Cuando `compact`: oculta el eyebrow "Cita que intentabas agendar", reduce padding (`p-4`), título en `text-sm font-semibold`, y consolida fecha/hora/profesional en un único renglón `text-xs text-muted-foreground` separado por `·` (sin grid de 2 columnas, sin iconos).
+   - Comportamiento por defecto sin cambios → no afecta a los otros casos.
 
-**OK — `tu cita aplica`**
-- Header: check verde suave, "Todo listo para confirmar tu cita".
-- Subtítulo: "Verificamos tu cobertura con {aseguradora}."
-- IntentSummary visible.
-- CTA primaria: "Confirmar cita" → `/pago`.
-- Sin secundarias.
+2. **`SuggestedSlotCard`** — sin cambios estructurales. En esta pantalla se usa con:
+   - `eyebrow="Cita particular sugerida"`
+   - `ctaLabel="Agendar esta cita"` (en lugar de incluir el precio en el botón; el precio ya está visible en la card).
 
-**Límite de paciente**
-- Header: warning ámbar suave, "Tu aseguradora aún no permite agendar este servicio".
-- Subtítulo: "Podrás hacerlo desde el {fechaPermitida}. Mientras tanto tienes estas opciones:"
-- IntentSummary.
-- CTA primaria recomendada: card "Agendar el {fechaPermitida} con mi aseguradora" → `/disponibilidad` (con minDate).
-- Secundarias:
-  - "Tomar como particular ahora — {hora} con {prof} · {precio}" (si hay particularSlot).
-  - "Ver más horarios particulares" → `/disponibilidad`.
+3. **Nuevo bloque "Lista de espera"** dentro del mismo branch — una card con el mismo estilo (`rounded-2xl border bg-card p-5`) que contiene título, descripción corta y un CTA primario `Inscribirme` que abre `WaitlistDialog`. Se implementa inline en el route (no requiere componente nuevo).
 
-**Lista negra (sin cobertura institucional)**
-- Header: info azul/neutro, "Esta cita no se puede agendar con tu aseguradora".
-- Subtítulo: "Comunícate con {aseguradora} al {tel} para más información." (sin la palabra "lista negra"; teléfono como link `tel:` con ícono).
-- IntentSummary.
-- CTA primaria: "Tomar esta cita como particular · {precio}" → `/pago` con override.
-- Secundarias:
-  - "Ver más horarios particulares".
-  - "Llamar a mi aseguradora" (link tel).
+### Cambios en `src/routes/validacion.tsx`
 
-**Sin cobertura del servicio**
-- Header: info, "Tu aseguradora no cubre este servicio".
-- Subtítulo: "Puedes tomarlo como particular o ver qué servicios sí están cubiertos."
-- IntentSummary.
-- CTA primaria: SuggestedSlotCard particular → `/pago` con override.
-- Secundarias:
-  - "Ver disponibilidad cubierta por mi aseguradora".
-  - "Inscribirme en lista de espera".
+Reemplazar el branch `sin_cobertura` (líneas ~224-258):
 
-**Sin disponibilidad**
-- Header: neutro, "No encontramos disponibilidad en este momento".
-- Subtítulo: "Te avisamos apenas se libere un horario para {especialidad} con {aseguradora}."
-- IntentSummary (la que intentaba) — para confirmar qué buscaba.
-- CTA primaria: "Inscribirme en lista de espera" → abre `WaitlistDialog`.
-- Sin secundarias.
+- Mantener `ResultHeader` con `icon={Info}`, `tone="info"`, `title="Tu aseguradora no cubre este servicio"`, `subtitle` corto: `"Te mostramos alternativas para que puedas atenderte."`
+- `IntentSummary` con `compact`.
+- Pequeño separador con texto: `"Tenemos estas opciones para ti"` (`text-sm font-medium text-muted-foreground px-1`).
+- `SuggestedSlotCard` con `ctaLabel="Agendar esta cita"`. Si no hay slot particular, mostrar un mensaje neutro como hoy.
+- Card "Lista de espera" inline con CTA `Inscribirme` → `setWaitlistOpen(true)`.
+- Eliminar el `SecondaryActions` actual (ya no va "Ver disponibilidad cubierta" ni el row de lista de espera; queda solo la card dedicada).
 
-### Sistema visual (consistente con el resto de la app)
+Limpiar imports que dejen de usarse en este branch (`CalendarSearch`, `ListChecks` siguen usándose en otros branches → mantenerlos).
 
-- **Sin fondos saturados** (`bg-red-50`, `bg-amber-50`, `bg-emerald-50`) — pasamos a íconos en círculo `bg-{tono}-100 text-{tono}-700` sobre fondo `bg-card`.
-- Bordes `border-border`, radios `rounded-2xl`, sombras suaves `shadow-sm` (mismo lenguaje que `/checkout`).
-- Tipografía: título `text-2xl font-semibold`, subtítulo `text-muted-foreground`. Quitar los `text-{color}-900`.
-- Botón primario: `rounded-full bg-foreground text-background` (ya en uso).
-- Acciones secundarias como filas con `<ChevronRight />` a la derecha, hover `bg-accent/40`, no como cards grandes — reduce ruido y deja una sola card primaria destacada.
-- Móvil: stack vertical natural; en desktop, todo en columna única max-w-xl centrada (más enfocado que el grid 2-col actual).
+### Archivos modificados
 
-### Archivos a tocar
+- `src/components/validacion/IntentSummary.tsx` — añadir variante `compact`.
+- `src/routes/validacion.tsx` — rediseñar branch `sin_cobertura`.
 
-- **Editar** `src/routes/validacion.tsx` — reemplazar las 5 sub-vistas por composición de los nuevos primitives.
-- **Crear** `src/components/validacion/ResultHeader.tsx`.
-- **Crear** `src/components/validacion/IntentSummary.tsx`.
-- **Crear** `src/components/validacion/ActionList.tsx` (`PrimaryAction`, `SecondaryAction`).
-- **Crear** `src/components/validacion/SuggestedSlotCard.tsx`.
-
-Sin cambios en `src/mocks/validations.ts`, `src/store/booking.ts` ni `src/routes/checkout.tsx` — la lógica se mantiene, solo cambia la presentación.
-
-### Cómo probarlo (igual que antes)
-Documento termina en: `00` lista negra · `11` límite · `22` sin cobertura · `33` sin disponibilidad · cualquier otro `ok`.
+Sin cambios en lógica, mocks ni store.

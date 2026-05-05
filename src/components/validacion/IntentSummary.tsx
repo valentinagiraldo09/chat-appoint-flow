@@ -7,12 +7,29 @@ export function IntentSummary({
   specialty,
   service,
   slot,
+  compact = false,
 }: {
   specialty?: string;
   service?: string;
   slot: Slot;
+  compact?: boolean;
 }) {
   const d = parseYmd(slot.date);
+
+  if (compact) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="text-sm font-semibold">
+          {specialty}
+          {service ? <span className="text-muted-foreground"> · {service}</span> : null}
+        </div>
+        <div className="mt-1 text-xs capitalize text-muted-foreground">
+          {format(d, "EEE d MMM", { locale: es })} · {formatTime(slot.hour, slot.minute)} · {slot.profesional}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

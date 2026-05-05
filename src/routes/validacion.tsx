@@ -227,14 +227,19 @@ function P5() {
               icon={Info}
               tone="info"
               title="Tu aseguradora no cubre este servicio"
-              subtitle="Puedes tomarlo como particular o ver qué servicios sí están cubiertos."
+              subtitle="Te mostramos alternativas para que puedas atenderte."
             />
-            <IntentSummary specialty={specialty} service={service} slot={slot} />
+            <IntentSummary specialty={specialty} service={service} slot={slot} compact />
+
+            <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
+              Tenemos estas opciones para ti
+            </div>
+
             {particularSlot ? (
               <SuggestedSlotCard
                 slot={particularSlot}
                 eyebrow="Cita particular sugerida"
-                ctaLabel={`Tomar particular · ${formatCOP(particularSlot.price)}`}
+                ctaLabel="Agendar esta cita"
                 onSelect={() => tomarSugeridoParticular(particularSlot)}
               />
             ) : (
@@ -242,18 +247,20 @@ function P5() {
                 No encontramos un horario particular cercano.
               </div>
             )}
-            <SecondaryActions>
-              <SecondaryActionRow
-                icon={CalendarSearch}
-                label="Ver disponibilidad cubierta por mi aseguradora"
-                onClick={() => verConAseguradora()}
-              />
-              <SecondaryActionRow
-                icon={ListChecks}
-                label="Inscribirme en lista de espera"
+
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ListChecks className="h-4 w-4 text-muted-foreground" />
+                Lista de espera
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Te avisamos apenas se libere un cupo cubierto por tu aseguradora.
+              </p>
+              <PrimaryAction
+                label="Inscribirme"
                 onClick={() => setWaitlistOpen(true)}
               />
-            </SecondaryActions>
+            </div>
           </>
         )}
 
