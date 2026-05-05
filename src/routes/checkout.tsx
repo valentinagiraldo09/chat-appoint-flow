@@ -23,8 +23,7 @@ const schema = z.object({
   email: z.string().email("Email inválido"),
   telefono: z.string().min(7, "Requerido"),
   direccion: z.string().min(3, "Requerido"),
-  aseguradora: z.string().min(1, "Requerido"),
-  acceptTerms: z.literal(true, { message: "Debes aceptar el tratamiento de datos" }),
+  acceptTerms: z.literal(true, { message: "Debes aceptar el tratamiento de datos" }).or(z.literal(false)).refine((v) => v === true, { message: "Debes aceptar el tratamiento de datos" }),
 });
 
 type FormValues = z.infer<typeof schema>;
