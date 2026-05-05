@@ -386,6 +386,7 @@ function SectionCard({
   slots,
   full,
   hidePrice,
+  showPriceInLink,
   onSelect,
 }: {
   label?: string;
@@ -393,6 +394,7 @@ function SectionCard({
   slots: Slot[];
   full: Slot[];
   hidePrice?: boolean;
+  showPriceInLink?: boolean;
   onSelect: (s: Slot) => void;
 }) {
   return (
@@ -419,7 +421,7 @@ function SectionCard({
           <div className="mt-3 flex justify-end">
             <Link
               to="/horarios"
-              search={{ d: ymd(date) }}
+              search={{ d: ymd(date), ...(showPriceInLink ? { price: 1 } : {}) }}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
               Ver más horarios →
