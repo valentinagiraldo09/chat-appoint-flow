@@ -214,9 +214,9 @@ function P1() {
     return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, date, filters, estado]);
 
-  // Following day section (only for estado-1): next available date after epsSection
+  // Following day section (for estado-1 and estado-3): next available date after epsSection
   const nextSection = useMemo(() => {
-    if (estado !== "estado-1" || !epsSection || !specialty || !service) return null;
+    if ((estado !== "estado-1" && estado !== "estado-3") || !epsSection || !specialty || !service) return null;
     const after = new Date(epsSection.date);
     after.setDate(after.getDate() + 1);
     const next = findNextAvailableDate(after, specialty, service);
