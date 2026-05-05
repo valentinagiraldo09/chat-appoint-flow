@@ -164,27 +164,50 @@ function P5() {
                   </>
                 }
               />
-              <IntentSummary specialty={specialty} service={service} slot={slot} />
+              <IntentSummary specialty={specialty} service={service} slot={slot} compact />
               <PrimaryAction
                 icon={CalendarDays}
-                label={`Agendar el ${fechaLabel} con mi aseguradora`}
+                label={`Ver disponibilidad el ${fechaLabel} con mi aseguradora`}
                 onClick={() => verConAseguradora(result.fechaPermitida)}
               />
-              <SecondaryActions>
-                {particularSlot && (
-                  <SecondaryActionRow
-                    icon={CreditCard}
-                    label="Tomar como particular ahora"
-                    description={`${format(parseYmd(particularSlot.date), "d MMM", { locale: es })} · ${formatCOP(particularSlot.price)}`}
-                    onClick={() => tomarSugeridoParticular(particularSlot)}
-                  />
-                )}
-                <SecondaryActionRow
-                  icon={CalendarSearch}
-                  label="Ver más horarios particulares"
-                  onClick={verMasParticulares}
+
+              <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
+                Mientras tanto, puedes tomar esta cita
+              </div>
+
+              {particularSlot ? (
+                <SuggestedSlotCard
+                  slot={particularSlot}
+                  eyebrow="Cita particular sugerida"
+                  ctaLabel="Agendar esta cita"
+                  onSelect={() => tomarSugeridoParticular(particularSlot)}
+                  secondaryLabel="Ver más disponibilidad"
+                  onSecondary={verMasParticulares}
                 />
-              </SecondaryActions>
+              ) : (
+                <div className="rounded-2xl border border-border bg-muted/20 p-5 text-sm text-muted-foreground">
+                  No encontramos un horario particular cercano.
+                </div>
+              )}
+
+              <div>
+                <SecondaryActions title="Otras opciones">
+                  <SecondaryActionRow
+                    icon={ListChecks}
+                    label="Inscribirme en lista de espera"
+                    onClick={() => setWaitlistOpen(true)}
+                  />
+                </SecondaryActions>
+                <div className="mt-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={buscarNuevaCita}
+                    className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    Buscar nueva cita
+                  </button>
+                </div>
+              </div>
             </>
           );
         })()}
