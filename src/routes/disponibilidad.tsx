@@ -437,7 +437,7 @@ function SectionCard({
         <div className="flex items-center gap-2 text-base">
           {icon}
           {label && <span className="font-bold">{label}</span>}
-          <span className="font-semibold">{capWords(format(date, "EEEE", { locale: es }))}</span>
+          <span className="font-semibold">{formatLongDate(date)}</span>
         </div>
       </div>
       <div className={cn("rounded-b-xl border border-t-0 bg-background p-4", bodyBorder)}>
@@ -532,9 +532,11 @@ function NoAvailabilityModal({
 
 function AseguradoraPicker() {
   const aseguradora = useBooking((s) => s.aseguradora);
+  const specialty = useBooking((s) => s.specialty);
   const setAseguradora = useBooking((s) => s.setAseguradora);
   const [open, setOpen] = useState(false);
-  const label = aseguradora ?? "Selecciona aseguradora";
+  const estado = getEstadoDisponibilidad(specialty, aseguradora);
+  const label = estado === "estado-3" ? "Particular" : (aseguradora ?? "Selecciona aseguradora");
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
