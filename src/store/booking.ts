@@ -111,6 +111,7 @@ export const useBooking = create<BookingState>()(
       setSelectedSlot: (s) => set({ selectedSlot: s }),
       setPatient: (p) => set({ patient: p }),
       setAseguradora: (a) => set({ aseguradora: a }),
+      setPreviousAseguradora: (a) => set({ previousAseguradora: a }),
       setCoverage: (c) => set({ coverage: c }),
       setAcceptedSuggestedDate: (v) => set({ acceptedSuggestedDate: v }),
       setPayParticularOverride: (v) => set({ payParticularOverride: v }),
