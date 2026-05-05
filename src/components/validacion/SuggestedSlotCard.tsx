@@ -10,11 +10,15 @@ export function SuggestedSlotCard({
   eyebrow = "Sugerido para ti",
   ctaLabel = "Tomar esta cita",
   onSelect,
+  secondaryLabel,
+  onSecondary,
 }: {
   slot: Slot;
   eyebrow?: string;
   ctaLabel?: string;
   onSelect: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }) {
   const d = parseYmd(slot.date);
   return (
@@ -50,6 +54,17 @@ export function SuggestedSlotCard({
         <CreditCard className="mr-2 h-4 w-4" />
         {ctaLabel}
       </Button>
+      {secondaryLabel && onSecondary && (
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            onClick={onSecondary}
+            className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {secondaryLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
