@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { AttentionType, Franja } from "@/mocks/catalog";
 import type { Slot } from "@/mocks/availability";
 import type { CoverageResult } from "@/mocks/coverage";
+import type { ValidationResult } from "@/mocks/validations";
 
 export type Filters = {
   sede?: string;
@@ -41,6 +42,7 @@ export type BookingState = {
   filterSource?: "ui" | "chat" | "init";
   coverageOnly?: boolean;
   coverageMinDate?: string;
+  validationResult?: ValidationResult;
 
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
@@ -59,6 +61,7 @@ export type BookingState = {
   setConfirmationCode: (c: string) => void;
   setCoverageOnly: (v: boolean) => void;
   setCoverageMinDate: (d?: string) => void;
+  setValidationResult: (v?: ValidationResult) => void;
   pushChat: (m: Omit<ChatMsg, "id" | "ts">) => void;
   clearChat: () => void;
   reset: () => void;
@@ -83,6 +86,7 @@ const initial = {
   filterSource: undefined as "ui" | "chat" | "init" | undefined,
   coverageOnly: false,
   coverageMinDate: undefined as string | undefined,
+  validationResult: undefined as ValidationResult | undefined,
 };
 
 export const useBooking = create<BookingState>()(
@@ -112,6 +116,7 @@ export const useBooking = create<BookingState>()(
       setConfirmationCode: (c) => set({ confirmationCode: c }),
       setCoverageOnly: (v) => set({ coverageOnly: v }),
       setCoverageMinDate: (d) => set({ coverageMinDate: d }),
+      setValidationResult: (v) => set({ validationResult: v }),
       pushChat: (m) =>
         set((st) => ({
           chat: [
