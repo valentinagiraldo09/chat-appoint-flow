@@ -180,6 +180,8 @@ function P1() {
   const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const preferredDate = useBooking((s) => s.preferredDate);
+  const coverageMinDate = useBooking((s) => s.coverageMinDate);
+  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
 
   // Default service if none picked
   useEffect(() => {
@@ -336,12 +338,15 @@ function P1() {
           <button
             onClick={() => {
               const back = previousAseguradora;
+              const targetDate = coverageMinDate ?? date;
               setAseguradora(back);
               setPreviousAseguradora(undefined);
               setPayParticularOverride(false);
+              setCoverageOnly(true);
+              if (targetDate) setDate(targetDate);
               navigate({
                 to: "/disponibilidad",
-                search: { specialty, service, aseguradora: back, date },
+                search: { specialty, service, aseguradora: back, date: targetDate },
               });
             }}
             className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background px-5 py-4 text-left transition hover:border-foreground/60 hover:shadow-sm"
