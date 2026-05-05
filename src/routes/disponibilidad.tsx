@@ -309,14 +309,17 @@ function P1() {
                   label={
                     estado === "estado-2"
                       ? "Próxima disponibilidad con tu aseguradora"
-                      : !date
-                        ? "Lo más pronto disponible"
-                        : undefined
+                      : estado === "estado-3"
+                        ? "Disponibilidad particular"
+                        : !date
+                          ? "Lo más pronto disponible"
+                          : undefined
                   }
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
                   hidePrice={estado === "estado-1" || estado === "estado-2"}
+                  showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
               )}
@@ -383,6 +386,7 @@ function SectionCard({
   slots,
   full,
   hidePrice,
+  showPriceInLink,
   onSelect,
 }: {
   label?: string;
@@ -390,6 +394,7 @@ function SectionCard({
   slots: Slot[];
   full: Slot[];
   hidePrice?: boolean;
+  showPriceInLink?: boolean;
   onSelect: (s: Slot) => void;
 }) {
   return (
@@ -416,7 +421,7 @@ function SectionCard({
           <div className="mt-3 flex justify-end">
             <Link
               to="/horarios"
-              search={{ d: ymd(date) }}
+              search={{ d: ymd(date), ...(showPriceInLink ? { price: 1 } : {}) }}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
               Ver más horarios →
