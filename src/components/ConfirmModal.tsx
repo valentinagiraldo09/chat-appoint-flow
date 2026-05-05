@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { type Slot, formatTime, parseYmd } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
+import { runValidations } from "@/mocks/validations";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,9 @@ export function ConfirmModal({
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const patient = useBooking((s) => s.patient);
+  const payParticularOverride = useBooking((s) => s.payParticularOverride);
+  const setValidationResult = useBooking((s) => s.setValidationResult);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
@@ -97,6 +101,30 @@ export function ConfirmModal({
               onClick={() => {
                 setSelectedSlot(slot);
                 onOpenChange(false);
+                // Si ya tenemos los datos del paciente, saltamos /checkout
+                if (patient) {
+                  const isParticular = aseguradora === "Particular";
+                  if (isParticular) {
+                    setValidationResult(undefined);
+                    navigate({ to: "/pago" });
+                    return;
+                  }
+                  const result = runValidations({
+                    documento: patient.numeroDocumento,
+                    aseguradora,
+                    specialty,
+                    service,
+                    slot,
+                    bypassCoverage: payParticularOverride,
+                  });
+                  setValidationResult(result);
+                  if (result.kind === "ok") {
+                    navigate({ to: "/pago" });
+                    return;
+                  }
+                  navigate({ to: "/validacion" });
+                  return;
+                }
                 navigate({ to: "/checkout" });
               }}
             >
