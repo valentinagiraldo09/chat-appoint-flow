@@ -11,7 +11,7 @@ import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
 
-const search = z.object({ d: z.string().optional() });
+const search = z.object({ d: z.string().optional(), price: z.coerce.number().optional() });
 
 export const Route = createFileRoute("/horarios")({
   validateSearch: (s) => search.parse(s),
