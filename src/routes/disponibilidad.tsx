@@ -305,8 +305,8 @@ function P1() {
           <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#FFA800] bg-[#FFF6E5] p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#B36B00]" />
             <div>
-              Tu aseguradora no tiene cobertura para este servicio en este centro.
-              Te mostramos la disponibilidad disponible.
+              Tu aseguradora no tiene cobertura para este servicio con nosotros.
+              Te mostramos la disponibilidad de citas particulares.
             </div>
           </div>
         )}
@@ -437,7 +437,7 @@ function SectionCard({
         <div className="flex items-center gap-2 text-base">
           {icon}
           {label && <span className="font-bold">{label}</span>}
-          <span className="font-semibold">{formatLongDate(date)}</span>
+          <span className="font-semibold">{capWords(format(date, "EEEE", { locale: es }))}</span>
         </div>
       </div>
       <div className={cn("rounded-b-xl border border-t-0 bg-background p-4", bodyBorder)}>
