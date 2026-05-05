@@ -11,7 +11,7 @@ import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { BackButton } from "@/components/BackButton";
 
-const search = z.object({ d: z.string().optional() });
+const search = z.object({ d: z.string().optional(), price: z.coerce.number().optional() });
 
 export const Route = createFileRoute("/horarios")({
   validateSearch: (s) => search.parse(s),
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/horarios")({
 });
 
 function P2() {
-  const { d } = Route.useSearch();
+  const { d, price } = Route.useSearch();
   const navigate = useNavigate();
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
@@ -75,7 +75,7 @@ function P2() {
                     No hay horarios con esos filtros.
                   </div>
                 )
-                : slots.map((s) => <SlotCard key={s.id} slot={s} hidePrice onClick={() => setModalSlot(s)} />)}
+                : slots.map((s) => <SlotCard key={s.id} slot={s} hidePrice={!price} onClick={() => setModalSlot(s)} />)}
           </div>
         </div>
 
