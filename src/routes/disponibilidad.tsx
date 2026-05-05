@@ -55,7 +55,8 @@ import { BackButton } from "@/components/BackButton";
 import { cn } from "@/lib/utils";
 
 const capWords = (s: string) =>
-  s.replace(/(^|\s)([a-záéíóúñ])/g, (_, p, c) => p + c.toUpperCase());
+  s.replace(/(^|\s)([a-záéíóúñ]+)/g, (_, p, w) =>
+    p + (w === "de" ? w : w.charAt(0).toUpperCase() + w.slice(1)));
 const formatLongDate = (d: Date) =>
   capWords(format(d, "EEEE, d 'de' MMMM", { locale: es }));
 
