@@ -68,8 +68,10 @@ function P4() {
   const setPatient = useBooking((s) => s.setPatient);
   const setValidationResult = useBooking((s) => s.setValidationResult);
 
+  const router = useRouter();
   const [validating, setValidating] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   useEffect(() => {
     if (!slot) navigate({ to: "/" });
