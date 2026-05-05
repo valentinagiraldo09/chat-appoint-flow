@@ -1,5 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
+import { Dialog, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { type Slot, formatTime, parseYmd } from "@/mocks/availability";
@@ -28,65 +30,84 @@ export function ConfirmModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <h2 className="text-2xl font-bold">¿Avanzamos con esta cita?</h2>
-        <div className="mt-4 rounded-xl border border-border bg-muted/40 p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-3xl font-bold text-emerald-600">
-                {formatTime(slot.hour, slot.minute)}
+      <DialogPortal>
+        <DialogOverlay />
+        <DialogPrimitive.Content
+          className="fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] rounded-2xl bg-background p-10 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+        >
+          <DialogPrimitive.Close className="absolute right-6 top-6 flex items-center gap-2 text-base font-semibold text-foreground hover:opacity-70 focus:outline-none">
+            Cerrar
+            <X className="h-5 w-5" />
+            <span className="sr-only">Cerrar</span>
+          </DialogPrimitive.Close>
+
+          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
+            ¿Avanzamos con esta cita?
+          </h2>
+
+          <div className="mx-auto mt-8 max-w-md rounded-2xl bg-muted/50 p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-3xl font-bold text-emerald-600">
+                  {formatTime(slot.hour, slot.minute)}
+                </div>
+                <div className="mt-1 text-sm text-muted-foreground capitalize">
+                  {format(date, "EEEE d 'de' MMMM", { locale: es })}
+                </div>
               </div>
-              <div className="mt-1 text-sm text-muted-foreground capitalize">
-                {format(date, "EEEE d 'de' MMMM", { locale: es })}
-              </div>
+              <span
+                className={cn(
+                  "rounded-md border px-2.5 py-1 text-xs font-medium",
+                  slot.attention === "Telemedicina" && "border-amber-400 text-amber-700 bg-amber-50",
+                  slot.attention === "Presencial" && "border-amber-400 text-amber-700 bg-amber-50",
+                  slot.attention === "Telefónica" && "border-sky-400 text-sky-700 bg-sky-50",
+                )}
+              >
+                {slot.attention}
+              </span>
             </div>
-            <span
-              className={cn(
-                "rounded-md border px-2 py-0.5 text-xs font-medium",
-                slot.attention === "Telemedicina" && "border-amber-400 text-amber-700 bg-amber-50",
-                slot.attention === "Presencial" && "border-emerald-400 text-emerald-700 bg-emerald-50",
-                slot.attention === "Telefónica" && "border-sky-400 text-sky-700 bg-sky-50",
+
+            <div className="mt-5 space-y-2 text-base">
+              <div className="font-medium">
+                {specialty}
+                {service && <span> · {service}</span>}
+              </div>
+              <div>{slot.profesional}</div>
+              {slot.attention === "Presencial" && (
+                <div>
+                  <div>{slot.sede}</div>
+                  {SEDE_ADDRESSES[slot.sede] && (
+                    <div className="text-muted-foreground">{SEDE_ADDRESSES[slot.sede]}</div>
+                  )}
+                </div>
               )}
-            >
-              {slot.attention}
-            </span>
-          </div>
-          <div className="mt-4 space-y-1 text-sm">
-            <div>
-              <span className="font-medium">{specialty}</span>
-              {service && <span className="text-muted-foreground"> — {service}</span>}
+              {aseguradora && (
+                <div className="text-muted-foreground text-sm">Aseguradora: {aseguradora}</div>
+              )}
             </div>
-            <div>{slot.profesional}</div>
-            {slot.attention === "Presencial" && (
-              <div className="text-muted-foreground">
-                {slot.sede}
-                {SEDE_ADDRESSES[slot.sede] && ` · ${SEDE_ADDRESSES[slot.sede]}`}
-              </div>
-            )}
-            {aseguradora && (
-              <div className="text-muted-foreground">Aseguradora: {aseguradora}</div>
-            )}
+
+            <div className="mt-5 flex justify-end">
+              <span className="rounded-full bg-background px-3 py-1 text-xs text-muted-foreground">
+                {formatCOP(slot.price)}
+              </span>
+            </div>
           </div>
-          <div className="mt-4 flex justify-end">
-            <span className="rounded-md bg-background px-3 py-1.5 font-bold">
-              {formatCOP(slot.price)}
-            </span>
+
+          <div className="mt-8 flex justify-center">
+            <Button
+              size="lg"
+              className="rounded-full bg-foreground px-10 py-6 text-base text-background hover:bg-foreground/90"
+              onClick={() => {
+                setSelectedSlot(slot);
+                onOpenChange(false);
+                navigate({ to: "/checkout" });
+              }}
+            >
+              Sí, avanzar
+            </Button>
           </div>
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Button
-            size="lg"
-            className="rounded-full bg-foreground text-background hover:bg-foreground/90"
-            onClick={() => {
-              setSelectedSlot(slot);
-              onOpenChange(false);
-              navigate({ to: "/checkout" });
-            }}
-          >
-            Sí, avanzar
-          </Button>
-        </div>
-      </DialogContent>
+        </DialogPrimitive.Content>
+      </DialogPortal>
     </Dialog>
   );
 }
