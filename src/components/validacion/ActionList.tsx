@@ -32,7 +32,7 @@ export function SecondaryActions({
 }) {
   return (
     <div>
-      <div className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="mb-2 px-1 text-sm font-medium text-muted-foreground">
         {title}
       </div>
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
