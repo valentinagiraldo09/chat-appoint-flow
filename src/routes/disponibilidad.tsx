@@ -234,14 +234,23 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters]);
 
-  // Particular nearer slot for estado-2 — start from preferredDate (the date the patient originally asked for)
+  // Particular nearer slot for estado-2 — uses the date the patient originally asked for.
+  // Particular always has cupo; if the exact date doesn't have generated slots, fall back to next.
   const particularSection = useMemo(() => {
     if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startFrom = preferredDate ? parseYmd(preferredDate) : today;
-    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
-    const all = filterSlots(generateSlots(first, specialty, service), filters);
+    const target = preferredDate ? parseYmd(preferredDate) : today;
+    let first = target;
+    let raw = generateSlots(first, specialty, service);
+    if (raw.length === 0) {
+      const next = findNextAvailableDate(target, specialty, service);
+      if (next) {
+        first = next;
+        raw = generateSlots(first, specialty, service);
+      }
+    }
+    const all = filterSlots(raw, filters);
     return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, filters, preferredDate]);
 
