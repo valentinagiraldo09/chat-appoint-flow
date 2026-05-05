@@ -77,6 +77,7 @@ const initial = {
   selectedSlot: undefined,
   patient: undefined,
   aseguradora: undefined,
+  previousAseguradora: undefined,
   coverage: undefined,
   acceptedSuggestedDate: false,
   payParticularOverride: false,
