@@ -18,6 +18,7 @@ import { es } from "date-fns/locale";
 import { useBooking } from "@/store/booking";
 import {
   parseYmd,
+  ymd,
   generateSlots,
   findNextAvailableDate,
   type Slot,
@@ -53,7 +54,15 @@ function findParticularSlot(
   }
   const next = findNextAvailableDate(start, specialty, service);
   if (!next) return null;
-  const slots = generateSlots(next, specialty, service);
+  const slots = generateSlots(next, specialty, service).map((slot) =>
+    fromDate
+      ? {
+          ...slot,
+          id: `${ymd(start)}-particular-${slot.hour}-${slot.minute}`,
+          date: ymd(start),
+        }
+      : slot,
+  );
   return slots[0] ?? null;
 }
 
@@ -65,6 +74,7 @@ function P5() {
   const service = useBooking((s) => s.service);
   const aseguradora = useBooking((s) => s.aseguradora);
   const date = useBooking((s) => s.date);
+  const preferredDate = useBooking((s) => s.preferredDate);
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
@@ -81,8 +91,11 @@ function P5() {
   }, []);
 
   const particularSlot = useMemo(
-    () => findParticularSlot(specialty, service, date ? parseYmd(date) : undefined),
-    [specialty, service, date],
+    () => {
+      const targetDate = preferredDate ?? date;
+      return findParticularSlot(specialty, service, targetDate ? parseYmd(targetDate) : undefined);
+    },
+    [specialty, service, preferredDate, date],
   );
 
   if (!result || !slot) return null;
