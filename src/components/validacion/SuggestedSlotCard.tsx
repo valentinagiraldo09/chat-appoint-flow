@@ -10,11 +10,15 @@ export function SuggestedSlotCard({
   eyebrow = "Sugerido para ti",
   ctaLabel = "Tomar esta cita",
   onSelect,
+  secondaryLabel,
+  onSecondary,
 }: {
   slot: Slot;
   eyebrow?: string;
   ctaLabel?: string;
   onSelect: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }) {
   const d = parseYmd(slot.date);
   return (
