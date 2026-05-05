@@ -27,6 +27,9 @@ export function ConfirmModal({
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const patient = useBooking((s) => s.patient);
+  const payParticularOverride = useBooking((s) => s.payParticularOverride);
+  const setValidationResult = useBooking((s) => s.setValidationResult);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
