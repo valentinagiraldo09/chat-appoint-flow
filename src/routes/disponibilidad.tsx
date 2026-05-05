@@ -170,6 +170,7 @@ function P1() {
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const preferredDate = useBooking((s) => s.preferredDate);
 
   // Default service if none picked
   useEffect(() => {
@@ -215,9 +216,15 @@ function P1() {
     return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, date, filters, estado]);
 
-  // Following day section (for estado-1 and estado-3): next available date after epsSection
+  // Following day section: next available date after epsSection
   const nextSection = useMemo(() => {
-    if ((estado !== "estado-1" && estado !== "estado-3") || !epsSection || !specialty || !service) return null;
+    if (
+      (estado !== "estado-1" && estado !== "estado-2" && estado !== "estado-3") ||
+      !epsSection ||
+      !specialty ||
+      !service
+    )
+      return null;
     const after = new Date(epsSection.date);
     after.setDate(after.getDate() + 1);
     const next = findNextAvailableDate(after, specialty, service);
@@ -227,15 +234,16 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters]);
 
-  // Particular nearer slot for estado-2
+  // Particular nearer slot for estado-2 — start from preferredDate (the date the patient originally asked for)
   const particularSection = useMemo(() => {
     if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const first = findNextAvailableDate(today, specialty, service) ?? today;
+    const startFrom = preferredDate ? parseYmd(preferredDate) : today;
+    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service), filters);
     return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, filters]);
+  }, [specialty, service, filters, preferredDate]);
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
   // can cross-restrict (sede ↔ profesional ↔ atención ↔ franja) consistently.
@@ -285,31 +293,38 @@ function P1() {
 
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
-        {!loading && estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
-          <button
-            onClick={() =>
-              navigate({
-                to: "/disponibilidad",
-                search: { specialty, service, aseguradora: "Particular" },
-              })
-            }
-            className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
-          >
-            <div className="flex items-center gap-3">
-              <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
-              <div>
-                <div className="text-base font-bold">¿Quieres una cita antes?</div>
-                <div className="text-sm text-foreground/80">
-                  Disponibilidad particular desde el{" "}
-                  {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+        {!loading &&
+          estado === "estado-2" &&
+          preferredDate &&
+          particularSection &&
+          particularSection.slots.length > 0 &&
+          epsSection &&
+          particularSection.date <= parseYmd(preferredDate) &&
+          particularSection.date < epsSection.date && (
+            <button
+              onClick={() =>
+                navigate({
+                  to: "/disponibilidad",
+                  search: { specialty, service, aseguradora: "Particular" },
+                })
+              }
+              className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
+            >
+              <div className="flex items-center gap-3">
+                <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
+                <div>
+                  <div className="text-base font-bold">¿Quieres una cita antes?</div>
+                  <div className="text-sm text-foreground/80">
+                    Hay disponibilidad particular para el{" "}
+                    {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+                  </div>
                 </div>
               </div>
-            </div>
-            <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
-              Ver citas particulares →
-            </span>
-          </button>
-        )}
+              <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
+                Ver citas particulares →
+              </span>
+            </button>
+          )}
 
         <div className="mt-6 space-y-6">
           {loading ? (
@@ -328,44 +343,32 @@ function P1() {
             />
           ) : (
             <>
-              {epsSection && estado === "estado-2" ? (
-                <div>
-                  {epsSection.full.length === 0 ? (
-                    <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                      No hay horarios con esos filtros para este día.
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 md:grid-cols-3">
-                      {epsSection.full.map((slot) => (
-                        <SlotCard key={slot.id} slot={slot} hidePrice onClick={() => setModalSlot(slot)} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : epsSection ? (
+              {epsSection && (
                 <SectionCard
                   label={
                     estado === "estado-3"
                       ? "Disponibilidad particular"
-                      : !date
-                        ? "Lo más pronto disponible"
-                        : undefined
+                      : estado === "estado-2"
+                        ? undefined
+                        : !date
+                          ? "Lo más pronto disponible"
+                          : undefined
                   }
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={estado === "estado-1"}
+                  hidePrice={estado === "estado-1" || estado === "estado-2"}
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
-              ) : null}
+              )}
 
-              {(estado === "estado-1" || estado === "estado-3") && nextSection && (
+              {(estado === "estado-1" || estado === "estado-2" || estado === "estado-3") && nextSection && (
                 <SectionCard
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
-                  hidePrice={estado === "estado-1"}
+                  hidePrice={estado === "estado-1" || estado === "estado-2"}
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
