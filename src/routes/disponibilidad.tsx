@@ -309,9 +309,11 @@ function P1() {
                   label={
                     estado === "estado-2"
                       ? "Próxima disponibilidad con tu aseguradora"
-                      : !date
-                        ? "Lo más pronto disponible"
-                        : undefined
+                      : estado === "estado-3"
+                        ? "Disponibilidad particular"
+                        : !date
+                          ? "Lo más pronto disponible"
+                          : undefined
                   }
                   date={epsSection.date}
                   slots={epsSection.slots}
