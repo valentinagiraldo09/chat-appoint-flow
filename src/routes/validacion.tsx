@@ -100,7 +100,7 @@ function P5() {
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");
-    setDate(undefined);
+    // Mantener la fecha preferida si existe
     navigate({ to: "/disponibilidad" });
   };
 
