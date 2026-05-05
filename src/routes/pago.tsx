@@ -1,10 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CreditCard, Building2, Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useBooking } from "@/store/booking";
-import { formatCOP } from "@/mocks/catalog";
+import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
+import { parseYmd, formatTime } from "@/mocks/availability";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pago")({
   head: () => ({ meta: [{ title: "Pago de la cita" }] }),
@@ -14,19 +18,39 @@ export const Route = createFileRoute("/pago")({
 function P6() {
   const navigate = useNavigate();
   const slot = useBooking((s) => s.selectedSlot);
+  const specialty = useBooking((s) => s.specialty);
+  const service = useBooking((s) => s.service);
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
   const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
 
   const [method, setMethod] = useState<"online" | "clinic" | null>(null);
   const [processing, setProcessing] = useState(false);
 
+  // Tiene valor para pagar solo si es particular o se eligió pagar como particular.
+  const tieneValorPorPagar =
+    aseguradora === "Particular" || payParticularOverride === true;
+
   useEffect(() => {
-    if (!slot) navigate({ to: "/" });
-  }, [slot, navigate]);
+    if (!slot) {
+      navigate({ to: "/" });
+      return;
+    }
+    // Si la cita está cubierta por la EPS (sin valor a pagar), saltamos al paso de confirmación.
+    if (!tieneValorPorPagar) {
+      setPaymentMethod("none");
+      const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      setConfirmationCode(code);
+      navigate({ to: "/confirmacion" });
+    }
+  }, [slot, tieneValorPorPagar, navigate, setPaymentMethod, setConfirmationCode]);
 
-  if (!slot) return null;
+  if (!slot || !tieneValorPorPagar) return null;
 
-  const amount = slot.price;
+  const date = parseYmd(slot.date);
+  const dateLabel = format(date, "EEEE d 'de' MMMM", { locale: es });
+  const sedeAddress = SEDE_ADDRESSES[slot.sede];
 
   function confirm() {
     if (!method) return;
@@ -45,37 +69,53 @@ function P6() {
         <BackButton />
       </div>
       <div className="mx-auto max-w-3xl px-4 pb-16">
-        <h1 className="text-3xl font-bold">Realiza el pago de tu cita</h1>
-        <p className="mt-2 text-muted-foreground">
-          Continúas como particular. Elige cómo deseas pagar el valor de tu cita médica.
+        <h1 className="text-3xl font-bold">¿Cuando deseas pagar tu cita?</h1>
+        <p className="mt-4 text-base font-semibold">
+          Paga ahora y ahorra tiempo en filas largas el día de tu consulta.
         </p>
 
-        <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total a pagar</span>
-            <span className="text-2xl font-bold">{formatCOP(amount)}</span>
+        {/* Resumen de la cita */}
+        <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-lg font-bold capitalize text-emerald-600">
+                {formatTime(slot.hour, slot.minute)} · {dateLabel}
+              </div>
+              <div className="mt-1 text-sm text-foreground/90">
+                {specialty}
+                {service ? ` — ${service}` : ""}
+              </div>
+              <div className="text-sm text-foreground/90">{slot.profesional}</div>
+              <div className="text-sm text-foreground/90">
+                {slot.sede}
+                {sedeAddress ? ` · ${sedeAddress}` : ""}
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-3">
+              <span className="rounded-md border border-amber-400 px-3 py-1 text-xs font-medium text-foreground">
+                {slot.attention}
+              </span>
+              <span className="rounded-md bg-muted px-3 py-1.5 text-sm font-bold">
+                {formatCOP(slot.price)}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <MethodCard
-            icon={<CreditCard className="h-5 w-5" />}
-            title="Pagar en línea"
-            desc="Tarjeta crédito o débito (PSE)"
+        {/* Opciones de pago */}
+        <div className="mt-5 space-y-3">
+          <PaymentOption
             selected={method === "online"}
             onClick={() => setMethod("online")}
+            title="Deseo pagar ahora y ahorrar tiempo"
+            description="Cuando llegues a la cita no tendrás que realizar ningún pago."
           />
-          <MethodCard
-            icon={<Building2 className="h-5 w-5" />}
-            title="Pagar en la clínica"
-            desc="Al momento de tu atención"
+          <PaymentOption
             selected={method === "clinic"}
             onClick={() => setMethod("clinic")}
+            title="Deseo pagar haciendo fila el día de la cita"
+            description="El pago se realizará en el centro médico el día que asistas a la cita."
           />
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-          <ShieldCheck className="h-4 w-4" /> Pagos cifrados, nunca guardamos los datos de tu tarjeta.
         </div>
 
         <div className="mt-8 flex justify-center">
@@ -83,10 +123,10 @@ function P6() {
             size="lg"
             onClick={confirm}
             disabled={!method || processing}
-            className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+            className="rounded-full bg-foreground px-10 text-background hover:bg-foreground/90 disabled:opacity-50"
           >
             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {processing ? "Procesando..." : "Pagar y confirmar cita"}
+            {processing ? "Procesando..." : "Continuar"}
           </Button>
         </div>
       </div>
@@ -94,33 +134,40 @@ function P6() {
   );
 }
 
-function MethodCard({
-  icon,
-  title,
-  desc,
+function PaymentOption({
   selected,
   onClick,
+  title,
+  description,
 }: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
   selected: boolean;
   onClick: () => void;
+  title: string;
+  description: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
-        "rounded-xl border bg-card p-4 text-left transition-all " +
-        (selected ? "border-foreground shadow-md" : "border-border hover:border-foreground/40")
-      }
+      className={cn(
+        "flex w-full items-start gap-4 rounded-2xl border bg-card p-5 text-left transition-all",
+        selected
+          ? "border-foreground shadow-sm"
+          : "border-border hover:border-foreground/40",
+      )}
     >
-      <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-muted p-2">{icon}</div>
-        <div>
-          <div className="font-medium">{title}</div>
-          <div className="text-sm text-muted-foreground">{desc}</div>
+      <span
+        className={cn(
+          "mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
+          selected ? "border-foreground" : "border-muted-foreground/40",
+        )}
+      >
+        {selected && <span className="h-2.5 w-2.5 rounded-full bg-foreground" />}
+      </span>
+      <div className="min-w-0">
+        <div className="text-base font-bold">{title}</div>
+        <div className="mt-1 text-sm font-medium text-muted-foreground">
+          {description}
         </div>
       </div>
     </button>
