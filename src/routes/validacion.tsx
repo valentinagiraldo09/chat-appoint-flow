@@ -235,7 +235,7 @@ function P5() {
             <ResultHeader
               icon={Info}
               tone="info"
-              title="Tu aseguradora no cubre este servicio"
+              title="Tu aseguradora no cubre esta cita"
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
