@@ -426,7 +426,7 @@ function P0() {
       return;
     }
     userSay(label);
-    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined };
+    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined, requestedDateISO: dateChipToISO(key) };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
@@ -434,7 +434,7 @@ function P0() {
     const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     userSay(label);
-    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso, requestedDateISO: iso };
     setDraft(d);
     if (d.specialty && d.service) {
       validateSpecificDate(d, iso);
@@ -467,7 +467,7 @@ function P0() {
   function acceptSuggestedDate(iso: string, label: string) {
     const capLabel = label.charAt(0).toUpperCase() + label.slice(1);
     userSay(`Sí, el ${label}`);
-    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso };
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso, requestedDateISO: draft.requestedDateISO ?? draft.dateISO };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
