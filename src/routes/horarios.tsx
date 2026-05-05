@@ -75,7 +75,7 @@ function P2() {
                     No hay horarios con esos filtros.
                   </div>
                 )
-                : slots.map((s) => <SlotCard key={s.id} slot={s} onClick={() => setModalSlot(s)} />)}
+                : slots.map((s) => <SlotCard key={s.id} slot={s} hidePrice onClick={() => setModalSlot(s)} />)}
           </div>
         </div>
 
