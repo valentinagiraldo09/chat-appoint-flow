@@ -334,19 +334,29 @@ function P1() {
               )}
 
               {estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
-                <div>
-                  <h3 className="mb-3 text-lg font-semibold">¿Quieres una cita antes?</h3>
-                  <SectionCard
-                    tone="amber"
-                    icon={<Zap className="h-5 w-5 text-[#B36B00]" />}
-                    label="Disponibilidad particular"
-                    date={particularSection.date}
-                    slots={particularSection.slots}
-                    full={particularSection.full}
-                    showPriceInLink
-                    onSelect={setModalSlot}
-                  />
-                </div>
+                <button
+                  onClick={() =>
+                    navigate({
+                      to: "/disponibilidad",
+                      search: { specialty, service, aseguradora: "Particular" },
+                    })
+                  }
+                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
+                    <div>
+                      <div className="text-base font-bold">¿Quieres una cita antes?</div>
+                      <div className="text-sm text-foreground/80">
+                        Disponibilidad particular desde el{" "}
+                        {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
+                    Ver citas particulares →
+                  </span>
+                </button>
               )}
             </>
           )}
