@@ -29,11 +29,6 @@ export function runValidations(input: ValidationInput): ValidationResult {
   // Reglas que SIEMPRE corren (incluso para Particular o bypass de cobertura):
   // límites de paciente y lista negra dependen de documento + servicio, no de cobertura.
 
-  // Documento que termina en 00 -> "lista negra"
-  if (doc.endsWith("00")) {
-    return { kind: "lista_negra", telefonoEPS: "01 8000 123 456" };
-  }
-
   // Documento que termina en 11 -> límite de paciente
   if (doc.endsWith("11")) {
     const base = new Date();
@@ -46,8 +41,8 @@ export function runValidations(input: ValidationInput): ValidationResult {
     return { kind: "limite_paciente", fechaPermitida: ymd(next) };
   }
 
-  // Documento termina en 22 -> sin cobertura del servicio (forzado para QA)
-  if (doc.endsWith("22")) {
+  // Documento termina en 22 o 00 -> sin cobertura del servicio (forzado para QA)
+  if (doc.endsWith("22") || doc.endsWith("00")) {
     return { kind: "sin_cobertura" };
   }
 
