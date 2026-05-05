@@ -324,12 +324,13 @@ function P1() {
                 />
               )}
 
-              {estado === "estado-1" && nextSection && (
+              {(estado === "estado-1" || estado === "estado-3") && nextSection && (
                 <SectionCard
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
-                  hidePrice
+                  hidePrice={estado === "estado-1"}
+                  showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
               )}
