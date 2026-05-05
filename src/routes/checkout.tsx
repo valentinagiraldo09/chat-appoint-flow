@@ -113,9 +113,13 @@ function P4() {
         specialty,
         service,
         slot,
-        bypassCoverage: false,
+        bypassCoverage: payParticularOverride,
       });
       setValidationResult(result);
+      if (result.kind === "ok" && payParticularOverride) {
+        navigate({ to: "/pago" });
+        return;
+      }
       navigate({ to: "/validacion" });
     }, 1500);
   }
