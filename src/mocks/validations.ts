@@ -46,20 +46,20 @@ export function runValidations(input: ValidationInput): ValidationResult {
     return { kind: "limite_paciente", fechaPermitida: ymd(next) };
   }
 
-  // A partir de aquí, validaciones de cobertura.
-  // Excepción: si vino de slot particular o es Particular, se omiten.
-  if (bypassCoverage || isParticular) {
-    return { kind: "ok" };
-  }
-
-  // Documento termina en 22 -> sin cobertura del servicio
+  // Documento termina en 22 -> sin cobertura del servicio (forzado para QA)
   if (doc.endsWith("22")) {
     return { kind: "sin_cobertura" };
   }
 
-  // Documento termina en 33 -> sin disponibilidad con la aseguradora
+  // Documento termina en 33 -> sin disponibilidad con la aseguradora (forzado para QA)
   if (doc.endsWith("33")) {
     return { kind: "sin_disponibilidad" };
+  }
+
+  // A partir de aquí, validaciones de cobertura por reglas de catálogo.
+  // Si vino de slot particular o es Particular, ya pasa OK.
+  if (bypassCoverage || isParticular) {
+    return { kind: "ok" };
   }
 
   // Reglas por especialidad (alternativas)
