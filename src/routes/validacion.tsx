@@ -60,6 +60,7 @@ function P5() {
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const date = useBooking((s) => s.date);
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
@@ -76,8 +77,8 @@ function P5() {
   }, []);
 
   const particularSlot = useMemo(
-    () => findParticularSlot(specialty, service),
-    [specialty, service],
+    () => findParticularSlot(specialty, service, date ? parseYmd(date) : undefined),
+    [specialty, service, date],
   );
 
   if (!result || !slot) return null;
@@ -99,7 +100,7 @@ function P5() {
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");
-    setDate(undefined);
+    // Mantener la fecha preferida si existe
     navigate({ to: "/disponibilidad" });
   };
 
