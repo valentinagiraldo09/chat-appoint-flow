@@ -445,7 +445,7 @@ function NoAvailabilityModal({
 }) {
   return (
     <Dialog open>
-      <DialogContent className="max-w-md p-8 text-center" hideClose>
+      <DialogContent className="max-w-md p-8 text-center [&>button]:hidden">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <CalendarPlus className="h-6 w-6 text-foreground" strokeWidth={1.75} />
         </div>
