@@ -114,6 +114,9 @@ function P5() {
   };
 
   const verMasParticulares = () => {
+    if (aseguradora && aseguradora !== "Particular") {
+      setPreviousAseguradora(aseguradora);
+    }
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");
