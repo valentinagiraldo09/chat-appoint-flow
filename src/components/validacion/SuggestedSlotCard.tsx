@@ -55,13 +55,13 @@ export function SuggestedSlotCard({
         {ctaLabel}
       </Button>
       {secondaryLabel && onSecondary && (
-        <div className="mt-2 flex justify-end">
+        <div className="mt-3 flex justify-end">
           <button
             type="button"
             onClick={onSecondary}
-            className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+            className="text-sm font-medium text-blue-600 hover:underline"
           >
-            {secondaryLabel}
+            {secondaryLabel} →
           </button>
         </div>
       )}
