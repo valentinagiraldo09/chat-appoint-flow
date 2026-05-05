@@ -1,21 +1,29 @@
+## Objetivo
+
+Garantizar que cuando la cita se toma como **particular** nunca se navegue a `/validacion`.
+
+Hoy en `src/routes/checkout.tsx` solo se considera "particular" cuando `aseguradora === "Particular"`. Pero si el usuario eligió una aseguradora normal y luego, desde `/validacion`, optó por **"Tomar esta cita como particular"** (lo que activa `payParticularOverride = true`), al volver a pasar por `/checkout` se vuelven a correr `runValidations` y puede caer otra vez en `/validacion`.
+
 ## Cambio
 
-Siempre llevar a `/checkout` desde `ConfirmModal`. En `/checkout`, pre-rellenar el formulario con los datos del paciente si ya existen en el store, para que el usuario solo tenga que dar "Continuar".
+En `src/routes/checkout.tsx` (función `onSubmit`):
 
-## Archivos
+- Tratar como particular si `aseguradora === "Particular"` **o** `payParticularOverride === true`.
+- En ese caso: limpiar `validationResult` y navegar directamente a `/pago`, sin llamar `runValidations`.
 
-### `src/components/ConfirmModal.tsx`
+```ts
+const isParticular = aseguradora === "Particular" || payParticularOverride === true;
+if (isParticular) {
+  setValidationResult(undefined);
+  navigate({ to: "/pago" });
+  return;
+}
+```
 
-Simplificar el `onClick` del botón "Sí, avanzar":
-- Quitar toda la lógica condicional con `patient`, `coverageMinDate`, `runValidations`, etc.
-- Quedar solo: `setSelectedSlot(slot); onOpenChange(false); navigate({ to: "/checkout" });`
-- Limpiar imports no usados (`runValidations`) y selectores del store que ya no se necesitan (`patient`, `payParticularOverride`, `setValidationResult`, `coverageMinDate`).
+(`payParticularOverride` ya está siendo leído del store en el componente, no requiere imports nuevos.)
 
-### `src/routes/checkout.tsx`
+## Verificación
 
-Pre-rellenar el formulario con `patient` del store:
-- Leer `const patient = useBooking((s) => s.patient);`.
-- En `useForm`, calcular `defaultValues` desde `patient` cuando exista; `acceptTerms` también queda en `true` si ya hay `patient` (ya aceptó previamente).
-- Añadir un `useEffect` que llame `form.reset(...)` cuando cambia `patient`, para cubrir el caso de que el componente se monte sin patient y luego cambie (defensivo).
-
-Resultado: la primera vez el formulario está vacío; en visitas posteriores ya viene lleno y el usuario solo confirma con "Continuar", lo que dispara la validación normal.
+- Aseguradora "Particular" → continuar en `/checkout` → va a `/pago` (sin validar).
+- Aseguradora EPS + en `/validacion` se elige "Tomar como particular" → si vuelve a pasar por `/checkout`, ya no se navega a `/validacion`, va directo a `/pago`.
+- Aseguradora EPS sin override → comportamiento actual (corre validaciones).
