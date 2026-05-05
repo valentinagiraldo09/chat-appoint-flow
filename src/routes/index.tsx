@@ -16,6 +16,7 @@ import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s: Record<string, unknown>) => ({ ask: s.ask === "service" ? "service" : undefined }),
   head: () => ({
     meta: [
       { title: "Asistente Coco — Gestiona tu cita fácil y rápido" },
@@ -226,6 +227,7 @@ function nextAgendarStep(d: Draft): AgendarStep {
 
 function P0() {
   const navigate = useNavigate();
+  const { ask } = Route.useSearch();
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const setService = useBooking((s) => s.setService);
   const setAseguradora = useBooking((s) => s.setAseguradora);
@@ -248,6 +250,15 @@ function P0() {
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [bubbles, typing]);
+
+  // Auto-arrancar flujo agendar pidiendo especialidad cuando viene ?ask=service
+  useEffect(() => {
+    if (ask === "service" && mounted && bubbles.length === 0) {
+      reset();
+      startFlow("agendar", { skipUserBubble: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask, mounted]);
 
   const inChat = bubbles.length > 0;
 

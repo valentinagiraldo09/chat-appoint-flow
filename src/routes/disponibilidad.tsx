@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, Zap, AlertTriangle, CalendarX } from "lucide-react";
+import { Search, ChevronDown, Zap, AlertTriangle, CalendarPlus, Users, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
@@ -293,14 +294,11 @@ function P1() {
               </div>
             </div>
           ) : estado === "estado-4" ? (
-            <EmptyState
+            <NoAvailabilityModal
               specialty={specialty}
-              aseguradora={aseguradora}
-              onPickDate={() => {
-                // navigate to /horarios as a calendar fallback
-                navigate({ to: "/horarios", search: { d: ymd(new Date()) } });
-              }}
+              service={service}
               onWaitlist={() => setWaitlistOpen(true)}
+              onOtherService={() => navigate({ to: "/", search: { ask: "service" } })}
             />
           ) : (
             <>
@@ -434,33 +432,56 @@ function SectionCard({
   );
 }
 
-function EmptyState({
+function NoAvailabilityModal({
   specialty,
-  aseguradora,
-  onPickDate,
+  service,
   onWaitlist,
+  onOtherService,
 }: {
   specialty?: string;
-  aseguradora?: string;
-  onPickDate: () => void;
+  service?: string;
   onWaitlist: () => void;
+  onOtherService: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-12 text-center">
-      <CalendarX className="mx-auto h-12 w-12" strokeWidth={1.5} style={{ color: "#B7B7B7" }} />
-      <h3 className="mt-4 text-xl font-semibold">No encontramos disponibilidad</h3>
-      <p className="mt-2 text-sm text-muted-foreground">
-        No hay citas disponibles para {specialty} con {aseguradora} en este momento.
-      </p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <Button onClick={onPickDate} variant="outline" className="rounded-full">
-          Buscar en otras fechas
-        </Button>
-        <Button onClick={onWaitlist} className="rounded-full">
-          Inscribirme en lista de espera
-        </Button>
-      </div>
-    </div>
+    <Dialog open>
+      <DialogContent className="max-w-md p-8 text-center [&>button]:hidden">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <CalendarPlus className="h-6 w-6 text-foreground" strokeWidth={1.75} />
+        </div>
+        <h3 className="mt-4 text-xl font-semibold">No hay disponibilidad</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Lo sentimos, actualmente no tenemos citas disponibles para {specialty}
+          {service ? ` — ${service}` : ""}. Tenemos algunas opciones para ti.
+        </p>
+
+        <button
+          onClick={onWaitlist}
+          className="mt-6 w-full rounded-xl bg-muted p-4 text-left transition hover:bg-muted/70"
+        >
+          <div className="flex items-center gap-2 font-semibold">
+            <Users className="h-4 w-4" />
+            Inscríbete a lista de espera
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Te avisaremos por correo o SMS tan pronto como tengamos cita disponible.
+          </p>
+        </button>
+
+        <button
+          onClick={onOtherService}
+          className="mt-3 w-full rounded-xl bg-muted p-4 text-left transition hover:bg-muted/70"
+        >
+          <div className="flex items-center gap-2 font-semibold">
+            <Stethoscope className="h-4 w-4" />
+            Buscar otro servicio
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Explora otros servicios médicos con disponibilidad inmediata.
+          </p>
+        </button>
+      </DialogContent>
+    </Dialog>
   );
 }
 
