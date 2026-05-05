@@ -176,6 +176,9 @@ function P1() {
   const setDate = useBooking((s) => s.setDate);
   const setAseguradora = useBooking((s) => s.setAseguradora);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const previousAseguradora = useBooking((s) => s.previousAseguradora);
+  const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
+  const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const preferredDate = useBooking((s) => s.preferredDate);
 
   // Default service if none picked
