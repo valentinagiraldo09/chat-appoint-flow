@@ -1,19 +1,30 @@
-# Unificar layout de "límite de paciente" (doc 11) con el de "sin cobertura" (doc 22)
+
+# Caso 33: validación rechazada sin cita particular disponible
 
 ## Objetivo
-La rama `limite_paciente` en `src/routes/validacion.tsx` usará la misma estructura visual que `sin_cobertura`, con el mensaje y CTAs adaptados a la fecha permitida por la aseguradora.
+El documento terminado en `33` representará un paciente que **no pasa la validación** (cobertura o lista negra) y para el cual **no tenemos cita particular** que ofrecer. La pantalla reutiliza el layout de `sin_cobertura` (22) pero omite el bloque de cita particular sugerida.
 
-## Cambios en `src/routes/validacion.tsx`
+## Cambios
 
-Reemplazar el bloque actual de `result.kind === "limite_paciente"` por una estructura paralela a `sin_cobertura`:
+### 1. `src/mocks/validations.ts`
+- Añadir nuevo tipo a `ValidationResult`:
+  ```ts
+  | { kind: "sin_alternativa" }
+  ```
+- Reasignar la regla de `doc.endsWith("33")`: en vez de `sin_disponibilidad`, devolver `{ kind: "sin_alternativa" }`.
+- (Mantener `sin_disponibilidad` para reglas por especialidad como Pediatría + Sura, que sí lo usan.)
 
-1. **ResultHeader** — mantener icono `AlertTriangle` / tono `warning`, con el título y subtítulo actuales (mensaje de fecha permitida).
-2. **IntentSummary** — pasar `compact` (versión deshabilitada/atenuada, igual que en 22), mostrando la cita que se intentaba agendar.
-3. **CTA primario** — un `PrimaryAction` con label "Ver disponibilidad el {fecha} con mi aseguradora" que llama `verConAseguradora(result.fechaPermitida)`.
-4. **Cita particular sugerida** — usar `SuggestedSlotCard` (mismo componente que 22) con eyebrow "Cita particular sugerida", CTA "Agendar esta cita" → `tomarSugeridoParticular(particularSlot)`, y secundario "Ver más disponibilidad" → `verMasParticulares`. Si no hay `particularSlot`, mostrar el mismo fallback que 22.
-5. **Otras opciones** — un bloque `SecondaryActions` con un único row "Inscribirme en lista de espera" → abre `WaitlistDialog`.
-6. **Buscar nueva cita** — botón de texto centrado debajo, igual que en 22, llamando `buscarNuevaCita`.
+### 2. `src/routes/validacion.tsx`
+Agregar una nueva rama `result.kind === "sin_alternativa"`, paralela a `sin_cobertura` pero más corta:
 
-Se eliminan los `SecondaryActionRow` actuales de "Tomar como particular ahora" y "Ver más horarios particulares" porque su función queda cubierta por `SuggestedSlotCard`.
+- `ResultHeader` con icono `Info`, tono `info`, título "Tu aseguradora no cubre esta cita" y subtítulo: "No encontramos una cita particular alternativa para ofrecerte en este momento."
+- `IntentSummary` en modo `compact` (cita atenuada que se intentaba agendar).
+- **Sin** texto "Puedes tomar esta cita" y **sin** `SuggestedSlotCard` ni fallback de particular.
+- Bloque "Otras opciones" con `SecondaryActions` y un único `SecondaryActionRow`: "Inscribirme en lista de espera" → abre `WaitlistDialog`.
+- Botón de texto centrado "Buscar nueva cita" → `buscarNuevaCita`.
 
-No se tocan otras ramas (ok, lista_negra, sin_cobertura, sin_disponibilidad) ni `validations.ts`.
+No se tocan otras ramas (`ok`, `limite_paciente`, `lista_negra`, `sin_cobertura`, `sin_disponibilidad`).
+
+## Notas técnicas
+- `sin_alternativa` no necesita campos extra: la copy es estática y no depende de fecha/teléfono.
+- La estructura visual es idéntica a `sin_cobertura` para mantener coherencia, simplemente sin la sección de cita sugerida.
