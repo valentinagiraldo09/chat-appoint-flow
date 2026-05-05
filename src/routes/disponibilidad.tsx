@@ -352,7 +352,7 @@ function P1() {
                     <div className="mt-3 flex justify-end">
                       <Link
                         to="/horarios"
-                        search={{ d: ymd(particularSection.date) }}
+                        search={{ d: ymd(particularSection.date), price: 1 }}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
                         Ver más opciones particulares →
