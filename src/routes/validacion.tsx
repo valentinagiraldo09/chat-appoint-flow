@@ -71,8 +71,9 @@ function P5() {
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   useEffect(() => {
-    if (!result || !slot) navigate({ to: "/" });
-  }, [result, slot, navigate]);
+    if (!result) navigate({ to: "/" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const particularSlot = useMemo(
     () => findParticularSlot(specialty, service),
@@ -95,7 +96,6 @@ function P5() {
   };
 
   const verMasParticulares = () => {
-    setSelectedSlot(undefined);
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");
