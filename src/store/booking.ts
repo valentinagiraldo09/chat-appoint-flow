@@ -54,6 +54,7 @@ export type BookingState = {
   setSelectedSlot: (s?: Slot) => void;
   setPatient: (p: Patient) => void;
   setAseguradora: (a: string) => void;
+  setPreviousAseguradora: (a?: string) => void;
   setCoverage: (c?: CoverageResult) => void;
   setAcceptedSuggestedDate: (v: boolean) => void;
   setPayParticularOverride: (v: boolean) => void;
