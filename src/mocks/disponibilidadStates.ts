@@ -15,6 +15,7 @@ export function getEstadoDisponibilidad(
   specialty?: string,
   aseguradora?: string,
 ): DispEstado {
+  if (aseguradora === "Particular") return "estado-3";
   if (!specialty || !aseguradora) return "estado-1";
   return DISPONIBILIDAD[`${specialty}|${aseguradora}`] ?? "estado-1";
 }
