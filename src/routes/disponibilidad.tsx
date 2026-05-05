@@ -173,6 +173,8 @@ function P1() {
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
+  const setDate = useBooking((s) => s.setDate);
+  const setAseguradora = useBooking((s) => s.setAseguradora);
   const aseguradora = useBooking((s) => s.aseguradora);
   const preferredDate = useBooking((s) => s.preferredDate);
 
@@ -369,12 +371,14 @@ function P1() {
                 ymd(particularSection.date) === preferredDate &&
                 particularSection.date < epsSection.date && (
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      setAseguradora("Particular");
+                      setDate(preferredDate);
                       navigate({
                         to: "/disponibilidad",
-                        search: { specialty, service, aseguradora: "Particular" },
-                      })
-                    }
+                        search: { specialty, service, aseguradora: "Particular", date: preferredDate },
+                      });
+                    }}
                     className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
                   >
                     <div className="flex items-center gap-3">
