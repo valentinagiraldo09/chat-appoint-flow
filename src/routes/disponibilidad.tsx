@@ -397,7 +397,7 @@ function P1() {
         </div>
       </div>
 
-      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} />
+      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={estado === "estado-1" || estado === "estado-2"} />
       <WaitlistDialog
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
