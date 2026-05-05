@@ -1,19 +1,28 @@
 ## Problema
 
-En `/validacion`, la "Cita particular sugerida" se está calculando con `findNextAvailableDate(date)`, que salta a la próxima fecha con disponibilidad. Como la fecha preferida (7 de mayo) suele tener disponibilidad particular, debería usarse esa misma fecha; si no, recién entonces buscar la siguiente.
+En el cambio anterior, `ConfirmModal` siempre salta `/checkout` si `patient` existe en el store. Como `patient` se persiste en `sessionStorage`, en la PRIMERA selección de slot (ej. 10 de mayo) ya hay `patient` previo y el flujo brinca directo a `/validacion` o `/pago`, saltándose el formulario que el usuario espera ver la primera vez.
 
-Adicionalmente, hoy `findParticularSlot` toma siempre `slots[0]` (primer horario del día). Si la fecha preferida tiene slots particulares, debe priorizarse la fecha del usuario, no el siguiente día.
+## Flujo deseado
+
+1. Usuario elige slot del 10 de mayo → siempre va a `/checkout` (formulario de datos del paciente).
+2. Llena formulario → continuar → corre validación → resultado `limite_paciente` (cubre desde 6 jun).
+3. Click "Ver disponibilidad desde el 6 de junio con mi aseguradora" → `/disponibilidad` con `coverageMinDate` seteado.
+4. Elige nuevo slot (≥ 6 jun) → como ya viene de un re-flujo post-validación, NO mostrar `/checkout` otra vez → correr validación → `ok` → `/pago`.
+
+## Señal para distinguir los dos casos
+
+Cuando el usuario hace click en "Ver disponibilidad desde el 6 de junio…" en `validacion.tsx`, `verConAseguradora` ya setea `coverageMinDate`. Esa es la señal natural: si `coverageMinDate` está definido, estamos en el re-flujo y debemos saltar `/checkout`.
 
 ## Cambio
 
-Editar `src/routes/validacion.tsx`, función `findParticularSlot`:
+En `src/components/ConfirmModal.tsx`, modificar el `onClick` de "Sí, avanzar":
 
-1. Si se recibe `fromDate` (fecha preferida del store `useBooking().date`), intentar primero `generateSlots(fromDate, specialty, service)`.
-2. Si hay slots ese día → devolver el primero.
-3. Si no hay → caer al comportamiento actual (`findNextAvailableDate`).
+- Leer también `coverageMinDate` del store (`useBooking((s) => s.coverageMinDate)`).
+- Cambiar la condición `if (patient) { ... }` por `if (patient && coverageMinDate) { ... }`.
+- En el resto de los casos (incluida la primera selección, aunque `patient` exista por sesión previa), navegar a `/checkout` como antes.
 
-No se requieren más cambios: `particularSlot` ya se invoca con `date ? parseYmd(date) : undefined`.
+Adicionalmente, para mantener limpio el estado, en `src/routes/checkout.tsx` (si aplica) o tras correr la validación inicial, no es necesario tocar nada más: `coverageMinDate` solo se setea cuando el usuario explícitamente toma la opción de ver disponibilidad de la aseguradora desde la fecha permitida.
 
 ## Archivos
 
-- `src/routes/validacion.tsx` — actualizar `findParticularSlot`.
+- `src/components/ConfirmModal.tsx` — añadir `coverageMinDate` al destructuring del store y ajustar la condición del `onClick` para saltar `/checkout` solo cuando `patient && coverageMinDate`.
