@@ -1,30 +1,44 @@
+## Cambios en `src/routes/disponibilidad.tsx`
 
-# Caso 33: validación rechazada sin cita particular disponible
+### 1. Extender `SectionCard` con props `tone` e `icon`
 
-## Objetivo
-El documento terminado en `33` representará un paciente que **no pasa la validación** (cobertura o lista negra) y para el cual **no tenemos cita particular** que ofrecer. La pantalla reutiliza el layout de `sin_cobertura` (22) pero omite el bloque de cita particular sugerida.
+Añadir a la firma:
+- `tone?: "emerald" | "amber"` (default `"emerald"`)
+- `icon?: ReactNode`
 
-## Cambios
+Header:
+- `emerald`: `bg-emerald-100/70` (actual)
+- `amber`: `bg-[#FFF6E5]`, body `border-[#FFA800]`
 
-### 1. `src/mocks/validations.ts`
-- Añadir nuevo tipo a `ValidationResult`:
-  ```ts
-  | { kind: "sin_alternativa" }
-  ```
-- Reasignar la regla de `doc.endsWith("33")`: en vez de `sin_disponibilidad`, devolver `{ kind: "sin_alternativa" }`.
-- (Mantener `sin_disponibilidad` para reglas por especialidad como Pediatría + Sura, que sí lo usan.)
+Estructura del header (sin `·`):
+```
+{icon} {label en font-bold} {fecha capitalizada en font-semibold}
+```
 
-### 2. `src/routes/validacion.tsx`
-Agregar una nueva rama `result.kind === "sin_alternativa"`, paralela a `sin_cobertura` pero más corta:
+### 2. Cambiar copy estado-2
 
-- `ResultHeader` con icono `Info`, tono `info`, título "Tu aseguradora no cubre esta cita" y subtítulo: "No encontramos una cita particular alternativa para ofrecerte en este momento."
-- `IntentSummary` en modo `compact` (cita atenuada que se intentaba agendar).
-- **Sin** texto "Puedes tomar esta cita" y **sin** `SuggestedSlotCard` ni fallback de particular.
-- Bloque "Otras opciones" con `SecondaryActions` y un único `SecondaryActionRow`: "Inscribirme en lista de espera" → abre `WaitlistDialog`.
-- Botón de texto centrado "Buscar nueva cita" → `buscarNuevaCita`.
+Línea 309: `"Próxima disponibilidad con tu aseguradora"` → `"Disponibilidad con tu aseguradora"`.
 
-No se tocan otras ramas (`ok`, `limite_paciente`, `lista_negra`, `sin_cobertura`, `sin_disponibilidad`).
+### 3. Reemplazar bloque particular (líneas 336–365)
 
-## Notas técnicas
-- `sin_alternativa` no necesita campos extra: la copy es estática y no depende de fecha/teléfono.
-- La estructura visual es idéntica a `sin_cobertura` para mantener coherencia, simplemente sin la sección de cita sugerida.
+Sustituir por:
+
+```tsx
+<div>
+  <h3 className="mb-3 text-lg font-semibold">¿Quieres una cita antes?</h3>
+  <SectionCard
+    tone="amber"
+    icon={<Zap className="h-5 w-5 text-[#B36B00]" />}
+    label="Disponibilidad particular"
+    date={particularSection.date}
+    slots={particularSection.slots}
+    full={particularSection.full}
+    showPriceInLink
+    onSelect={setModalSlot}
+  />
+</div>
+```
+
+El link inferior queda en `"Ver más horarios →"` provisto por `SectionCard`.
+
+Sin cambios en otros estados, mocks ni rutas.
