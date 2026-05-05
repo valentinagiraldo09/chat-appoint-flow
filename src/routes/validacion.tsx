@@ -81,6 +81,7 @@ function P5() {
   const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
   const setDate = useBooking((s) => s.setDate);
   const setAseguradora = useBooking((s) => s.setAseguradora);
+  const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
   const reset = useBooking((s) => s.reset);
 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
@@ -114,6 +115,9 @@ function P5() {
   };
 
   const verMasParticulares = () => {
+    if (aseguradora && aseguradora !== "Particular") {
+      setPreviousAseguradora(aseguradora);
+    }
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");

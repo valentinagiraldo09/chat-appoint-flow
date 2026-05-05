@@ -176,6 +176,9 @@ function P1() {
   const setDate = useBooking((s) => s.setDate);
   const setAseguradora = useBooking((s) => s.setAseguradora);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const previousAseguradora = useBooking((s) => s.previousAseguradora);
+  const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
+  const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const preferredDate = useBooking((s) => s.preferredDate);
 
   // Default service if none picked
@@ -327,6 +330,37 @@ function P1() {
               Te mostramos la disponibilidad de citas particulares.
             </div>
           </div>
+        )}
+
+        {aseguradora === "Particular" && previousAseguradora && (
+          <button
+            onClick={() => {
+              const back = previousAseguradora;
+              setAseguradora(back);
+              setPreviousAseguradora(undefined);
+              setPayParticularOverride(false);
+              navigate({
+                to: "/disponibilidad",
+                search: { specialty, service, aseguradora: back, date },
+              });
+            }}
+            className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background px-5 py-4 text-left transition hover:border-foreground/60 hover:shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <Stethoscope className="h-5 w-5 shrink-0 text-foreground" />
+              <div>
+                <div className="text-base font-bold">
+                  Ver disponibilidad con mi aseguradora
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Volver a ver horarios cubiertos por {previousAseguradora}.
+                </div>
+              </div>
+            </div>
+            <span className="whitespace-nowrap text-sm font-medium text-foreground">
+              Ver con {previousAseguradora} →
+            </span>
+          </button>
         )}
 
         {showFilters && <FiltersBar slotPool={slotPool} />}

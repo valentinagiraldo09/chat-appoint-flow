@@ -32,6 +32,7 @@ export type BookingState = {
   selectedSlot?: Slot;
   patient?: Patient;
   aseguradora?: string;
+  previousAseguradora?: string;
   coverage?: CoverageResult;
   acceptedSuggestedDate?: boolean;
   payParticularOverride?: boolean;
@@ -53,6 +54,7 @@ export type BookingState = {
   setSelectedSlot: (s?: Slot) => void;
   setPatient: (p: Patient) => void;
   setAseguradora: (a: string) => void;
+  setPreviousAseguradora: (a?: string) => void;
   setCoverage: (c?: CoverageResult) => void;
   setAcceptedSuggestedDate: (v: boolean) => void;
   setPayParticularOverride: (v: boolean) => void;
@@ -76,6 +78,7 @@ const initial = {
   selectedSlot: undefined,
   patient: undefined,
   aseguradora: undefined,
+  previousAseguradora: undefined,
   coverage: undefined,
   acceptedSuggestedDate: false,
   payParticularOverride: false,
@@ -108,6 +111,7 @@ export const useBooking = create<BookingState>()(
       setSelectedSlot: (s) => set({ selectedSlot: s }),
       setPatient: (p) => set({ patient: p }),
       setAseguradora: (a) => set({ aseguradora: a }),
+      setPreviousAseguradora: (a) => set({ previousAseguradora: a }),
       setCoverage: (c) => set({ coverage: c }),
       setAcceptedSuggestedDate: (v) => set({ acceptedSuggestedDate: v }),
       setPayParticularOverride: (v) => set({ payParticularOverride: v }),
