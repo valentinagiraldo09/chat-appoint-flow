@@ -38,6 +38,7 @@ type Draft = {
   dateKey?: DateChipKey;
   dateLabel?: string;
   dateISO?: string;
+  requestedDateISO?: string;
 };
 
 type Bubble =
@@ -308,7 +309,7 @@ function P0() {
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
       const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
-      if (d.dateKey) setPreferredDate(resolvedISO);
+      if (d.dateKey) setPreferredDate(d.requestedDateISO ?? resolvedISO);
       useBooking.getState().setDate(resolvedISO);
       // Transferir chat lateral
       clearChat();
@@ -378,6 +379,7 @@ function P0() {
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
         d.dateISO = parsed.dateISO;
+        d.requestedDateISO = parsed.dateISO;
       }
       setDraft(d);
       if (parsed.dateISO && d.specialty && d.service) {
