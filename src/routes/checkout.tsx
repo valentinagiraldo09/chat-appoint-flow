@@ -86,7 +86,6 @@ function P4() {
       email: "",
       telefono: "",
       direccion: "",
-      aseguradora: "",
       acceptTerms: false as unknown as true,
     },
   });
@@ -101,46 +100,14 @@ function P4() {
       telefono: values.telefono,
       direccion: values.direccion,
     });
-    setAseguradora(values.aseguradora);
+    setAseguradora("Particular");
     // limpiar flags previos
     setCoverageOnly(false);
     setCoverageMinDate(undefined);
-    setPayParticularOverride(false);
+    setPayParticularOverride(true);
 
-    // Particular salta validación → directo a pago
-    if (values.aseguradora === "Particular") {
-      setCoverage({ case: 1, message: "Pago particular" });
-      setPayParticularOverride(true);
-      navigate({ to: "/pago" });
-      return;
-    }
-
-    setValidating(true);
-    const delay = 1100 + Math.floor(Math.random() * 400);
-    setTimeout(() => {
-      const result = validateCoverage(
-        values.aseguradora,
-        specialty ?? "",
-        service ?? "",
-        slot.date,
-      );
-      setCoverage(result);
-
-      if (result.case === 1) {
-        // Cubierta → confirmar directo, sin /pago
-        setPaymentMethod("none");
-        const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-        setConfirmationCode(code);
-        navigate({ to: "/confirmacion" });
-        return;
-      }
-      if (result.case === 2) {
-        navigate({ to: "/cobertura/parcial" });
-        return;
-      }
-      // Caso 3
-      navigate({ to: "/cobertura/no-cubre" });
-    }, delay);
+    setCoverage({ case: 1, message: "Pago particular" });
+    navigate({ to: "/pago" });
   }
 
   function onFiles(list: FileList | null) {
@@ -212,19 +179,7 @@ function P4() {
             </Field>
           </div>
 
-          <div className="pt-2">
-            <Field label="Aseguradora" error={form.formState.errors.aseguradora?.message}>
-              <select {...form.register("aseguradora")} className="w-full bg-transparent text-sm outline-none">
-                <option value=""></option>
-                {ASEGURADORAS.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-            </Field>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Validaremos si tu aseguradora cubre esta cita después de confirmar tus datos.
-            </p>
-          </div>
+
 
           <label className="flex items-start gap-2 pt-2 text-sm">
             <input type="checkbox" {...form.register("acceptTerms")} className="mt-0.5" />
