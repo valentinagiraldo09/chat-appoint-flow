@@ -170,6 +170,7 @@ function P1() {
   const filters = useBooking((s) => s.filters);
   const setService = useBooking((s) => s.setService);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const preferredDate = useBooking((s) => s.preferredDate);
 
   // Default service if none picked
   useEffect(() => {
