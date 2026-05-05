@@ -480,6 +480,15 @@ function NoAvailabilityModal({
             Explora otros servicios médicos con disponibilidad inmediata.
           </p>
         </button>
+
+        <div className="mt-6 flex flex-col gap-2">
+          <Button onClick={onWaitlist} className="w-full rounded-full">
+            Inscribirme en lista de espera
+          </Button>
+          <Button onClick={onOtherService} variant="outline" className="w-full rounded-full">
+            Buscar otro servicio
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
