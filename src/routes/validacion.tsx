@@ -269,7 +269,7 @@ function P5() {
               <div className="mt-3 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => navigate({ to: "/" })}
+                  onClick={buscarNuevaCita}
                   className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
                 >
                   Buscar nueva cita
