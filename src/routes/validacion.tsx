@@ -155,19 +155,18 @@ function P5() {
               <ResultHeader
                 icon={AlertTriangle}
                 tone="warning"
-                title="Tu aseguradora aún no permite agendar este servicio"
+                title="Tu aseguradora aún no cubre esta cita"
                 subtitle={
                   <>
-                    Podrás hacerlo desde el{" "}
+                    Tu aseguradora cubre citas de este servicio a partir del{" "}
                     <span className="font-medium text-foreground">{fechaLabel}</span>.
-                    Mientras tanto tienes estas opciones.
                   </>
                 }
               />
               <IntentSummary specialty={specialty} service={service} slot={slot} compact />
               <PrimaryAction
                 icon={CalendarDays}
-                label={`Ver disponibilidad el ${fechaLabel} con mi aseguradora`}
+                label={`Ver disponibilidad desde el ${fechaLabel} con mi aseguradora`}
                 onClick={() => verConAseguradora(result.fechaPermitida)}
               />
 
