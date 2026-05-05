@@ -18,13 +18,19 @@ export function IntentSummary({
 
   if (compact) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 opacity-70">
-        <div className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
+      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 opacity-60">
+        <div className="text-xs text-muted-foreground">
           {specialty}
           {service ? <span> · {service}</span> : null}
         </div>
-        <div className="mt-1 text-xs capitalize text-muted-foreground/80">
-          {format(d, "EEE d MMM", { locale: es })} · {formatTime(slot.hour, slot.minute)} · {slot.profesional}
+        <div className="mt-1 text-base font-semibold capitalize text-muted-foreground">
+          {format(d, "EEE d MMM", { locale: es })} · {formatTime(slot.hour, slot.minute)}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center rounded-full border border-border bg-background/60 px-2 py-0.5">
+            {slot.attention}
+          </span>
+          <span>{slot.profesional}</span>
         </div>
       </div>
     );
