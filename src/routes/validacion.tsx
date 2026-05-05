@@ -118,10 +118,15 @@ function P5() {
     if (aseguradora && aseguradora !== "Particular") {
       setPreviousAseguradora(aseguradora);
     }
+    // Recordar la fecha mínima de cobertura para poder volver a la aseguradora
+    if (result?.kind === "limite_paciente") {
+      setCoverageMinDate(result.fechaPermitida);
+    }
     setPayParticularOverride(true);
     setCoverageOnly(false);
     setAseguradora("Particular");
-    // Mantener la fecha preferida si existe
+    // Mostrar disponibilidad particular en la fecha preferida
+    if (preferredDate) setDate(preferredDate);
     navigate({ to: "/disponibilidad" });
   };
 
