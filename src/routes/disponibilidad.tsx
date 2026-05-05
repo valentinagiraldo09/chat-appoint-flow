@@ -54,6 +54,11 @@ import { BackButton } from "@/components/BackButton";
 
 import { cn } from "@/lib/utils";
 
+const capWords = (s: string) =>
+  s.replace(/(^|\s)([a-záéíóúñ])/g, (_, p, c) => p + c.toUpperCase());
+const formatLongDate = (d: Date) =>
+  capWords(format(d, "EEEE, d 'de' MMMM", { locale: es }));
+
 export const Route = createFileRoute("/disponibilidad")({
   head: () => ({
     meta: [{ title: "Disponibilidad — Citas médicas" }],
@@ -131,9 +136,7 @@ function DatePickerField() {
   const specialty = useBooking((s) => s.specialty) ?? "";
   const service = useBooking((s) => s.service) ?? "";
   const [open, setOpen] = useState(false);
-  const label = date
-    ? format(parseYmd(date), "EEEE d 'de' MMMM", { locale: es })
-    : "Lo más pronto";
+  const label = date ? formatLongDate(parseYmd(date)) : "Lo más pronto";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -430,10 +433,10 @@ function SectionCard({
   return (
     <section>
       <div className={cn("rounded-t-xl px-5 py-4", headerBg)}>
-        <div className="flex items-center gap-2 text-base capitalize">
+        <div className="flex items-center gap-2 text-base">
           {icon}
-          {label && <span className="font-bold capitalize-none">{label}</span>}
-          <span className="font-semibold">{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
+          {label && <span className="font-bold">{label}</span>}
+          <span className="font-semibold">{formatLongDate(date)}</span>
         </div>
       </div>
       <div className={cn("rounded-b-xl border border-t-0 bg-background p-4", bodyBorder)}>
