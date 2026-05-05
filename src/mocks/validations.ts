@@ -23,13 +23,11 @@ export type ValidationInput = {
  */
 export function runValidations(input: ValidationInput): ValidationResult {
   const { documento, aseguradora, specialty, service, bypassCoverage } = input;
-
-  // Excepción: si vino de slot particular o ya es Particular, no se valida cobertura
-  if (bypassCoverage || aseguradora === "Particular") {
-    return { kind: "ok" };
-  }
-
   const doc = documento.trim();
+  const isParticular = aseguradora === "Particular" || !aseguradora;
+
+  // Reglas que SIEMPRE corren (incluso para Particular o bypass de cobertura):
+  // límites de paciente y lista negra dependen de documento + servicio, no de cobertura.
 
   // Documento que termina en 00 -> "lista negra"
   if (doc.endsWith("00")) {
@@ -48,12 +46,26 @@ export function runValidations(input: ValidationInput): ValidationResult {
     return { kind: "limite_paciente", fechaPermitida: ymd(next) };
   }
 
-  // Pediatría + EPS Sura + Primera vez -> sin disponibilidad
-  if (specialty === "Pediatría" && aseguradora === "EPS Sura" && service === "Primera vez") {
+  // A partir de aquí, validaciones de cobertura.
+  // Excepción: si vino de slot particular o es Particular, se omiten.
+  if (bypassCoverage || isParticular) {
+    return { kind: "ok" };
+  }
+
+  // Documento termina en 22 -> sin cobertura del servicio
+  if (doc.endsWith("22")) {
+    return { kind: "sin_cobertura" };
+  }
+
+  // Documento termina en 33 -> sin disponibilidad con la aseguradora
+  if (doc.endsWith("33")) {
     return { kind: "sin_disponibilidad" };
   }
 
-  // Cardiología + Primera vez con EPS -> servicio no cubierto
+  // Reglas por especialidad (alternativas)
+  if (specialty === "Pediatría" && aseguradora === "EPS Sura" && service === "Primera vez") {
+    return { kind: "sin_disponibilidad" };
+  }
   if (specialty === "Cardiología" && service === "Primera vez") {
     return { kind: "sin_cobertura" };
   }
