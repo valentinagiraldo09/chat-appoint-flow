@@ -97,12 +97,8 @@ function P4() {
       direccion: values.direccion,
     });
 
-    // Excepción: vino de card "Disponibilidad particular" → no se valida cobertura
-    if (payParticularOverride) {
-      navigate({ to: "/pago" });
-      return;
-    }
-
+    // Si vino de card "Disponibilidad particular" → bypass cobertura,
+    // pero AÚN se corren lista negra y límites de paciente.
     setValidating(true);
     setTimeout(() => {
       const result = runValidations({
@@ -111,8 +107,14 @@ function P4() {
         specialty,
         service,
         slot,
+        bypassCoverage: payParticularOverride,
       });
       setValidationResult(result);
+      // Si todo OK y venía de particular, saltamos directo a /pago
+      if (result.kind === "ok" && payParticularOverride) {
+        navigate({ to: "/pago" });
+        return;
+      }
       navigate({ to: "/validacion" });
     }, 1500);
   }
