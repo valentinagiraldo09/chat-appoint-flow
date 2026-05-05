@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { type Slot, formatTime, parseYmd } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
+import { runValidations } from "@/mocks/validations";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
