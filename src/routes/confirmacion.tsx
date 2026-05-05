@@ -1,13 +1,26 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
-import { CheckCircle2, Calendar, Download, Home, Stethoscope, MapPin, Clock, User, ShieldCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  Calendar as CalendarIcon,
+  Download,
+  Printer,
+  Eye,
+  Copy,
+  Check,
+  AlertCircle,
+  User as UserIcon,
+  IdCard,
+} from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { parseYmd, formatTime } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { CocoLogo } from "@/components/CocoLogo";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/confirmacion")({
   head: () => ({ meta: [{ title: "Cita confirmada" }] }),
@@ -25,6 +38,8 @@ function P7() {
   const paymentMethod = useBooking((s) => s.paymentMethod);
   const reset = useBooking((s) => s.reset);
 
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     if (!slot || !patient || !code) navigate({ to: "/" });
   }, [slot, patient, code, navigate]);
@@ -33,6 +48,11 @@ function P7() {
 
   const date = parseYmd(slot.date);
   const dateLabel = format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
+  const sedeAddress = SEDE_ADDRESSES[slot.sede];
+
+  const isPaid = paymentMethod === "online";
+  const isPendingClinic = paymentMethod === "clinic";
+  const isCovered = paymentMethod === "none";
 
   function downloadPDF() {
     const doc = new jsPDF();
@@ -53,11 +73,17 @@ function P7() {
       ["Hora", formatTime(slot!.hour, slot!.minute)],
       ["Profesional", slot!.profesional],
       ["Sede", slot!.sede],
-      ["Dirección", SEDE_ADDRESSES[slot!.sede] ?? "-"],
+      ["Dirección", sedeAddress ?? "-"],
       ["Modalidad", slot!.attention],
       ["Aseguradora", aseguradora ?? "-"],
-      ["Pago", paymentMethod === "online" ? "Pagado en línea" : paymentMethod === "clinic" ? "Pagar en clínica" : "Cubierto por aseguradora"],
-      ["Valor", formatCOP(slot!.price)],
+      [
+        "Pago",
+        isPaid
+          ? `Pagado en línea — ${formatCOP(slot!.price)}`
+          : isPendingClinic
+            ? `Pago pendiente en clínica — ${formatCOP(slot!.price)}`
+            : "Cubierto por aseguradora",
+      ],
     ];
     let y = 46;
     rows.forEach(([k, v]) => {
@@ -79,15 +105,15 @@ function P7() {
     const ics = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Lovable Salud//ES",
+      "PRODID:-//Coco Salud//ES",
       "BEGIN:VEVENT",
-      `UID:${code}@lovable-salud`,
+      `UID:${code}@coco-salud`,
       `DTSTAMP:${fmt(new Date())}`,
       `DTSTART:${fmt(dt)}`,
       `DTEND:${fmt(end)}`,
       `SUMMARY:Cita ${specialty} - ${service}`,
       `DESCRIPTION:Profesional ${slot!.profesional} - ${slot!.attention}`,
-      `LOCATION:${slot!.sede} - ${SEDE_ADDRESSES[slot!.sede] ?? ""}`,
+      `LOCATION:${slot!.sede} - ${sedeAddress ?? ""}`,
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n");
@@ -100,100 +126,197 @@ function P7() {
     URL.revokeObjectURL(url);
   }
 
+  function copyAddress() {
+    if (!sedeAddress) return;
+    navigator.clipboard.writeText(sedeAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   function nuevaCita() {
     reset();
     navigate({ to: "/" });
   }
 
+  const dayLabel = format(date, "EEEE dd", { locale: es });
+  const monthLabel = format(date, "MMMM", { locale: es });
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-2xl px-4 py-12">
-        <div className="flex flex-col items-center text-center">
-          <div className="rounded-full bg-emerald-100 p-4">
-            <CheckCircle2 className="h-12 w-12 text-emerald-600" />
-          </div>
-          <h1 className="mt-4 text-3xl font-bold">¡Tu cita está confirmada!</h1>
-          <p className="mt-2 text-muted-foreground">
-            Te enviamos los detalles a {patient.email}
-          </p>
-          <div className="mt-3 rounded-full bg-muted px-4 py-1 text-sm font-medium">
-            Código: {code}
+      <div className="mx-auto max-w-xl px-4 py-10">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <CocoLogo className="h-14 w-auto" />
+        </div>
+
+        {/* Heading */}
+        <div className="mt-6 flex items-start justify-center gap-3">
+          <CheckCircle2 className="mt-1 h-9 w-9 shrink-0 text-emerald-600" strokeWidth={2.5} />
+          <div>
+            <div className="text-xl font-bold text-foreground">Confirmación</div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              ¡Cita agendada con éxito!
+            </h1>
           </div>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Detalles de la cita</h2>
-            {paymentMethod === "none" ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                Cubierta por tu aseguradora
-              </span>
-            ) : paymentMethod === "online" ? (
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-                Pago particular en línea
-              </span>
-            ) : (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                Pago particular en clínica
-              </span>
-            )}
-          </div>
-          <div className="mt-4 grid gap-3 text-sm">
-            <Row icon={<User className="h-4 w-4" />} label="Paciente" value={patient.nombre} />
-            <Row icon={<Stethoscope className="h-4 w-4" />} label="Especialidad" value={`${specialty} — ${service}`} />
-            <Row icon={<Calendar className="h-4 w-4" />} label="Fecha" value={dateLabel} className="capitalize" />
-            <Row icon={<Clock className="h-4 w-4" />} label="Hora" value={`${formatTime(slot.hour, slot.minute)}`} />
-            <Row icon={<Stethoscope className="h-4 w-4" />} label="Tipo de atención" value={slot.attention} />
-            <Row icon={<User className="h-4 w-4" />} label="Profesional" value={slot.profesional} />
-            <Row icon={<MapPin className="h-4 w-4" />} label="Sede" value={`${slot.sede} — ${SEDE_ADDRESSES[slot.sede] ?? ""}`} />
-            <Row icon={<ShieldCheck className="h-4 w-4" />} label="Aseguradora" value={aseguradora ?? "Particular"} />
-          </div>
-          <div className="mt-4 border-t border-border pt-4 flex justify-between">
-            <span className="text-sm text-muted-foreground">
-              {paymentMethod === "none" ? "Cobertura aseguradora" : paymentMethod === "online" ? "Pagado en línea" : "Pago pendiente en clínica"}
+        {/* Datos del paciente */}
+        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+          <div className="text-center text-base font-bold">Datos del paciente</div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+            <span className="inline-flex items-center gap-2 font-medium">
+              <UserIcon className="h-4 w-4" /> {patient.nombre}
             </span>
-            <span className="font-semibold">{paymentMethod === "none" ? "Cubierto" : formatCOP(slot.price)}</span>
+            <span className="inline-flex items-center gap-2 font-medium">
+              <IdCard className="h-4 w-4" /> C.C {patient.numeroDocumento}
+            </span>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <Button onClick={downloadPDF} variant="outline" className="rounded-full">
-            <Download className="mr-2 h-4 w-4" /> Descargar PDF
-          </Button>
-          <Button onClick={downloadICS} variant="outline" className="rounded-full">
-            <Calendar className="mr-2 h-4 w-4" /> Agregar al calendario
+        {/* Card de la cita */}
+        <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+          {/* Header oscuro */}
+          <div className="flex items-start justify-between gap-3 bg-foreground px-5 py-4 text-background">
+            <div className="flex items-start gap-3">
+              <CalendarIcon className="mt-1 h-5 w-5" />
+              <div>
+                <div className="text-base font-bold capitalize">{dayLabel}</div>
+                <div className="text-base font-bold capitalize">{monthLabel}</div>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <span className="rounded-md border border-emerald-400 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                {slot.attention}
+              </span>
+              <span className="text-base font-bold lowercase">
+                {formatTime(slot.hour, slot.minute)}
+              </span>
+            </div>
+          </div>
+
+          {/* Cuerpo */}
+          <div className="space-y-4 px-5 py-5">
+            <div className="text-base font-bold text-emerald-600">
+              {specialty}
+              {service ? ` · ${service}` : ""}
+            </div>
+
+            {slot.attention === "Presencial" && sedeAddress && (
+              <div>
+                <div className="text-sm font-bold">Sede:</div>
+                <button
+                  type="button"
+                  onClick={copyAddress}
+                  className="mt-0.5 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:underline"
+                >
+                  {sedeAddress}
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 opacity-70" />
+                  )}
+                </button>
+              </div>
+            )}
+
+            <div>
+              <div className="text-sm font-bold">Profesional:</div>
+              <div className="text-sm">{slot.profesional}</div>
+            </div>
+
+            {/* Estado de pago */}
+            {isPaid && (
+              <div className="inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-800">
+                <CheckCircle2 className="h-4 w-4" />
+                Cita pagada: {formatCOP(slot.price)}
+              </div>
+            )}
+
+            {isPendingClinic && (
+              <>
+                <div className="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-700">
+                  <AlertCircle className="h-4 w-4" />
+                  Pago pendiente: {formatCOP(slot.price)}
+                </div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  Tu cita quedará confirmada únicamente cuando realices el pago
+                  en el centro médico el día de la atención.
+                </div>
+              </>
+            )}
+
+            {isCovered && (
+              <>
+                <div className="inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-800">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Cubierta por {aseguradora ?? "tu aseguradora"}
+                </div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  Si tu aseguradora requiere algún copago, este deberá pagarse
+                  en el centro médico el día de la cita para que sea válida.
+                </div>
+              </>
+            )}
+
+            {/* Acciones */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <ActionPill icon={<Download className="h-4 w-4" />} label="Descargar" onClick={downloadPDF} />
+              <ActionPill icon={<Printer className="h-4 w-4" />} label="Imprimir" onClick={() => window.print()} />
+              <ActionPill icon={<CalendarIcon className="h-4 w-4" />} label="Guardar en el calendario" onClick={downloadICS} />
+            </div>
+
+            {/* Recomendaciones */}
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-3 text-sm font-bold text-foreground"
+            >
+              <span>Recomendaciones</span>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
+                Ver <Eye className="h-4 w-4" />
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-8 flex justify-center">
+          <Button
+            onClick={nuevaCita}
+            size="lg"
+            className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+          >
+            Pedir nueva cita
           </Button>
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <Button onClick={nuevaCita} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
-            <Home className="mr-2 h-4 w-4" /> Agendar otra cita
-          </Button>
-          <Link to="/" className="text-sm text-muted-foreground hover:underline">Volver al inicio</Link>
+        <div className="mt-3 text-center text-xs text-muted-foreground">
+          Código: <span className="font-mono">{code}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function Row({
+function ActionPill({
   icon,
   label,
-  value,
-  className,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
-  className?: string;
+  onClick: () => void;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 text-muted-foreground">{icon}</div>
-      <div className="flex-1">
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className={"font-medium " + (className ?? "")}>{value}</div>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium",
+        "hover:border-foreground/40 hover:bg-muted/40",
+      )}
+    >
+      <span>{label}</span>
+      {icon}
+    </button>
   );
 }
