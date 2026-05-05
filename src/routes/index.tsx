@@ -309,7 +309,14 @@ function P0() {
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
       const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
-      if (d.dateKey) setPreferredDate(d.requestedDateISO ?? resolvedISO);
+      let preferred: string | undefined = d.requestedDateISO ?? d.dateISO;
+      if (!preferred && d.specialty && d.service) {
+        const start = resolvedISO ? parseYmd(resolvedISO) : new Date();
+        start.setHours(0, 0, 0, 0);
+        const firstAvail = findNextAvailableDate(start, d.specialty, d.service);
+        if (firstAvail) preferred = ymd(firstAvail);
+      }
+      if (preferred) setPreferredDate(preferred);
       useBooking.getState().setDate(resolvedISO);
       // Transferir chat lateral
       clearChat();

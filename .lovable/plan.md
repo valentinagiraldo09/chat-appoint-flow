@@ -1,29 +1,35 @@
 ## Objetivo
 
-Garantizar que cuando la cita se toma como **particular** nunca se navegue a `/validacion`.
-
-Hoy en `src/routes/checkout.tsx` solo se considera "particular" cuando `aseguradora === "Particular"`. Pero si el usuario eligió una aseguradora normal y luego, desde `/validacion`, optó por **"Tomar esta cita como particular"** (lo que activa `payParticularOverride = true`), al volver a pasar por `/checkout` se vuelven a correr `runValidations` y puede caer otra vez en `/validacion`.
+`preferredDate` debe ser la fecha que efectivamente se muestra como primera disponibilidad en P1 (`/disponibilidad`). Cuando el usuario eligió un chip o una sugerencia (sin fecha exacta), esa fecha es la primera fecha con disponibilidad a partir del inicio del rango del chip — no la fecha base del chip por sí sola, ya que esta puede no tener cupo.
 
 ## Cambio
 
-En `src/routes/checkout.tsx` (función `onSubmit`):
-
-- Tratar como particular si `aseguradora === "Particular"` **o** `payParticularOverride === true`.
-- En ese caso: limpiar `validationResult` y navegar directamente a `/pago`, sin llamar `runValidations`.
+En `src/routes/index.tsx`, función `finishAgendar`, reemplazar:
 
 ```ts
-const isParticular = aseguradora === "Particular" || payParticularOverride === true;
-if (isParticular) {
-  setValidationResult(undefined);
-  navigate({ to: "/pago" });
-  return;
-}
+const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
+if (d.dateKey) setPreferredDate(d.requestedDateISO ?? resolvedISO);
+useBooking.getState().setDate(resolvedISO);
 ```
 
-(`payParticularOverride` ya está siendo leído del store en el componente, no requiere imports nuevos.)
+por:
 
-## Verificación
+```ts
+const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
+let preferred: string | undefined = d.requestedDateISO ?? d.dateISO;
+if (!preferred && d.specialty && d.service) {
+  const start = resolvedISO ? parseYmd(resolvedISO) : new Date();
+  start.setHours(0, 0, 0, 0);
+  const firstAvail = findNextAvailableDate(start, d.specialty, d.service);
+  if (firstAvail) preferred = ymd(firstAvail);
+}
+if (preferred) setPreferredDate(preferred);
+useBooking.getState().setDate(resolvedISO);
+```
 
-- Aseguradora "Particular" → continuar en `/checkout` → va a `/pago` (sin validar).
-- Aseguradora EPS + en `/validacion` se elige "Tomar como particular" → si vuelve a pasar por `/checkout`, ya no se navega a `/validacion`, va directo a `/pago`.
-- Aseguradora EPS sin override → comportamiento actual (corre validaciones).
+`findNextAvailableDate`, `parseYmd` y `ymd` ya están importados desde `@/mocks/availability` (línea 14).
+
+## Resultado
+
+- "Elegir fecha" + fecha exacta → `preferredDate` = esa fecha.
+- Cualquier chip o sugerencia ("Lo más pronto", "Esta semana", etc.) → `preferredDate` = primera fecha con cupo desde el inicio del rango = la que P1 muestra como primera disponibilidad. Esto se propaga al CTA "Ver más disponibilidad" en `/validacion` y al P1 particular.
