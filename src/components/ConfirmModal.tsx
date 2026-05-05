@@ -14,10 +14,12 @@ export function ConfirmModal({
   slot,
   open,
   onOpenChange,
+  hidePrice,
 }: {
   slot: Slot | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  hidePrice?: boolean;
 }) {
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
@@ -55,14 +57,7 @@ export function ConfirmModal({
                   {format(date, "EEEE d 'de' MMMM", { locale: es })}
                 </div>
               </div>
-              <span
-                className={cn(
-                  "rounded-md border px-2.5 py-1 text-xs font-medium",
-                  slot.attention === "Telemedicina" && "border-amber-400 text-amber-700 bg-amber-50",
-                  slot.attention === "Presencial" && "border-amber-400 text-amber-700 bg-amber-50",
-                  slot.attention === "Telefónica" && "border-sky-400 text-sky-700 bg-sky-50",
-                )}
-              >
+              <span className="rounded-md border border-amber-400 bg-amber-100 px-2.5 py-1 text-xs font-medium text-foreground">
                 {slot.attention}
               </span>
             </div>
@@ -86,11 +81,13 @@ export function ConfirmModal({
               )}
             </div>
 
-            <div className="mt-5 flex justify-end">
-              <span className="rounded-full bg-background px-3 py-1 text-xs text-muted-foreground">
-                {formatCOP(slot.price)}
-              </span>
-            </div>
+            {!hidePrice && slot.price ? (
+              <div className="mt-5 flex justify-end">
+                <span className="rounded-full bg-background px-3 py-1 text-xs text-muted-foreground">
+                  {formatCOP(slot.price)}
+                </span>
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-8 flex justify-center">
