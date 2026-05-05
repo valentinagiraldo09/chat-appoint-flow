@@ -137,8 +137,7 @@ function DatePickerField() {
   const service = useBooking((s) => s.service) ?? "";
   const [open, setOpen] = useState(false);
   const label = date
-    ? format(parseYmd(date), "EEEE d 'de' MMMM", { locale: es })
-    : "Lo más pronto";
+  const label = date ? formatLongDate(parseYmd(date)) : "Lo más pronto";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
