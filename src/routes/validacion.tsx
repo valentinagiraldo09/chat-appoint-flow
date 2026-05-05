@@ -17,7 +17,6 @@ import { es } from "date-fns/locale";
 import { useBooking } from "@/store/booking";
 import {
   parseYmd,
-  ymd,
   formatTime,
   generateSlots,
   findNextAvailableDate,
@@ -480,5 +479,3 @@ function SlotMeta({ slot, hideDate }: { slot: Slot; hideDate?: boolean }) {
   );
 }
 
-// Silencio uso de ymd para evitar warning si más adelante se usa
-void ymd;
