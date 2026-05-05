@@ -103,7 +103,7 @@ export function ConfirmModal({
                 setSelectedSlot(slot);
                 onOpenChange(false);
                 // Si ya tenemos los datos del paciente, saltamos /checkout
-                if (patient) {
+                if (patient && coverageMinDate) {
                   const isParticular = aseguradora === "Particular";
                   if (isParticular) {
                     setValidationResult(undefined);
