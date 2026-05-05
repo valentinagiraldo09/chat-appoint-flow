@@ -295,3 +295,90 @@ function P4() {
     </div>
   );
 }
+
+function ValidatingPatientData() {
+  const steps = [
+    { icon: IdCard, label: "Verificando documento del paciente" },
+    { icon: UserCheck, label: "Confirmando datos personales" },
+    { icon: FileCheck2, label: "Validando cobertura con tu aseguradora" },
+  ];
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setActiveIdx(1), 500);
+    const t2 = setTimeout(() => setActiveIdx(2), 1000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md">
+        <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+          <div className="flex flex-col items-center text-center">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-emerald-400/30" />
+              <div className="relative rounded-full bg-emerald-100 p-4">
+                <UserCheck className="h-8 w-8 text-emerald-700" />
+              </div>
+            </div>
+            <h2 className="mt-5 text-xl font-bold tracking-tight">
+              Validando datos del paciente
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Esto solo toma un momento. No cierres esta ventana.
+            </p>
+          </div>
+
+          <ul className="mt-8 space-y-3">
+            {steps.map((s, i) => {
+              const done = i < activeIdx;
+              const active = i === activeIdx;
+              const Icon = s.icon;
+              return (
+                <li
+                  key={s.label}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border px-4 py-3 transition-all",
+                    done && "border-emerald-200 bg-emerald-50/60",
+                    active && "border-foreground/40 bg-muted/40",
+                    !done && !active && "border-border bg-background opacity-60",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                      done && "bg-emerald-600 text-white",
+                      active && "bg-foreground text-background",
+                      !done && !active && "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {done ? (
+                      <CheckCircle2 className="h-5 w-5" />
+                    ) : active ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Icon className="h-4 w-4" />
+                    )}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      done && "text-emerald-900",
+                      active && "text-foreground",
+                      !done && !active && "text-muted-foreground",
+                    )}
+                  >
+                    {s.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
