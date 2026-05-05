@@ -216,9 +216,15 @@ function P1() {
     return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, date, filters, estado]);
 
-  // Following day section (for estado-1 and estado-3): next available date after epsSection
+  // Following day section: next available date after epsSection
   const nextSection = useMemo(() => {
-    if ((estado !== "estado-1" && estado !== "estado-3") || !epsSection || !specialty || !service) return null;
+    if (
+      (estado !== "estado-1" && estado !== "estado-2" && estado !== "estado-3") ||
+      !epsSection ||
+      !specialty ||
+      !service
+    )
+      return null;
     const after = new Date(epsSection.date);
     after.setDate(after.getDate() + 1);
     const next = findNextAvailableDate(after, specialty, service);
@@ -228,15 +234,16 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters]);
 
-  // Particular nearer slot for estado-2
+  // Particular nearer slot for estado-2 — start from preferredDate (the date the patient originally asked for)
   const particularSection = useMemo(() => {
     if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const first = findNextAvailableDate(today, specialty, service) ?? today;
+    const startFrom = preferredDate ? parseYmd(preferredDate) : today;
+    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service), filters);
     return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, filters]);
+  }, [specialty, service, filters, preferredDate]);
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
   // can cross-restrict (sede ↔ profesional ↔ atención ↔ franja) consistently.
