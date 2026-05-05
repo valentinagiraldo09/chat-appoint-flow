@@ -162,7 +162,14 @@ function P4() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <BackButton />
+        <button
+          type="button"
+          onClick={() => setShowLeaveModal(true)}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Atrás
+        </button>
       </div>
       <div className="mx-auto max-w-3xl px-4 pb-16">
         <h1 className="text-3xl font-bold">¿Para quién es esta cita?</h1>
