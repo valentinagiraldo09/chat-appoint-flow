@@ -30,6 +30,7 @@ export function ConfirmModal({
   const patient = useBooking((s) => s.patient);
   const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setValidationResult = useBooking((s) => s.setValidationResult);
+  const coverageMinDate = useBooking((s) => s.coverageMinDate);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
@@ -102,7 +103,7 @@ export function ConfirmModal({
                 setSelectedSlot(slot);
                 onOpenChange(false);
                 // Si ya tenemos los datos del paciente, saltamos /checkout
-                if (patient) {
+                if (patient && coverageMinDate) {
                   const isParticular = aseguradora === "Particular";
                   if (isParticular) {
                     setValidationResult(undefined);
