@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, ShieldCheck, ChevronLeft } from "lucide-react";
+import { Loader2, Upload, ChevronLeft, UserCheck, FileCheck2, IdCard, CheckCircle2 } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { TIPOS_DOCUMENTO } from "@/mocks/catalog";
 import { runValidations } from "@/mocks/validations";
