@@ -293,31 +293,38 @@ function P1() {
 
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
-        {!loading && estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
-          <button
-            onClick={() =>
-              navigate({
-                to: "/disponibilidad",
-                search: { specialty, service, aseguradora: "Particular" },
-              })
-            }
-            className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
-          >
-            <div className="flex items-center gap-3">
-              <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
-              <div>
-                <div className="text-base font-bold">¿Quieres una cita antes?</div>
-                <div className="text-sm text-foreground/80">
-                  Disponibilidad particular desde el{" "}
-                  {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+        {!loading &&
+          estado === "estado-2" &&
+          preferredDate &&
+          particularSection &&
+          particularSection.slots.length > 0 &&
+          epsSection &&
+          particularSection.date <= parseYmd(preferredDate) &&
+          particularSection.date < epsSection.date && (
+            <button
+              onClick={() =>
+                navigate({
+                  to: "/disponibilidad",
+                  search: { specialty, service, aseguradora: "Particular" },
+                })
+              }
+              className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
+            >
+              <div className="flex items-center gap-3">
+                <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
+                <div>
+                  <div className="text-base font-bold">¿Quieres una cita antes?</div>
+                  <div className="text-sm text-foreground/80">
+                    Hay disponibilidad particular para el{" "}
+                    {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+                  </div>
                 </div>
               </div>
-            </div>
-            <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
-              Ver citas particulares →
-            </span>
-          </button>
-        )}
+              <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
+                Ver citas particulares →
+              </span>
+            </button>
+          )}
 
         <div className="mt-6 space-y-6">
           {loading ? (
