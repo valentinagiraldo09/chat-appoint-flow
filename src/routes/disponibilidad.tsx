@@ -319,6 +319,7 @@ function P1() {
                   slots={epsSection.slots}
                   full={epsSection.full}
                   hidePrice={estado === "estado-1" || estado === "estado-2"}
+                  showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
               )}
