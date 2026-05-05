@@ -372,6 +372,8 @@ function SectionCard({
   hidePrice,
   showPriceInLink,
   onSelect,
+  tone = "emerald",
+  icon,
 }: {
   label?: string;
   date: Date;
@@ -380,16 +382,21 @@ function SectionCard({
   hidePrice?: boolean;
   showPriceInLink?: boolean;
   onSelect: (s: Slot) => void;
+  tone?: "emerald" | "amber";
+  icon?: React.ReactNode;
 }) {
+  const headerBg = tone === "amber" ? "bg-[#FFF6E5]" : "bg-emerald-100/70";
+  const bodyBorder = tone === "amber" ? "border-[#FFA800]" : "border-border";
   return (
     <section>
-      <div className="rounded-t-xl bg-emerald-100/70 px-5 py-3">
-        <div className="flex items-center gap-2 text-base font-semibold capitalize">
-          {label && <span className="capitalize-none">{label} · </span>}
-          <span>{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
+      <div className={cn("rounded-t-xl px-5 py-4", headerBg)}>
+        <div className="flex items-center gap-2 text-base capitalize">
+          {icon}
+          {label && <span className="font-bold capitalize-none">{label}</span>}
+          <span className="font-semibold">{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
         </div>
       </div>
-      <div className="rounded-b-xl border border-t-0 border-border bg-background p-4">
+      <div className={cn("rounded-b-xl border border-t-0 bg-background p-4", bodyBorder)}>
         {slots.length === 0 ? (
           <div className="px-2 py-6 text-center text-sm text-muted-foreground">
             No hay horarios con esos filtros para este día.
