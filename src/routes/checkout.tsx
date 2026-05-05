@@ -67,6 +67,7 @@ function P4() {
   const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setPatient = useBooking((s) => s.setPatient);
   const setValidationResult = useBooking((s) => s.setValidationResult);
+  const patient = useBooking((s) => s.patient);
 
   const router = useRouter();
   const [validating, setValidating] = useState(false);
@@ -81,15 +82,30 @@ function P4() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema as any) as any,
     defaultValues: {
-      tipoDocumento: "",
-      numeroDocumento: "",
-      nombre: "",
-      email: "",
-      telefono: "",
-      direccion: "",
-      acceptTerms: false as unknown as true,
+      tipoDocumento: patient?.tipoDocumento ?? "",
+      numeroDocumento: patient?.numeroDocumento ?? "",
+      nombre: patient?.nombre ?? "",
+      email: patient?.email ?? "",
+      telefono: patient?.telefono ?? "",
+      direccion: patient?.direccion ?? "",
+      acceptTerms: (patient ? true : false) as unknown as true,
     },
   });
+
+  useEffect(() => {
+    if (patient) {
+      form.reset({
+        tipoDocumento: patient.tipoDocumento,
+        numeroDocumento: patient.numeroDocumento,
+        nombre: patient.nombre,
+        email: patient.email,
+        telefono: patient.telefono,
+        direccion: patient.direccion,
+        acceptTerms: true as unknown as true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patient]);
 
   function onSubmit(values: FormValues) {
     if (!slot) return;
