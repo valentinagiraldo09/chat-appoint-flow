@@ -231,7 +231,7 @@ function P5() {
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
             <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
-              Tenemos estas opciones para ti
+              Puedes tomar esta cita
             </div>
 
             {particularSlot ? (
@@ -247,19 +247,13 @@ function P5() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <ListChecks className="h-4 w-4 text-muted-foreground" />
-                Lista de espera
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Te avisamos apenas se libere un cupo cubierto por tu aseguradora.
-              </p>
-              <PrimaryAction
-                label="Inscribirme"
+            <SecondaryActions title="Otras opciones">
+              <SecondaryActionRow
+                icon={ListChecks}
+                label="Inscribirme en lista de espera"
                 onClick={() => setWaitlistOpen(true)}
               />
-            </div>
+            </SecondaryActions>
           </>
         )}
 
