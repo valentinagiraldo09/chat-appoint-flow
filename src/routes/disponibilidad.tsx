@@ -233,7 +233,7 @@ function P1() {
     today.setHours(0, 0, 0, 0);
     const first = findNextAvailableDate(today, specialty, service) ?? today;
     const all = filterSlots(generateSlots(first, specialty, service), filters);
-    return { date: first, slots: all.slice(0, 1), full: all };
+    return { date: first, slots: spreadSlots(all), full: all };
   }, [specialty, service, filters]);
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
