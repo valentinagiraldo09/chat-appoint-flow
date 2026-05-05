@@ -328,25 +328,37 @@ function P1() {
             />
           ) : (
             <>
-              {epsSection && (
+              {epsSection && estado === "estado-2" ? (
+                <div>
+                  {epsSection.full.length === 0 ? (
+                    <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                      No hay horarios con esos filtros para este día.
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {epsSection.full.map((slot) => (
+                        <SlotCard key={slot.id} slot={slot} hidePrice onClick={() => setModalSlot(slot)} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : epsSection ? (
                 <SectionCard
                   label={
-                    estado === "estado-2"
-                      ? "Disponibilidad con tu aseguradora"
-                      : estado === "estado-3"
-                        ? "Disponibilidad particular"
-                        : !date
-                          ? "Lo más pronto disponible"
-                          : undefined
+                    estado === "estado-3"
+                      ? "Disponibilidad particular"
+                      : !date
+                        ? "Lo más pronto disponible"
+                        : undefined
                   }
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={estado === "estado-1" || estado === "estado-2"}
+                  hidePrice={estado === "estado-1"}
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
-              )}
+              ) : null}
 
               {(estado === "estado-1" || estado === "estado-3") && nextSection && (
                 <SectionCard
@@ -357,32 +369,6 @@ function P1() {
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
-              )}
-
-              {estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
-                <button
-                  onClick={() =>
-                    navigate({
-                      to: "/disponibilidad",
-                      search: { specialty, service, aseguradora: "Particular" },
-                    })
-                  }
-                  className="flex w-full items-center justify-between gap-4 rounded-xl border border-[#FFA800] bg-[#FFF6E5] px-5 py-4 text-left transition hover:bg-[#FFEFCC]"
-                >
-                  <div className="flex items-center gap-3">
-                    <Zap className="h-5 w-5 shrink-0 text-[#B36B00]" />
-                    <div>
-                      <div className="text-base font-bold">¿Quieres una cita antes?</div>
-                      <div className="text-sm text-foreground/80">
-                        Disponibilidad particular desde el{" "}
-                        {format(particularSection.date, "d 'de' MMMM", { locale: es })}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="whitespace-nowrap text-sm font-medium text-[#B36B00]">
-                    Ver citas particulares →
-                  </span>
-                </button>
               )}
             </>
           )}
