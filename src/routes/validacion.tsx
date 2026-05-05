@@ -235,25 +235,43 @@ function P5() {
             </div>
 
             {particularSlot ? (
-              <SuggestedSlotCard
-                slot={particularSlot}
-                eyebrow="Cita particular sugerida"
-                ctaLabel="Agendar esta cita"
-                onSelect={() => tomarSugeridoParticular(particularSlot)}
-              />
+              <div>
+                <SuggestedSlotCard
+                  slot={particularSlot}
+                  eyebrow="Cita particular sugerida"
+                  ctaLabel="Agendar esta cita"
+                  onSelect={() => tomarSugeridoParticular(particularSlot)}
+                />
+                <button
+                  type="button"
+                  onClick={verMasParticulares}
+                  className="mt-2 px-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Ver más disponibilidad
+                </button>
+              </div>
             ) : (
               <div className="rounded-2xl border border-border bg-muted/20 p-5 text-sm text-muted-foreground">
                 No encontramos un horario particular cercano.
               </div>
             )}
 
-            <SecondaryActions title="Otras opciones">
-              <SecondaryActionRow
-                icon={ListChecks}
-                label="Inscribirme en lista de espera"
-                onClick={() => setWaitlistOpen(true)}
-              />
-            </SecondaryActions>
+            <div>
+              <SecondaryActions title="Otras opciones">
+                <SecondaryActionRow
+                  icon={ListChecks}
+                  label="Inscribirme en lista de espera"
+                  onClick={() => setWaitlistOpen(true)}
+                />
+              </SecondaryActions>
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/" })}
+                className="mt-2 px-1 text-sm font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                Buscar nueva cita
+              </button>
+            </div>
           </>
         )}
 
