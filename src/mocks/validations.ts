@@ -23,7 +23,7 @@ export type ValidationInput = {
  * Documento es la palanca principal — permite probar cada caso desde el formulario.
  */
 export function runValidations(input: ValidationInput): ValidationResult {
-  const { documento, aseguradora, specialty, service, bypassCoverage } = input;
+  const { documento, aseguradora, specialty, service, slot, bypassCoverage } = input;
   const doc = documento.trim();
   const isParticular = aseguradora === "Particular" || !aseguradora;
 
@@ -39,7 +39,9 @@ export function runValidations(input: ValidationInput): ValidationResult {
       specialty && service
         ? findNextAvailableDate(base, specialty, service) ?? base
         : base;
-    return { kind: "limite_paciente", fechaPermitida: ymd(next) };
+    const fechaPermitida = ymd(next);
+    if (slot?.date && slot.date >= fechaPermitida) return { kind: "ok" };
+    return { kind: "limite_paciente", fechaPermitida };
   }
 
   // Documento termina en 22 o 00 -> sin cobertura del servicio (forzado para QA)
