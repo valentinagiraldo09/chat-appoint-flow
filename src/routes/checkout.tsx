@@ -118,9 +118,8 @@ function P4() {
       direccion: values.direccion,
     });
 
-    // Se omiten las validaciones cuando la cita se toma como particular
-    // (aseguradora "Particular" o el usuario eligió pagar como particular).
-    const isParticular = aseguradora === "Particular" || payParticularOverride === true;
+    // Solo se omiten las validaciones si la aseguradora es "Particular".
+    const isParticular = aseguradora === "Particular";
     if (isParticular) {
       setValidationResult(undefined);
       navigate({ to: "/pago" });
