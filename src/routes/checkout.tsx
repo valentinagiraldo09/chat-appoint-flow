@@ -1,14 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, ShieldCheck } from "lucide-react";
+import { Loader2, Upload, ShieldCheck, ChevronLeft } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { TIPOS_DOCUMENTO } from "@/mocks/catalog";
 import { runValidations } from "@/mocks/validations";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/BackButton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { formatTime, parseYmd } from "@/mocks/availability";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -65,8 +68,10 @@ function P4() {
   const setPatient = useBooking((s) => s.setPatient);
   const setValidationResult = useBooking((s) => s.setValidationResult);
 
+  const router = useRouter();
   const [validating, setValidating] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   useEffect(() => {
     if (!slot) navigate({ to: "/" });
@@ -157,7 +162,14 @@ function P4() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <BackButton />
+        <button
+          type="button"
+          onClick={() => setShowLeaveModal(true)}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Atrás
+        </button>
       </div>
       <div className="mx-auto max-w-3xl px-4 pb-16">
         <h1 className="text-3xl font-bold">¿Para quién es esta cita?</h1>
@@ -242,6 +254,41 @@ function P4() {
           </div>
         </form>
       </div>
+
+      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <DialogContent className="max-w-md rounded-2xl p-8 text-center [&>button]:hidden">
+          <h2 className="text-xl font-bold tracking-tight">
+            Tu horario seleccionado se liberará
+          </h2>
+          {slot && (
+            <p className="mt-3 font-semibold text-emerald-600 capitalize">
+              {format(parseYmd(slot.date), "EEEE d 'de' MMMM", { locale: es })} a las {formatTime(slot.hour, slot.minute)} con {slot.profesional}
+            </p>
+          )}
+          <p className="mt-3 text-sm text-muted-foreground">
+            Ese horario podría quedar disponible para otro paciente.
+          </p>
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <Button
+              size="lg"
+              className="w-full rounded-full bg-foreground px-8 py-6 text-background hover:bg-foreground/90"
+              onClick={() => setShowLeaveModal(false)}
+            >
+              Quedarse aquí
+            </Button>
+            <button
+              type="button"
+              className="text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setShowLeaveModal(false);
+                router.history.back();
+              }}
+            >
+              Sí, ir atrás
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
