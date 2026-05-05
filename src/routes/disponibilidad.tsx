@@ -180,6 +180,8 @@ function P1() {
   const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const preferredDate = useBooking((s) => s.preferredDate);
+  const coverageMinDate = useBooking((s) => s.coverageMinDate);
+  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
 
   // Default service if none picked
   useEffect(() => {
