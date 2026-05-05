@@ -6,6 +6,7 @@ export type ValidationResult =
   | { kind: "limite_paciente"; fechaPermitida: string }
   | { kind: "lista_negra"; telefonoEPS: string }
   | { kind: "sin_cobertura" }
+  | { kind: "sin_alternativa" }
   | { kind: "sin_disponibilidad" };
 
 export type ValidationInput = {
@@ -46,9 +47,9 @@ export function runValidations(input: ValidationInput): ValidationResult {
     return { kind: "sin_cobertura" };
   }
 
-  // Documento termina en 33 -> sin disponibilidad con la aseguradora (forzado para QA)
+  // Documento termina en 33 -> validación fallida sin alternativa particular (forzado para QA)
   if (doc.endsWith("33")) {
-    return { kind: "sin_disponibilidad" };
+    return { kind: "sin_alternativa" };
   }
 
   // A partir de aquí, validaciones de cobertura por reglas de catálogo.

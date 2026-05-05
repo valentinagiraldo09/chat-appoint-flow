@@ -301,6 +301,37 @@ function P5() {
           </>
         )}
 
+        {result.kind === "sin_alternativa" && (
+          <>
+            <ResultHeader
+              icon={Info}
+              tone="info"
+              title="Tu aseguradora no cubre esta cita"
+              subtitle="No encontramos una cita particular alternativa para ofrecerte en este momento."
+            />
+            <IntentSummary specialty={specialty} service={service} slot={slot} compact />
+
+            <div>
+              <SecondaryActions title="Otras opciones">
+                <SecondaryActionRow
+                  icon={ListChecks}
+                  label="Inscribirme en lista de espera"
+                  onClick={() => setWaitlistOpen(true)}
+                />
+              </SecondaryActions>
+              <div className="mt-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={buscarNuevaCita}
+                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Buscar nueva cita
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {result.kind === "sin_disponibilidad" && (
           <>
             <ResultHeader
