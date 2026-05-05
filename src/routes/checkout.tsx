@@ -1,14 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Upload, ShieldCheck } from "lucide-react";
+import { Loader2, Upload, ShieldCheck, ChevronLeft } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { TIPOS_DOCUMENTO } from "@/mocks/catalog";
 import { runValidations } from "@/mocks/validations";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/BackButton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { formatTime, parseYmd } from "@/mocks/availability";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
