@@ -251,6 +251,15 @@ function P0() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [bubbles, typing]);
 
+  // Auto-arrancar flujo agendar pidiendo especialidad cuando viene ?ask=service
+  useEffect(() => {
+    if (ask === "service" && mounted && bubbles.length === 0) {
+      reset();
+      startFlow("agendar", { skipUserBubble: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask, mounted]);
+
   const inChat = bubbles.length > 0;
 
   function addBubble(b: Omit<Bubble, "id"> | Record<string, unknown>) {
