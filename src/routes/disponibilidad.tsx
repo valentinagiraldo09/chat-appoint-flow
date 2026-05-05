@@ -136,7 +136,6 @@ function DatePickerField() {
   const specialty = useBooking((s) => s.specialty) ?? "";
   const service = useBooking((s) => s.service) ?? "";
   const [open, setOpen] = useState(false);
-  const label = date
   const label = date ? formatLongDate(parseYmd(date)) : "Lo más pronto";
 
   return (
