@@ -16,6 +16,7 @@ import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (s: Record<string, unknown>) => ({ ask: s.ask === "service" ? "service" : undefined }),
   head: () => ({
     meta: [
       { title: "Asistente Coco — Gestiona tu cita fácil y rápido" },
