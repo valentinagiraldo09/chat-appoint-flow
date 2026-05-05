@@ -227,6 +227,7 @@ function nextAgendarStep(d: Draft): AgendarStep {
 
 function P0() {
   const navigate = useNavigate();
+  const { ask } = Route.useSearch();
   const setSpecialty = useBooking((s) => s.setSpecialty);
   const setService = useBooking((s) => s.setService);
   const setAseguradora = useBooking((s) => s.setAseguradora);
