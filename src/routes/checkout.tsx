@@ -159,20 +159,7 @@ function P4() {
   if (!slot) return null;
 
   if (validating) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex max-w-sm flex-col items-center gap-4 px-6 text-center">
-          <div className="rounded-full bg-emerald-100 p-4">
-            <ShieldCheck className="h-8 w-8 text-emerald-700" />
-          </div>
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Validando cobertura con tu aseguradora…</h2>
-          <p className="text-sm text-muted-foreground">
-            Esto solo toma un momento. Estamos verificando si tu cita queda cubierta.
-          </p>
-        </div>
-      </div>
-    );
+    return <ValidatingPatientData />;
   }
 
   return (
