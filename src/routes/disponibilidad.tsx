@@ -343,44 +343,32 @@ function P1() {
             />
           ) : (
             <>
-              {epsSection && estado === "estado-2" ? (
-                <div>
-                  {epsSection.full.length === 0 ? (
-                    <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                      No hay horarios con esos filtros para este día.
-                    </div>
-                  ) : (
-                    <div className="grid gap-3 md:grid-cols-3">
-                      {epsSection.full.map((slot) => (
-                        <SlotCard key={slot.id} slot={slot} hidePrice onClick={() => setModalSlot(slot)} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : epsSection ? (
+              {epsSection && (
                 <SectionCard
                   label={
                     estado === "estado-3"
                       ? "Disponibilidad particular"
-                      : !date
-                        ? "Lo más pronto disponible"
-                        : undefined
+                      : estado === "estado-2"
+                        ? undefined
+                        : !date
+                          ? "Lo más pronto disponible"
+                          : undefined
                   }
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={estado === "estado-1"}
+                  hidePrice={estado === "estado-1" || estado === "estado-2"}
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
-              ) : null}
+              )}
 
-              {(estado === "estado-1" || estado === "estado-3") && nextSection && (
+              {(estado === "estado-1" || estado === "estado-2" || estado === "estado-3") && nextSection && (
                 <SectionCard
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
-                  hidePrice={estado === "estado-1"}
+                  hidePrice={estado === "estado-1" || estado === "estado-2"}
                   showPriceInLink={estado === "estado-3"}
                   onSelect={setModalSlot}
                 />
