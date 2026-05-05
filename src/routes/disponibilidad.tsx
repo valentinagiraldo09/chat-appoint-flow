@@ -306,7 +306,7 @@ function P1() {
                 <SectionCard
                   label={
                     estado === "estado-2"
-                      ? "Próxima disponibilidad con tu aseguradora"
+                      ? "Disponibilidad con tu aseguradora"
                       : estado === "estado-3"
                         ? "Disponibilidad particular"
                         : !date
@@ -334,33 +334,18 @@ function P1() {
               )}
 
               {estado === "estado-2" && particularSection && particularSection.slots.length > 0 && (
-                <div className="rounded-xl border-2 border-[#FFA800] bg-[#FFFBEF] p-5">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-[#B36B00]" />
-                    <div>
-                      <div className="font-semibold">¿Quieres una cita antes?</div>
-                      <div className="text-sm text-muted-foreground capitalize">
-                        Disponibilidad particular el{" "}
-                        {format(particularSection.date, "EEEE d 'de' MMMM", { locale: es })}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    {particularSection.slots.map((slot) => (
-                      <SlotCard key={slot.id} slot={slot} onClick={() => setModalSlot(slot)} />
-                    ))}
-                  </div>
-                  {particularSection.full.length > particularSection.slots.length && (
-                    <div className="mt-3 flex justify-end">
-                      <Link
-                        to="/horarios"
-                        search={{ d: ymd(particularSection.date), price: 1 }}
-                        className="text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        Ver más opciones particulares →
-                      </Link>
-                    </div>
-                  )}
+                <div>
+                  <h3 className="mb-3 text-lg font-semibold">¿Quieres una cita antes?</h3>
+                  <SectionCard
+                    tone="amber"
+                    icon={<Zap className="h-5 w-5 text-[#B36B00]" />}
+                    label="Disponibilidad particular"
+                    date={particularSection.date}
+                    slots={particularSection.slots}
+                    full={particularSection.full}
+                    showPriceInLink
+                    onSelect={setModalSlot}
+                  />
                 </div>
               )}
             </>
