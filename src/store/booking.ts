@@ -32,7 +32,6 @@ export type BookingState = {
   selectedSlot?: Slot;
   patient?: Patient;
   aseguradora?: string;
-  previousAseguradora?: string;
   coverage?: CoverageResult;
   acceptedSuggestedDate?: boolean;
   payParticularOverride?: boolean;
