@@ -65,6 +65,8 @@ function P5() {
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
   const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
   const setDate = useBooking((s) => s.setDate);
+  const setAseguradora = useBooking((s) => s.setAseguradora);
+  const reset = useBooking((s) => s.reset);
 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
@@ -96,7 +98,14 @@ function P5() {
     setSelectedSlot(undefined);
     setPayParticularOverride(true);
     setCoverageOnly(false);
+    setAseguradora("Particular");
+    setDate(undefined);
     navigate({ to: "/disponibilidad" });
+  };
+
+  const buscarNuevaCita = () => {
+    reset();
+    navigate({ to: "/" });
   };
 
   const verConAseguradora = (minDate?: string) => {
@@ -260,7 +269,7 @@ function P5() {
               <div className="mt-3 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => navigate({ to: "/" })}
+                  onClick={buscarNuevaCita}
                   className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
                 >
                   Buscar nueva cita
