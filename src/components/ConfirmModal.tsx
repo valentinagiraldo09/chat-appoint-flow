@@ -83,7 +83,7 @@ export function ConfirmModal({
 
             {!hidePrice && slot.price ? (
               <div className="mt-5 flex justify-end">
-                <span className="rounded-full bg-background px-3 py-1 text-xs text-muted-foreground">
+                <span className="rounded-md bg-muted px-3 py-1.5 text-base font-bold text-foreground">
                   {formatCOP(slot.price)}
                 </span>
               </div>
