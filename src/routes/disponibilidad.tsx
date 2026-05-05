@@ -294,14 +294,11 @@ function P1() {
               </div>
             </div>
           ) : estado === "estado-4" ? (
-            <EmptyState
+            <NoAvailabilityModal
               specialty={specialty}
-              aseguradora={aseguradora}
-              onPickDate={() => {
-                // navigate to /horarios as a calendar fallback
-                navigate({ to: "/horarios", search: { d: ymd(new Date()) } });
-              }}
+              service={service}
               onWaitlist={() => setWaitlistOpen(true)}
+              onOtherService={() => navigate({ to: "/", search: { ask: "service" } })}
             />
           ) : (
             <>
