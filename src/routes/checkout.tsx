@@ -97,9 +97,8 @@ function P4() {
       direccion: values.direccion,
     });
 
-    // Si la cita es particular (sin aseguradora o "Particular"), no se hacen
-    // validaciones de cobertura/lista negra/límites — va directo a /pago.
-    const isParticular = payParticularOverride || !aseguradora || aseguradora === "Particular";
+    // Solo se omiten las validaciones si la aseguradora es "Particular".
+    const isParticular = aseguradora === "Particular";
     if (isParticular) {
       setValidationResult(undefined);
       navigate({ to: "/pago" });
@@ -114,9 +113,13 @@ function P4() {
         specialty,
         service,
         slot,
-        bypassCoverage: false,
+        bypassCoverage: payParticularOverride,
       });
       setValidationResult(result);
+      if (result.kind === "ok" && payParticularOverride) {
+        navigate({ to: "/pago" });
+        return;
+      }
       navigate({ to: "/validacion" });
     }, 1500);
   }
