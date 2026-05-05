@@ -18,12 +18,12 @@ export function IntentSummary({
 
   if (compact) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="text-sm font-semibold">
+      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 opacity-70">
+        <div className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
           {specialty}
-          {service ? <span className="text-muted-foreground"> · {service}</span> : null}
+          {service ? <span> · {service}</span> : null}
         </div>
-        <div className="mt-1 text-xs capitalize text-muted-foreground">
+        <div className="mt-1 text-xs capitalize text-muted-foreground/80">
           {format(d, "EEE d MMM", { locale: es })} · {formatTime(slot.hour, slot.minute)} · {slot.profesional}
         </div>
       </div>

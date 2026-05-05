@@ -227,7 +227,6 @@ function P5() {
               icon={Info}
               tone="info"
               title="Tu aseguradora no cubre este servicio"
-              subtitle="Te mostramos alternativas para que puedas atenderte."
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
