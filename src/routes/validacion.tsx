@@ -171,7 +171,7 @@ function P5() {
               />
 
               <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
-                Mientras tanto, puedes tomar esta cita
+                Puedes tomar esta cita
               </div>
 
               {particularSlot ? (
