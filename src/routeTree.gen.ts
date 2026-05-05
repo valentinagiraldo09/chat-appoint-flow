@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ValidacionRouteImport } from './routes/validacion'
 import { Route as PagoRouteImport } from './routes/pago'
 import { Route as OportunidadRouteImport } from './routes/oportunidad'
 import { Route as HorariosRouteImport } from './routes/horarios'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoberturaParcialRouteImport } from './routes/cobertura.parcial'
 import { Route as CoberturaNoCubreRouteImport } from './routes/cobertura.no-cubre'
 
+const ValidacionRoute = ValidacionRouteImport.update({
+  id: '/validacion',
+  path: '/validacion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PagoRoute = PagoRouteImport.update({
   id: '/pago',
   path: '/pago',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/validacion': typeof ValidacionRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
   '/cobertura/parcial': typeof CoberturaParcialRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/validacion': typeof ValidacionRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
   '/cobertura/parcial': typeof CoberturaParcialRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/horarios': typeof HorariosRoute
   '/oportunidad': typeof OportunidadRoute
   '/pago': typeof PagoRoute
+  '/validacion': typeof ValidacionRoute
   '/cobertura/no-cubre': typeof CoberturaNoCubreRoute
   '/cobertura/parcial': typeof CoberturaParcialRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/validacion'
     | '/cobertura/no-cubre'
     | '/cobertura/parcial'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/validacion'
     | '/cobertura/no-cubre'
     | '/cobertura/parcial'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/horarios'
     | '/oportunidad'
     | '/pago'
+    | '/validacion'
     | '/cobertura/no-cubre'
     | '/cobertura/parcial'
   fileRoutesById: FileRoutesById
@@ -143,12 +155,20 @@ export interface RootRouteChildren {
   HorariosRoute: typeof HorariosRoute
   OportunidadRoute: typeof OportunidadRoute
   PagoRoute: typeof PagoRoute
+  ValidacionRoute: typeof ValidacionRoute
   CoberturaNoCubreRoute: typeof CoberturaNoCubreRoute
   CoberturaParcialRoute: typeof CoberturaParcialRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/validacion': {
+      id: '/validacion'
+      path: '/validacion'
+      fullPath: '/validacion'
+      preLoaderRoute: typeof ValidacionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pago': {
       id: '/pago'
       path: '/pago'
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   HorariosRoute: HorariosRoute,
   OportunidadRoute: OportunidadRoute,
   PagoRoute: PagoRoute,
+  ValidacionRoute: ValidacionRoute,
   CoberturaNoCubreRoute: CoberturaNoCubreRoute,
   CoberturaParcialRoute: CoberturaParcialRoute,
 }
