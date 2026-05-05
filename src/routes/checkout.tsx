@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Loader2, Upload, ShieldCheck } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import { TIPOS_DOCUMENTO } from "@/mocks/catalog";
-import { validateCoverage } from "@/mocks/coverage";
+import { runValidations } from "@/mocks/validations";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { cn } from "@/lib/utils";
@@ -60,14 +60,10 @@ function P4() {
   const slot = useBooking((s) => s.selectedSlot);
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
+  const aseguradora = useBooking((s) => s.aseguradora);
+  const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setPatient = useBooking((s) => s.setPatient);
-  const setAseguradora = useBooking((s) => s.setAseguradora);
-  const setCoverage = useBooking((s) => s.setCoverage);
-  const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
-  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
-  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
-  const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
-  const setCoverageMinDate = useBooking((s) => s.setCoverageMinDate);
+  const setValidationResult = useBooking((s) => s.setValidationResult);
 
   const [validating, setValidating] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -100,14 +96,25 @@ function P4() {
       telefono: values.telefono,
       direccion: values.direccion,
     });
-    setAseguradora("Particular");
-    // limpiar flags previos
-    setCoverageOnly(false);
-    setCoverageMinDate(undefined);
-    setPayParticularOverride(true);
 
-    setCoverage({ case: 1, message: "Pago particular" });
-    navigate({ to: "/pago" });
+    // Excepción: vino de card "Disponibilidad particular" → no se valida cobertura
+    if (payParticularOverride) {
+      navigate({ to: "/pago" });
+      return;
+    }
+
+    setValidating(true);
+    setTimeout(() => {
+      const result = runValidations({
+        documento: values.numeroDocumento,
+        aseguradora,
+        specialty,
+        service,
+        slot,
+      });
+      setValidationResult(result);
+      navigate({ to: "/validacion" });
+    }, 1500);
   }
 
   function onFiles(list: FileList | null) {
