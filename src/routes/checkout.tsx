@@ -254,6 +254,41 @@ function P4() {
           </div>
         </form>
       </div>
+
+      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <DialogContent className="max-w-md rounded-2xl p-8 text-center [&>button]:hidden">
+          <h2 className="text-xl font-bold tracking-tight">
+            Tu horario seleccionado se liberará
+          </h2>
+          {slot && (
+            <p className="mt-3 font-semibold text-emerald-600 capitalize">
+              {format(parseYmd(slot.date), "EEEE d 'de' MMMM", { locale: es })} a las {formatTime(slot.hour, slot.minute)} con {slot.profesional}
+            </p>
+          )}
+          <p className="mt-3 text-sm text-muted-foreground">
+            Ese horario podría quedar disponible para otro paciente.
+          </p>
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <Button
+              size="lg"
+              className="w-full rounded-full bg-foreground px-8 py-6 text-background hover:bg-foreground/90"
+              onClick={() => setShowLeaveModal(false)}
+            >
+              Quedarse aquí
+            </Button>
+            <button
+              type="button"
+              className="text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setShowLeaveModal(false);
+                router.history.back();
+              }}
+            >
+              Sí, ir atrás
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
