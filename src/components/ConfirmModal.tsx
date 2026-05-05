@@ -96,30 +96,6 @@ export function ConfirmModal({
               onClick={() => {
                 setSelectedSlot(slot);
                 onOpenChange(false);
-                // Si ya tenemos los datos del paciente, saltamos /checkout
-                if (patient && coverageMinDate) {
-                  const isParticular = aseguradora === "Particular";
-                  if (isParticular) {
-                    setValidationResult(undefined);
-                    navigate({ to: "/pago" });
-                    return;
-                  }
-                  const result = runValidations({
-                    documento: patient.numeroDocumento,
-                    aseguradora,
-                    specialty,
-                    service,
-                    slot,
-                    bypassCoverage: payParticularOverride,
-                  });
-                  setValidationResult(result);
-                  if (result.kind === "ok") {
-                    navigate({ to: "/pago" });
-                    return;
-                  }
-                  navigate({ to: "/validacion" });
-                  return;
-                }
                 navigate({ to: "/checkout" });
               }}
             >
