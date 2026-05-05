@@ -234,15 +234,17 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters]);
 
-  // Particular nearer slot for estado-2 — start from preferredDate (the date the patient originally asked for)
+  // Particular nearer slot for estado-2 — uses the date the patient originally asked for.
+  // We force generation on that exact day (particular has wider availability than EPS in our mock).
   const particularSection = useMemo(() => {
     if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const startFrom = preferredDate ? parseYmd(preferredDate) : today;
-    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
-    const all = filterSlots(generateSlots(first, specialty, service), filters);
-    return { date: first, slots: spreadSlots(all), full: all };
+    const target = preferredDate ? parseYmd(preferredDate) : today;
+    // Force slots on target day by seeding with a "Particular" service variant
+    const raw = generateSlots(target, specialty, `${service}|Particular`);
+    const all = filterSlots(raw, filters);
+    return { date: target, slots: spreadSlots(all), full: all };
   }, [specialty, service, filters, preferredDate]);
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
