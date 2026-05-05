@@ -54,6 +54,11 @@ import { BackButton } from "@/components/BackButton";
 
 import { cn } from "@/lib/utils";
 
+const capWords = (s: string) =>
+  s.replace(/(^|\s)([a-záéíóúñ])/g, (_, p, c) => p + c.toUpperCase());
+const formatLongDate = (d: Date) =>
+  capWords(format(d, "EEEE, d 'de' MMMM", { locale: es }));
+
 export const Route = createFileRoute("/disponibilidad")({
   head: () => ({
     meta: [{ title: "Disponibilidad — Citas médicas" }],
