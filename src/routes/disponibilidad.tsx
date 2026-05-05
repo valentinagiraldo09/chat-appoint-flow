@@ -212,6 +212,22 @@ function P1() {
     if (!specialty || !service) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const selectedDate = date ? parseYmd(date) : null;
+
+    if (estado === "estado-3" && selectedDate) {
+      let raw = generateSlots(selectedDate, specialty, service);
+      if (raw.length === 0) {
+        const next = findNextAvailableDate(selectedDate, specialty, service);
+        raw = (next ? generateSlots(next, specialty, service) : []).map((slot) => ({
+          ...slot,
+          id: `${ymd(selectedDate)}-particular-${slot.hour}-${slot.minute}`,
+          date: ymd(selectedDate),
+        }));
+      }
+      const all = filterSlots(raw, filters);
+      return { date: selectedDate, slots: spreadSlots(all), full: all };
+    }
+
     const startFrom = date
       ? parseYmd(date)
       : estado === "estado-2"
