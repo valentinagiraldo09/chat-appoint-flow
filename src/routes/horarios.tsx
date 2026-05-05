@@ -20,7 +20,7 @@ export const Route = createFileRoute("/horarios")({
 });
 
 function P2() {
-  const { d } = Route.useSearch();
+  const { d, price } = Route.useSearch();
   const navigate = useNavigate();
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
