@@ -334,7 +334,7 @@ function P1() {
                 <SectionCard
                   label={
                     estado === "estado-3"
-                      ? "Disponibilidad particular"
+                      ? undefined
                       : estado === "estado-2"
                         ? undefined
                         : !date
