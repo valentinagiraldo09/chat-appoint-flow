@@ -243,7 +243,14 @@ function P1() {
     const target = preferredDate ? parseYmd(preferredDate) : today;
     let first = target;
     let raw = generateSlots(first, specialty, service);
-    if (raw.length === 0) {
+    if (raw.length === 0 && preferredDate) {
+      const next = findNextAvailableDate(target, specialty, service);
+      raw = (next ? generateSlots(next, specialty, service) : []).map((slot) => ({
+        ...slot,
+        id: `${ymd(target)}-particular-${slot.hour}-${slot.minute}`,
+        date: ymd(target),
+      }));
+    } else if (raw.length === 0) {
       const next = findNextAvailableDate(target, specialty, service);
       if (next) {
         first = next;
@@ -308,7 +315,7 @@ function P1() {
           particularSection &&
           particularSection.slots.length > 0 &&
           epsSection &&
-          particularSection.date <= parseYmd(preferredDate) &&
+          ymd(particularSection.date) === preferredDate &&
           particularSection.date < epsSection.date && (
             <button
               onClick={() =>

@@ -38,6 +38,7 @@ type Draft = {
   dateKey?: DateChipKey;
   dateLabel?: string;
   dateISO?: string;
+  requestedDateISO?: string;
 };
 
 type Bubble =
@@ -308,7 +309,7 @@ function P0() {
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(d.eps);
       const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
-      if (d.dateKey) setPreferredDate(resolvedISO);
+      if (d.dateKey) setPreferredDate(d.requestedDateISO ?? resolvedISO);
       useBooking.getState().setDate(resolvedISO);
       // Transferir chat lateral
       clearChat();
@@ -378,6 +379,7 @@ function P0() {
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
         d.dateISO = parsed.dateISO;
+        d.requestedDateISO = parsed.dateISO;
       }
       setDraft(d);
       if (parsed.dateISO && d.specialty && d.service) {
@@ -424,7 +426,7 @@ function P0() {
       return;
     }
     userSay(label);
-    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined };
+    const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined, requestedDateISO: dateChipToISO(key) };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
@@ -432,7 +434,7 @@ function P0() {
     const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     userSay(label);
-    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso };
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso, requestedDateISO: iso };
     setDraft(d);
     if (d.specialty && d.service) {
       validateSpecificDate(d, iso);
@@ -465,7 +467,7 @@ function P0() {
   function acceptSuggestedDate(iso: string, label: string) {
     const capLabel = label.charAt(0).toUpperCase() + label.slice(1);
     userSay(`Sí, el ${label}`);
-    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso };
+    const d: Draft = { ...draft, dateKey: "pick", dateLabel: capLabel, dateISO: iso, requestedDateISO: draft.requestedDateISO ?? draft.dateISO };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
