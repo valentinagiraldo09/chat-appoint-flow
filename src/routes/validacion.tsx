@@ -47,6 +47,10 @@ function findParticularSlot(
   if (!specialty || !service) return null;
   const start = fromDate ? new Date(fromDate) : new Date();
   start.setHours(0, 0, 0, 0);
+  if (fromDate) {
+    const sameDay = generateSlots(start, specialty, service);
+    if (sameDay.length > 0) return sameDay[0];
+  }
   const next = findNextAvailableDate(start, specialty, service);
   if (!next) return null;
   const slots = generateSlots(next, specialty, service);
