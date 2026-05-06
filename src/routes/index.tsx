@@ -370,7 +370,16 @@ function P0() {
       setIdStep("ask-doc");
     } else if (intent === "consultar") {
       botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
+    } else if (intent === "gestionar") {
+      botSay("¿Qué te gustaría hacer con tu cita?", () =>
+        addBubble({ kind: "manage-options" }),
+      );
     }
+  }
+
+  function pickManageIntent(sub: ManageIntent, label: string) {
+    userSay(label);
+    startFlow(sub, { skipUserBubble: true });
   }
 
   function handleSend() {
