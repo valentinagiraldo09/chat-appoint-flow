@@ -561,9 +561,9 @@ function P0() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="¿Cómo puedo ayudarte?"
+                placeholder="Ej: Quiero agendar una cita de Medicina General para esta semana"
                 disabled={!mounted}
-                className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground disabled:opacity-60"
+                className="flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted-foreground/70 disabled:opacity-60"
               />
               <button
                 onClick={handleSend}
