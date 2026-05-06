@@ -1,64 +1,60 @@
-## Objetivo
+## Problema
 
-En la pantalla inicial mostrar solo 3 chips de acción: **Agendar una cita**, **Gestionar mis citas** y **Consultar información**. Cuando el usuario elija "Gestionar mis citas", el bot preguntará en el chat qué quiere hacer (reagendar, cancelar, confirmar o pagar) y luego derivará al flujo correspondiente que ya existe.
+Dos problemas combinados en los selectores de chips (especialidad, servicio/subservicio, EPS):
 
-## Cambios en `src/routes/index.tsx`
+1. **Listas muy largas** que inundan el chat.
+2. **Etiquetas muy largas** (ej. "Crecimiento y desarrollo - control pediátrico", "Nueva EPS contributivo régimen subsidiado") que rompen la fila, generan chips de ancho irregular y saltos de renglón impredecibles.
 
-### 1. Tipos
+## Propuesta unificada
 
-- Añadir `"gestionar"` al union `FlowKind`.
-- Añadir un nuevo kind de burbuja `{ kind: "manage-options" }` para renderizar los 4 chips (Reagendar, Cancelar, Confirmar, Pagar) dentro del chat.
+Un solo patrón "Top + Buscar" con reglas claras de longitud + ancho de chip, aplicado igual a los 3 selectores.
 
-### 2. Hero (líneas ~567-586)
+### Regla por cantidad de opciones (igual para los 3 selectores)
 
-Reemplazar la lista de 6 chips por exactamente 3:
+- **≤ 6** → chips en `flex-wrap` (render actual).
+- **7–12** → fila horizontal scrollable de una sola línea + chip "Ver todas".
+- **> 12** → top 5 sugeridas + "Ver todas (N)".
 
-```
-{ label: "Agendar una cita",       icon: "🗓", intent: "agendar"   },
-{ label: "Gestionar mis citas",    icon: "🗂", intent: "gestionar" },
-{ label: "Consultar información",  icon: "ℹ",  intent: "consultar" },
-```
+### Regla por longitud del texto del chip
 
-Mantener mismo estilo visual de pill/chip; al ser 3 quedan más respirados, sin cambios de layout.
+Para que la grilla se vea ordenada y los chips no rompan la fila de forma rara:
 
-### 3. Flujo "gestionar" en `startFlow`
+- **Truncado con tooltip**: cada chip tiene `max-w-[18ch]` (≈18 caracteres visibles) + `truncate` + `title={label}`. Si el texto excede, se muestran "…" y al hover aparece el texto completo. En mobile, long-press / tap muestra el tooltip.
+- **Ancho mínimo uniforme**: `min-w-[7rem]` para que chips muy cortos (ej. "Control") no queden enanos junto a otros largos.
+- **Padding consistente**: `px-3.5 py-1.5`, sin cambios.
+- **Salto de línea controlado**: `whitespace-nowrap` dentro del chip (nunca rompe el texto en dos líneas) + `flex-wrap` en el contenedor (los chips saltan al siguiente renglón completos, no parten palabras).
+- **Máximo de chips por fila visible (modo wrap)**: cuando hay ≤6 opciones pero alguna es larga, el `flex-wrap` con `max-w-[18ch]` garantiza ~3 chips largos por fila a 1280px y ~2 en mobile, sin desbordes.
 
-Añadir rama `intent === "gestionar"`:
+### Cuando un texto es "demasiado largo" (>22 caracteres)
 
-- `botSay("¿Qué te gustaría hacer con tu cita?")`
-- Luego `addBubble({ kind: "manage-options" })`.
+Activar automáticamente el modo "fila scrollable + Ver todas" aunque haya pocas opciones. Razón: con 4 chips de 35 caracteres cada uno, el wrap se ve peor que un scroll horizontal limpio + el modal para revisar todo con calma.
 
-### 4. Nuevo renderer en `BubbleRenderer`
+### Selector completo (`OptionsPicker`)
 
-Para `kind === "manage-options"` renderizar 4 chips horizontales (mismo estilo `chip` de `ChipsRow`) con:
+Reutilizable, basado en `shadcn/ui` `Command` dentro de `Dialog` (desktop) / `Drawer` (mobile, vía `useIsMobile`):
 
-- 🔄 Reagendar mi cita
-- ✕ Cancelar mi cita
-- 🕐 Confirmar asistencia
-- 💳 Pagar mi cita
+- `CommandInput` con autofocus, filtro tolerante a tildes/typos usando `norm()`.
+- `CommandList` con grupos cuando aplique ("Recientes", "Más usadas", "Todas A–Z").
+- En el listado del modal **no hay truncado**: el espacio vertical lo permite, el usuario ve el texto completo.
+- Selección → cierra el picker y dispara el mismo callback que los chips. El flujo de chat no cambia.
+- Teclado: ↑/↓ / Enter / Esc.
 
-Cada chip llama una nueva función `pickManageIntent(sub)` que:
+### Texto libre intacto
 
-1. `userSay(label)` con el texto del chip.
-2. Llama `startFlow(sub, { skipUserBubble: true })` con `sub` ∈ `"reagendar" | "cancelar" | "confirmar" | "pagar"`, lo que reusa los flujos existentes (pedir documento → mostrar tarjeta → acciones).
+El parser (`detectSpecialty`, `detectService`, `detectEPS`) sigue funcionando con tolerancia a typos. El picker es complementario.
 
-### 5. Detección por texto libre
+## Cambios técnicos
 
-En `detectIntent` añadir antes del fallback `"agendar"`:
-
-```
-[["gestionar", "gestionar mis citas", "mis citas", "administrar cita"], "gestionar"]
-```
-
-Así si el usuario escribe "quiero gestionar mi cita" en el input también arranca el sub-menú.
-
-### 6. Propagación a `BubbleRenderer` y `ChatBubbles`
-
-Pasar el nuevo handler `onPickManageIntent` por props desde `P0` hasta `BubbleRenderer`, igual que se hace hoy con `onCardAction` y `onConfirmCancel`.
+1. Nuevo `src/components/OptionsPicker.tsx` (Dialog + Command, responsive a Drawer).
+2. Nuevo `src/components/ChipList.tsx` que encapsula la regla de cantidad + longitud y renderiza chips + "Ver todas". Recibe: `options`, `title`, `onPick`, opcional `recent`, `top`.
+3. `ChipsRow` en `src/routes/index.tsx` se simplifica usando `ChipList` para los 3 casos (`specialty`, `service`, `eps`).
+4. Tokens de chip largo (`max-w-[18ch]`, `min-w-[7rem]`, `truncate`, `whitespace-nowrap`) centralizados en `ChipList`.
+5. Constante opcional `TOP_EPS` en `src/mocks/catalog.ts`.
+6. Sin cambios en el store ni en la máquina de estados.
 
 ## Resultado
 
-- La home queda con 3 chips claros y agrupados por propósito.
-- "Gestionar mis citas" no toca aún ningún flujo: primero pregunta en el chat con 4 chips, y al elegir uno entra al flujo existente sin duplicar lógica (reusa `startFlow` para reagendar/cancelar/confirmar/pagar).
-- "Consultar información" se mantiene como hoy.
-- No se requieren cambios en otras rutas ni en el store.
+- Chips siempre alineados, nunca dos líneas dentro del mismo chip.
+- Listas largas se resuelven con scroll horizontal o modal con buscador.
+- Etiquetas largas se truncan con tooltip y se ven completas en el modal.
+- Mismo patrón para los 3 selectores → consistencia visual y de interacción.
