@@ -71,7 +71,18 @@ export const FRANJAS: Franja[] = ["Mañana", "Tarde", "Noche"];
 
 export const ASEGURADORAS = ["EPS Sanitas", "EPS Sura", "EPS Compensar", "Particular"];
 
-export const EPS_OPTIONS = ["Nueva EPS", "EPS Sanitas", "EPS Sura", "EPS Compensar", "Fomag", "Particular"];
+export const EPS_OPTIONS = [
+  "Nueva EPS",
+  "EPS Sanitas",
+  "EPS Sura",
+  "EPS Compensar",
+  "Fomag",
+  "Salud Total",
+  "Famisanar",
+  "Coomeva",
+  "Aliansalud",
+  "Particular",
+];
 
 export type DateChipKey = "asap" | "this-week" | "next-week" | "in-15-days" | "pick";
 
