@@ -1,35 +1,64 @@
 ## Objetivo
 
-`preferredDate` debe ser la fecha que efectivamente se muestra como primera disponibilidad en P1 (`/disponibilidad`). Cuando el usuario eligió un chip o una sugerencia (sin fecha exacta), esa fecha es la primera fecha con disponibilidad a partir del inicio del rango del chip — no la fecha base del chip por sí sola, ya que esta puede no tener cupo.
+En la pantalla inicial mostrar solo 3 chips de acción: **Agendar una cita**, **Gestionar mis citas** y **Consultar información**. Cuando el usuario elija "Gestionar mis citas", el bot preguntará en el chat qué quiere hacer (reagendar, cancelar, confirmar o pagar) y luego derivará al flujo correspondiente que ya existe.
 
-## Cambio
+## Cambios en `src/routes/index.tsx`
 
-En `src/routes/index.tsx`, función `finishAgendar`, reemplazar:
+### 1. Tipos
 
-```ts
-const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
-if (d.dateKey) setPreferredDate(d.requestedDateISO ?? resolvedISO);
-useBooking.getState().setDate(resolvedISO);
+- Añadir `"gestionar"` al union `FlowKind`.
+- Añadir un nuevo kind de burbuja `{ kind: "manage-options" }` para renderizar los 4 chips (Reagendar, Cancelar, Confirmar, Pagar) dentro del chat.
+
+### 2. Hero (líneas ~567-586)
+
+Reemplazar la lista de 6 chips por exactamente 3:
+
+```
+{ label: "Agendar una cita",       icon: "🗓", intent: "agendar"   },
+{ label: "Gestionar mis citas",    icon: "🗂", intent: "gestionar" },
+{ label: "Consultar información",  icon: "ℹ",  intent: "consultar" },
 ```
 
-por:
+Mantener mismo estilo visual de pill/chip; al ser 3 quedan más respirados, sin cambios de layout.
 
-```ts
-const resolvedISO = d.dateISO ?? (d.dateKey ? dateChipToISO(d.dateKey) : undefined);
-let preferred: string | undefined = d.requestedDateISO ?? d.dateISO;
-if (!preferred && d.specialty && d.service) {
-  const start = resolvedISO ? parseYmd(resolvedISO) : new Date();
-  start.setHours(0, 0, 0, 0);
-  const firstAvail = findNextAvailableDate(start, d.specialty, d.service);
-  if (firstAvail) preferred = ymd(firstAvail);
-}
-if (preferred) setPreferredDate(preferred);
-useBooking.getState().setDate(resolvedISO);
+### 3. Flujo "gestionar" en `startFlow`
+
+Añadir rama `intent === "gestionar"`:
+
+- `botSay("¿Qué te gustaría hacer con tu cita?")`
+- Luego `addBubble({ kind: "manage-options" })`.
+
+### 4. Nuevo renderer en `BubbleRenderer`
+
+Para `kind === "manage-options"` renderizar 4 chips horizontales (mismo estilo `chip` de `ChipsRow`) con:
+
+- 🔄 Reagendar mi cita
+- ✕ Cancelar mi cita
+- 🕐 Confirmar asistencia
+- 💳 Pagar mi cita
+
+Cada chip llama una nueva función `pickManageIntent(sub)` que:
+
+1. `userSay(label)` con el texto del chip.
+2. Llama `startFlow(sub, { skipUserBubble: true })` con `sub` ∈ `"reagendar" | "cancelar" | "confirmar" | "pagar"`, lo que reusa los flujos existentes (pedir documento → mostrar tarjeta → acciones).
+
+### 5. Detección por texto libre
+
+En `detectIntent` añadir antes del fallback `"agendar"`:
+
+```
+[["gestionar", "gestionar mis citas", "mis citas", "administrar cita"], "gestionar"]
 ```
 
-`findNextAvailableDate`, `parseYmd` y `ymd` ya están importados desde `@/mocks/availability` (línea 14).
+Así si el usuario escribe "quiero gestionar mi cita" en el input también arranca el sub-menú.
+
+### 6. Propagación a `BubbleRenderer` y `ChatBubbles`
+
+Pasar el nuevo handler `onPickManageIntent` por props desde `P0` hasta `BubbleRenderer`, igual que se hace hoy con `onCardAction` y `onConfirmCancel`.
 
 ## Resultado
 
-- "Elegir fecha" + fecha exacta → `preferredDate` = esa fecha.
-- Cualquier chip o sugerencia ("Lo más pronto", "Esta semana", etc.) → `preferredDate` = primera fecha con cupo desde el inicio del rango = la que P1 muestra como primera disponibilidad. Esto se propaga al CTA "Ver más disponibilidad" en `/validacion` y al P1 particular.
+- La home queda con 3 chips claros y agrupados por propósito.
+- "Gestionar mis citas" no toca aún ningún flujo: primero pregunta en el chat con 4 chips, y al elegir uno entra al flujo existente sin duplicar lógica (reusa `startFlow` para reagendar/cancelar/confirmar/pagar).
+- "Consultar información" se mantiene como hoy.
+- No se requieren cambios en otras rutas ni en el store.

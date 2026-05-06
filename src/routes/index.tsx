@@ -27,7 +27,8 @@ export const Route = createFileRoute("/")({
 });
 
 // ---------- Tipos ----------
-type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
+type FlowKind = "agendar" | "gestionar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
+type ManageIntent = "reagendar" | "cancelar" | "confirmar" | "pagar";
 type AgendarStep = "specialty" | "service" | "eps" | "date" | "ready";
 type IdStep = "ask-doc" | "show-card" | "confirm-cancel" | "done";
 
@@ -50,7 +51,8 @@ type Bubble =
   | { id: string; kind: "post-cancel" }
   | { id: string; kind: "post-confirm" }
   | { id: string; kind: "date-input" }
-  | { id: string; kind: "date-suggest"; iso: string; label: string };
+  | { id: string; kind: "date-suggest"; iso: string; label: string }
+  | { id: string; kind: "manage-options" };
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -127,6 +129,7 @@ function detectIntent(t: string): FlowKind {
     [["cancelar", "cancela", "anular"], "cancelar"],
     [["confirmar asistencia", "confirmar", "confirma"], "confirmar"],
     [["pagar", "pago"], "pagar"],
+    [["gestionar mis citas", "gestionar", "administrar cita", "mis citas"], "gestionar"],
     [["consultar informacion", "informacion", "consultar"], "consultar"],
     [["agendar", "agenda", "cita", "reservar", "turno", "doctor", "especialista"], "agendar"],
   ]) ?? null;
@@ -367,7 +370,16 @@ function P0() {
       setIdStep("ask-doc");
     } else if (intent === "consultar") {
       botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
+    } else if (intent === "gestionar") {
+      botSay("¿Qué te gustaría hacer con tu cita?", () =>
+        addBubble({ kind: "manage-options" }),
+      );
     }
+  }
+
+  function pickManageIntent(sub: ManageIntent, label: string) {
+    userSay(label);
+    startFlow(sub, { skipUserBubble: true });
   }
 
   function handleSend() {
@@ -567,10 +579,7 @@ function P0() {
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {[
               { label: "Agendar una cita", icon: "🗓", intent: "agendar" as const },
-              { label: "Reagendar mi cita", icon: "🔄", intent: "reagendar" as const },
-              { label: "Cancelar mi cita", icon: "✕", intent: "cancelar" as const },
-              { label: "Confirmar asistencia", icon: "🕐", intent: "confirmar" as const },
-              { label: "Pagar mi cita", icon: "💳", intent: "pagar" as const },
+              { label: "Gestionar mis citas", icon: "🗂", intent: "gestionar" as const },
               { label: "Consultar información", icon: "ℹ", intent: "consultar" as const },
             ].map((it) => (
               <button
@@ -641,6 +650,7 @@ function P0() {
               }}
               onAcceptSuggestedDate={acceptSuggestedDate}
               onRejectSuggestedDate={rejectSuggestedDate}
+              onPickManageIntent={pickManageIntent}
             />;
           })}
 
@@ -884,6 +894,7 @@ function BubbleRenderer(props: {
   onPostCancel: (again: boolean) => void;
   onAcceptSuggestedDate: (iso: string, label: string) => void;
   onRejectSuggestedDate: () => void;
+  onPickManageIntent: (sub: ManageIntent, label: string) => void;
 }) {
   const { bubble: b, isLast } = props;
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
@@ -948,6 +959,29 @@ function BubbleRenderer(props: {
         >
           No, gracias
         </button>
+      </div>
+    );
+  }
+  if (b.kind === "manage-options") {
+    const opts: { sub: ManageIntent; label: string; icon: string }[] = [
+      { sub: "reagendar", label: "Reagendar mi cita", icon: "🔄" },
+      { sub: "cancelar", label: "Cancelar mi cita", icon: "✕" },
+      { sub: "confirmar", label: "Confirmar asistencia", icon: "🕐" },
+      { sub: "pagar", label: "Pagar mi cita", icon: "💳" },
+    ];
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        {opts.map((o) => (
+          <button
+            key={o.sub}
+            disabled={!isLast}
+            onClick={() => props.onPickManageIntent(o.sub, o.label)}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted disabled:opacity-40"
+          >
+            <span aria-hidden className="text-base leading-none">{o.icon}</span>
+            {o.label}
+          </button>
+        ))}
       </div>
     );
   }
