@@ -27,7 +27,8 @@ export const Route = createFileRoute("/")({
 });
 
 // ---------- Tipos ----------
-type FlowKind = "agendar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
+type FlowKind = "agendar" | "gestionar" | "reagendar" | "cancelar" | "confirmar" | "pagar" | "consultar" | null;
+type ManageIntent = "reagendar" | "cancelar" | "confirmar" | "pagar";
 type AgendarStep = "specialty" | "service" | "eps" | "date" | "ready";
 type IdStep = "ask-doc" | "show-card" | "confirm-cancel" | "done";
 
