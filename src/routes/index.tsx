@@ -13,6 +13,7 @@ import {
 } from "@/mocks/catalog";
 import { hasAvailability, findNextAvailableDate, parseYmd, ymd } from "@/mocks/availability";
 import { CocoLogo } from "@/components/CocoLogo";
+import { ChipList } from "@/components/OptionsPicker";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
