@@ -747,36 +747,37 @@ function ChipsRow({
   onPickEPS: (s: string) => void;
   onPickDate: (k: DateChipKey, l: string) => void;
 }) {
-  const wrap = "flex flex-wrap gap-2 pl-10";
-  const chip = "rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted";
   if (agStep === "specialty") {
     return (
-      <div className={wrap}>
-        {SPECIALTIES.map((s) => (
-          <button key={s} className={chip} onClick={() => onPickSpecialty(s)}>{s}</button>
-        ))}
-      </div>
+      <ChipList
+        title="Elige especialidad"
+        options={[...SPECIALTIES]}
+        onPick={(v) => onPickSpecialty(v as Specialty)}
+      />
     );
   }
   if (agStep === "service" && draft.specialty) {
     return (
-      <div className={wrap}>
-        {SERVICES[draft.specialty].map((s) => (
-          <button key={s} className={chip} onClick={() => onPickService(s)}>{s}</button>
-        ))}
-      </div>
+      <ChipList
+        title="Elige el tipo de servicio"
+        options={SERVICES[draft.specialty]}
+        onPick={onPickService}
+      />
     );
   }
   if (agStep === "eps") {
     return (
-      <div className={wrap}>
-        {EPS_OPTIONS.map((s) => (
-          <button key={s} className={chip} onClick={() => onPickEPS(s)}>{s}</button>
-        ))}
-      </div>
+      <ChipList
+        title="Elige tu aseguradora"
+        options={EPS_OPTIONS}
+        top={["Nueva EPS", "EPS Sanitas", "EPS Sura", "EPS Compensar", "Particular"]}
+        onPick={onPickEPS}
+      />
     );
   }
   if (agStep === "date") {
+    const wrap = "flex flex-wrap gap-2 pl-10";
+    const chip = "rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted";
     return (
       <div className={wrap}>
         {DATE_CHIPS.map((d) => (
