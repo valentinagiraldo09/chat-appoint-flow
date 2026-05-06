@@ -579,10 +579,7 @@ function P0() {
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {[
               { label: "Agendar una cita", icon: "🗓", intent: "agendar" as const },
-              { label: "Reagendar mi cita", icon: "🔄", intent: "reagendar" as const },
-              { label: "Cancelar mi cita", icon: "✕", intent: "cancelar" as const },
-              { label: "Confirmar asistencia", icon: "🕐", intent: "confirmar" as const },
-              { label: "Pagar mi cita", icon: "💳", intent: "pagar" as const },
+              { label: "Gestionar mis citas", icon: "🗂", intent: "gestionar" as const },
               { label: "Consultar información", icon: "ℹ", intent: "consultar" as const },
             ].map((it) => (
               <button
