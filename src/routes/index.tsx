@@ -650,6 +650,7 @@ function P0() {
               }}
               onAcceptSuggestedDate={acceptSuggestedDate}
               onRejectSuggestedDate={rejectSuggestedDate}
+              onPickManageIntent={pickManageIntent}
             />;
           })}
 
