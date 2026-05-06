@@ -8,17 +8,33 @@ export const SPECIALTIES = [
   "Ginecología",
   "Optometría",
   "Pediatría",
+  "Endocrinología",
+  "Gastroenterología",
+  "Neurología",
+  "Oftalmología",
+  "Ortopedia",
+  "Otorrinolaringología",
+  "Psicología",
+  "Urología",
 ] as const;
 
 export type Specialty = (typeof SPECIALTIES)[number];
 
 export const SERVICES: Record<Specialty, string[]> = {
   Cardiología: ["Primera vez", "Control"],
-  Dermatología: ["Primera vez", "Control", "Procedimiento"],
+  Dermatología: ["Primera vez", "Control", "Procedimiento", "Crioterapia para lesiones benignas"],
   "Medicina General": ["Primera vez", "Control"],
   Ginecología: ["Primera vez", "Control", "Citología"],
   Optometría: ["Primera vez", "Control"],
   Pediatría: ["Primera vez", "Control", "Crecimiento y desarrollo"],
+  Endocrinología: ["Primera vez", "Control"],
+  Gastroenterología: ["Primera vez", "Control"],
+  Neurología: ["Primera vez", "Control"],
+  Oftalmología: ["Primera vez", "Control"],
+  Ortopedia: ["Primera vez", "Control"],
+  Otorrinolaringología: ["Primera vez", "Control"],
+  Psicología: ["Primera vez", "Control"],
+  Urología: ["Primera vez", "Control"],
 };
 
 export const SEDES = [
@@ -55,7 +71,18 @@ export const FRANJAS: Franja[] = ["Mañana", "Tarde", "Noche"];
 
 export const ASEGURADORAS = ["EPS Sanitas", "EPS Sura", "EPS Compensar", "Particular"];
 
-export const EPS_OPTIONS = ["Nueva EPS", "EPS Sanitas", "EPS Sura", "EPS Compensar", "Fomag", "Particular"];
+export const EPS_OPTIONS = [
+  "Nueva EPS",
+  "EPS Sanitas",
+  "EPS Sura",
+  "EPS Compensar",
+  "Fomag",
+  "Salud Total",
+  "Famisanar",
+  "Coomeva",
+  "Aliansalud",
+  "Particular",
+];
 
 export type DateChipKey = "asap" | "this-week" | "next-week" | "in-15-days" | "pick";
 
