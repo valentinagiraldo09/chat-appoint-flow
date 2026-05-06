@@ -129,6 +129,7 @@ function detectIntent(t: string): FlowKind {
     [["cancelar", "cancela", "anular"], "cancelar"],
     [["confirmar asistencia", "confirmar", "confirma"], "confirmar"],
     [["pagar", "pago"], "pagar"],
+    [["gestionar mis citas", "gestionar", "administrar cita", "mis citas"], "gestionar"],
     [["consultar informacion", "informacion", "consultar"], "consultar"],
     [["agendar", "agenda", "cita", "reservar", "turno", "doctor", "especialista"], "agendar"],
   ]) ?? null;
