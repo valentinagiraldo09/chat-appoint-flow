@@ -894,6 +894,7 @@ function BubbleRenderer(props: {
   onPostCancel: (again: boolean) => void;
   onAcceptSuggestedDate: (iso: string, label: string) => void;
   onRejectSuggestedDate: () => void;
+  onPickManageIntent: (sub: ManageIntent, label: string) => void;
 }) {
   const { bubble: b, isLast } = props;
   if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
