@@ -51,7 +51,8 @@ type Bubble =
   | { id: string; kind: "post-cancel" }
   | { id: string; kind: "post-confirm" }
   | { id: string; kind: "date-input" }
-  | { id: string; kind: "date-suggest"; iso: string; label: string };
+  | { id: string; kind: "date-suggest"; iso: string; label: string }
+  | { id: string; kind: "manage-options" };
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
