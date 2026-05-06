@@ -962,5 +962,28 @@ function BubbleRenderer(props: {
       </div>
     );
   }
+  if (b.kind === "manage-options") {
+    const opts: { sub: ManageIntent; label: string; icon: string }[] = [
+      { sub: "reagendar", label: "Reagendar mi cita", icon: "🔄" },
+      { sub: "cancelar", label: "Cancelar mi cita", icon: "✕" },
+      { sub: "confirmar", label: "Confirmar asistencia", icon: "🕐" },
+      { sub: "pagar", label: "Pagar mi cita", icon: "💳" },
+    ];
+    return (
+      <div className="flex flex-wrap gap-2 pl-10">
+        {opts.map((o) => (
+          <button
+            key={o.sub}
+            disabled={!isLast}
+            onClick={() => props.onPickManageIntent(o.sub, o.label)}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted disabled:opacity-40"
+          >
+            <span aria-hidden className="text-base leading-none">{o.icon}</span>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
   return null;
 }
