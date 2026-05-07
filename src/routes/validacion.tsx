@@ -199,7 +199,7 @@ function P5() {
 
               <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
-                <span className="uppercase tracking-wide">O puedes tomar esta cita</span>
+                <span className="tracking-wide">o puedes tomar esta cita</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
 
@@ -286,16 +286,14 @@ function P5() {
             <ResultHeader
               icon={Info}
               tone="info"
-              title="Aún no estás cubierto por tu seguro"
-              subtitle="Contáctate con tu seguro al 800 721 3344"
+              title="Aún no estás cubierto por tu aseguradora"
+              subtitle="Contáctate con tu aseguradora al 800 721 3344"
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
-            <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />
-              <span className="uppercase tracking-wide">O puedes tomar esta cita</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
+            <p className="py-2 text-center text-sm font-medium text-muted-foreground">
+              puedes tomar esta cita
+            </p>
 
             {particularSlot ? (
               <SuggestedSlotCard
@@ -338,8 +336,8 @@ function P5() {
             <ResultHeader
               icon={Info}
               tone="info"
-              title="Aún no estás cubierto por tu seguro"
-              subtitle="Contáctate con tu seguro al 800 721 3344. No encontramos una cita particular alternativa para ofrecerte en este momento."
+              title="Aún no estás cubierto por tu aseguradora"
+              subtitle="Contáctate con tu aseguradora al 800 721 3344. No encontramos una cita particular alternativa para ofrecerte en este momento."
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
