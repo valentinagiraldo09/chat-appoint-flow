@@ -310,7 +310,7 @@ function P1() {
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-5 flex items-center gap-4">
             <BackButton to="/" />
-            <h1 className="text-2xl font-bold md:text-3xl">¿Qué cita quieres?</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">Selecciona una cita</h1>
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
             <div className="flex-1"><AseguradoraPicker /></div>
