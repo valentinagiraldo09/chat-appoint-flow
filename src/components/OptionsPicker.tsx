@@ -57,15 +57,13 @@ export function OptionsPicker({
       <CommandInput placeholder="Buscar..." autoFocus />
       <CommandList className="max-h-[60vh]">
         <CommandEmpty>Sin resultados.</CommandEmpty>
-        {groups.map((g) => (
-          <CommandGroup key={g.label} heading={g.label}>
-            {g.items.map((opt) => (
-              <CommandItem key={opt} value={opt} onSelect={() => handlePick(opt)}>
-                {opt}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        ))}
+        <CommandGroup>
+          {options.map((opt) => (
+            <CommandItem key={opt} value={opt} onSelect={() => handlePick(opt)}>
+              {opt}
+            </CommandItem>
+          ))}
+        </CommandGroup>
       </CommandList>
       <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
         {options.length} opciones
