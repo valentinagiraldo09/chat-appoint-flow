@@ -305,7 +305,7 @@ function P0() {
   }
 
   function finishAgendar(d: Draft) {
-    botSay("Listo. Tengo todo lo que necesito. Voy a mostrarte la disponibilidad disponible para ti.", () => {
+    botSay("Listo, te muestro la disponibilidad.", () => {
       addBubble({
         kind: "summary",
         items: [
