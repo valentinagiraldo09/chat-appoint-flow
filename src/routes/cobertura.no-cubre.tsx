@@ -51,11 +51,12 @@ function NoCubre() {
           <div className="flex items-start gap-3">
             <XCircle className="mt-0.5 h-6 w-6 text-red-600" />
             <div>
-              <h1 className="text-2xl font-bold text-red-900">Tu aseguradora no cubre esta cita</h1>
+              <h1 className="text-2xl font-bold text-red-900">Aún no estás cubierto por tu seguro</h1>
               <p className="mt-1 text-red-800">
                 {aseguradora ? `${aseguradora} no cubre ` : "Tu aseguradora no cubre "}
                 {specialty}{service ? ` — ${service}` : ""}. Puedes continuar como particular pagando el valor de la cita, o volver a buscar otra cita.
               </p>
+              <p className="mt-2 text-red-800">Contáctate con tu seguro al 800 721 3344</p>
             </div>
           </div>
         </div>
