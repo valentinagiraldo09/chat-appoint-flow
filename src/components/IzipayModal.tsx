@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShoppingBasket, X, Check, ChevronDown, QrCode, CreditCard, Smartphone, Loader2 } from "lucide-react";
+import { X, Check, ChevronDown, QrCode, CreditCard, Smartphone, Loader2 } from "lucide-react";
 import { CocoLogo } from "@/components/CocoLogo";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,7 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
 
         {/* Header */}
         <div className="flex items-start justify-between gap-3 px-6 pb-4 pt-6">
-          <ShoppingBasket className="h-7 w-7 text-neutral-400" strokeWidth={1.5} />
+          <CocoLogo className="h-7 w-auto" />
           <div className="text-right">
             <div className="text-[11px] text-neutral-500">Número de pedido</div>
             <div className="text-[15px] font-semibold tracking-wide text-neutral-900">
@@ -110,7 +110,7 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
           <div className="relative">
             <input
               type="text"
-              placeholder="Número de tarjeta"
+              placeholder="**** **** **** ****"
               className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 pr-28 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
             />
             <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
@@ -124,13 +124,13 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
           <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
-              placeholder="Caducidad"
+              placeholder="MM / AA"
               className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
             />
             <div className="relative">
               <input
                 type="text"
-                placeholder="CVV"
+                placeholder="***"
                 className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 pr-10 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
               />
               <CreditCard className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
@@ -142,16 +142,18 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
               <label className="mb-1 block text-[12px] text-neutral-700">Nombres</label>
               <input
                 type="text"
+                placeholder="Nombres"
                 defaultValue={defaults?.nombres ?? ""}
-                className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 focus:border-teal-500 focus:outline-none"
+                className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
               />
             </div>
             <div>
               <label className="mb-1 block text-[12px] text-neutral-700">Apellidos</label>
               <input
                 type="text"
+                placeholder="Apellidos"
                 defaultValue={defaults?.apellidos ?? ""}
-                className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 focus:border-teal-500 focus:outline-none"
+                className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
               />
             </div>
           </div>
@@ -160,8 +162,9 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
             <label className="mb-1 block text-[12px] text-neutral-700">Correo electrónico</label>
             <input
               type="email"
+              placeholder="ejemplo@correo.com"
               defaultValue={defaults?.email ?? ""}
-              className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 focus:border-teal-500 focus:outline-none"
+              className="h-11 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-teal-500 focus:outline-none"
             />
           </div>
 
@@ -184,8 +187,6 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
           <div className="flex items-center justify-center gap-2 pb-5 pt-2 text-[10px] tracking-widest text-neutral-400">
             <span>POWERED BY</span>
             <span className="font-bold lowercase tracking-tight text-neutral-500">izipay</span>
-            <span className="text-neutral-300">·</span>
-            <CocoLogo className="h-3 w-auto opacity-70" />
           </div>
         </form>
       </div>

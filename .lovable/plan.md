@@ -1,23 +1,17 @@
-## Recomendaciones siempre visibles + CTA fijo en `/confirmacion`
+## Cambios en `src/components/IzipayModal.tsx`
 
-### 1. Sacar Recomendaciones del card de la cita
-En `src/routes/confirmacion.tsx`, eliminar el botón colapsable "Recomendaciones" (líneas 280-289) que está dentro del card de la cita.
+1. **Header: reemplazar ícono de cesta por logo de Coco**
+   - Quitar `ShoppingBasket` del import de `lucide-react`.
+   - Sustituir `<ShoppingBasket className="h-7 w-7 text-neutral-400" strokeWidth={1.5} />` por `<CocoLogo className="h-7 w-auto" />`.
 
-### 2. Nueva card de Recomendaciones (abajo, siempre abierta)
-Debajo del card de la cita, agregar una card independiente con el mismo estilo cyan (`border-cyan-300 bg-cyan-50`, `rounded-2xl`, `p-5`). Contenido:
-- Título "Recomendaciones" en bold (sin ícono Eye, ya que están desplegadas por defecto).
-- Lista de bullets con recomendaciones genéricas para una cita médica:
-  - Llegar 15 min antes.
-  - Traer documento de identidad y carné de aseguradora.
-  - Llevar exámenes, recetas o historia clínica reciente.
-  - Reprogramar/cancelar con al menos 12 h de anticipación.
+2. **Footer: dejar solo "POWERED BY izipay"**
+   - Eliminar el separador `·` y el `<CocoLogo />` del footer (líneas 187-188).
+   - Mantener únicamente `POWERED BY` + `izipay` con el mismo estilo actual.
 
-### 3. CTA "Pedir nueva cita" siempre visible
-Convertir el bloque del botón "Pedir nueva cita" en una **barra fija inferior** (`fixed inset-x-0 bottom-0 z-40`) con:
-- Fondo `bg-background/95` con `backdrop-blur` y borde superior.
-- Botón centrado (full-width en mobile, auto en desktop).
-- Agregar `h-24` (spacer) al final del contenedor scrollable para que el footer no tape el código.
+3. **Empty states (placeholders) iguales a la referencia de Izipay**
+   - `Número de tarjeta` → `**** **** **** ****`
+   - `Caducidad` → `MM / AA`
+   - `CVV` → `***`
+   - Inputs Nombres / Apellidos / Correo: añadir placeholders `Nombres`, `Apellidos`, `ejemplo@correo.com`.
 
-El código de la cita queda dentro del flujo normal, justo arriba del spacer.
-
-Si la importación de `Eye` queda sin usar, removerla del import de lucide-react.
+No se tocan otros archivos.
