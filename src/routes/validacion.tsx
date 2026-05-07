@@ -284,7 +284,8 @@ function P5() {
             <ResultHeader
               icon={Info}
               tone="info"
-              title="Tu aseguradora no cubre esta cita"
+              title="Aún no estás cubierto por tu seguro"
+              subtitle="Contáctate con tu seguro al 800 721 3344"
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
@@ -333,8 +334,8 @@ function P5() {
             <ResultHeader
               icon={Info}
               tone="info"
-              title="Tu aseguradora no cubre esta cita"
-              subtitle="No encontramos una cita particular alternativa para ofrecerte en este momento."
+              title="Aún no estás cubierto por tu seguro"
+              subtitle="Contáctate con tu seguro al 800 721 3344. No encontramos una cita particular alternativa para ofrecerte en este momento."
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
