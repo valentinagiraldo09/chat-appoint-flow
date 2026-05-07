@@ -351,7 +351,7 @@ function P0() {
       const step = nextAgendarStep(d);
       // Mensaje inicial contextual
       if (opts?.parsed?.specialty && step !== "specialty") {
-        botSay(`Entendido, te ayudo a agendar tu cita de ${opts.parsed.specialty}.`, () => askAgendar(step, d));
+        botSay(`Agendamos ${opts.parsed.specialty}.`, () => askAgendar(step, d));
       } else {
         askAgendar(step, d);
       }
