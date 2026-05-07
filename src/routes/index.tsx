@@ -446,7 +446,7 @@ function P0() {
   function pickDate(key: DateChipKey, label: string) {
     if (key === "pick") {
       userSay("Elegir fecha");
-      botSay("Perfecto, ¿para qué fecha quieres consultar?", () =>
+      botSay("¿Qué fecha?", () =>
         addBubble({ kind: "date-input" }),
       );
       return;
