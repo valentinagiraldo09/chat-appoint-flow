@@ -509,7 +509,7 @@ function P0() {
     if (f === "confirmar") {
       addBubble({ kind: "appt-card", flow: f });
     } else {
-      botSay("Encontré tus citas activas:", () => addBubble({ kind: "appt-card", flow: f }));
+      botSay("Tus citas activas:", () => addBubble({ kind: "appt-card", flow: f }));
     }
   }
 
