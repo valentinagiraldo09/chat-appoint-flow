@@ -91,8 +91,8 @@ function P6() {
                 {sedeAddress ? ` · ${sedeAddress}` : ""}
               </div>
             </div>
-            <div className="flex shrink-0 flex-col items-end gap-3">
-              <span className="rounded-md border border-amber-400 px-3 py-1 text-xs font-medium text-foreground">
+            <div className="flex shrink-0 flex-col items-end justify-between self-stretch gap-3">
+              <span className="rounded-md border border-amber-400 bg-amber-100 px-2.5 py-1 text-xs font-medium text-foreground">
                 {slot.attention}
               </span>
               <span className="rounded-md bg-muted px-3 py-1.5 text-sm font-bold">
