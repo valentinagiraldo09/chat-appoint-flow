@@ -116,8 +116,14 @@ function fuzzyHas(text: string, keyword: string): boolean {
   return false;
 }
 
-// Devuelve la primera coincidencia fuzzy
+// Devuelve la primera coincidencia: prioriza match exacto (substring) sobre fuzzy
 function fuzzyMatch<T>(text: string, entries: Array<[string[], T]>): T | undefined {
+  const T = norm(text);
+  // 1ª pasada: substring exacto (sin tolerancia a typos) — evita que "agendar" matchee "reagenda"
+  for (const [keys, val] of entries) {
+    for (const k of keys) if (T.includes(norm(k))) return val;
+  }
+  // 2ª pasada: fuzzy con tolerancia
   for (const [keys, val] of entries) {
     for (const k of keys) if (fuzzyHas(text, k)) return val;
   }
