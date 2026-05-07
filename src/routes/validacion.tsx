@@ -3,15 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   AlertTriangle,
-  XCircle,
-  Phone,
-  CreditCard,
-  CalendarSearch,
   ListChecks,
   CalendarDays,
   Info,
-  ShieldOff,
-  Clock4,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -23,7 +17,6 @@ import {
   findNextAvailableDate,
   type Slot,
 } from "@/mocks/availability";
-import { formatCOP } from "@/mocks/catalog";
 import { BackButton } from "@/components/BackButton";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { ResultHeader } from "@/components/validacion/ResultHeader";
@@ -33,6 +26,7 @@ import {
   SecondaryActions,
   SecondaryActionRow,
 } from "@/components/validacion/ActionList";
+
 import { SuggestedSlotCard } from "@/components/validacion/SuggestedSlotCard";
 
 export const Route = createFileRoute("/validacion")({
