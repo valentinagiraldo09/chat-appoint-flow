@@ -231,46 +231,6 @@ function P5() {
           );
         })()}
 
-        {result.kind === "lista_negra" && (
-          <>
-            <ResultHeader
-              icon={ShieldOff}
-              tone="info"
-              title="Esta cita no se puede agendar con tu aseguradora"
-              subtitle={
-                <>
-                  Comunícate con {aseguradora ?? "tu aseguradora"} al{" "}
-                  <a
-                    href={`tel:${result.telefonoEPS.replace(/\s/g, "")}`}
-                    className="font-medium text-foreground underline"
-                  >
-                    {result.telefonoEPS}
-                  </a>{" "}
-                  para más información.
-                </>
-              }
-            />
-            <IntentSummary specialty={specialty} service={service} slot={slot} />
-            <PrimaryAction
-              icon={CreditCard}
-              label={`Tomar esta cita como particular · ${formatCOP(slot.price)}`}
-              onClick={tomarSlotActualParticular}
-            />
-            <SecondaryActions>
-              <SecondaryActionRow
-                icon={CalendarSearch}
-                label="Ver más horarios particulares"
-                onClick={verMasParticulares}
-              />
-              <SecondaryActionRow
-                icon={Phone}
-                label={`Llamar a ${aseguradora ?? "mi aseguradora"}`}
-                description={result.telefonoEPS}
-                href={`tel:${result.telefonoEPS.replace(/\s/g, "")}`}
-              />
-            </SecondaryActions>
-          </>
-        )}
 
         {result.kind === "sin_cobertura" && (
           <>
@@ -286,7 +246,7 @@ function P5() {
               puedes tomar esta cita
             </p>
 
-            {particularSlot ? (
+            {particularSlot && (
               <SuggestedSlotCard
                 slot={particularSlot}
                 eyebrow="Cita particular sugerida"
@@ -295,10 +255,6 @@ function P5() {
                 secondaryLabel="Ver más disponibilidad"
                 onSecondary={verMasParticulares}
               />
-            ) : (
-              <div className="rounded-2xl border border-border bg-muted/20 p-5 text-sm text-muted-foreground">
-                No encontramos un horario particular cercano.
-              </div>
             )}
 
             <div>
@@ -322,62 +278,6 @@ function P5() {
           </>
         )}
 
-        {result.kind === "sin_alternativa" && (
-          <>
-            <ResultHeader
-              icon={Info}
-              tone="info"
-              title="Aún no estás cubierto por tu aseguradora"
-              subtitle="Contáctate con tu aseguradora al 800 721 3344. No encontramos una cita particular alternativa para ofrecerte en este momento."
-            />
-            <IntentSummary specialty={specialty} service={service} slot={slot} compact />
-
-            <div>
-              <SecondaryActions title="Otras opciones">
-                <SecondaryActionRow
-                  icon={ListChecks}
-                  label="Inscribirme en lista de espera"
-                  onClick={() => setWaitlistOpen(true)}
-                />
-              </SecondaryActions>
-              <div className="mt-3 flex justify-center">
-                <button
-                  type="button"
-                  onClick={buscarNuevaCita}
-                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-                >
-                  Buscar nueva cita
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {result.kind === "sin_disponibilidad" && (
-          <>
-            <ResultHeader
-              icon={Clock4}
-              tone="neutral"
-              title="No encontramos disponibilidad en este momento"
-              subtitle={
-                <>
-                  Te avisamos apenas se libere un horario
-                  {specialty ? ` para ${specialty}` : ""}
-                  {aseguradora ? ` con ${aseguradora}` : ""}.
-                </>
-              }
-            />
-            <IntentSummary specialty={specialty} service={service} slot={slot} />
-            <PrimaryAction
-              icon={ListChecks}
-              label="Inscribirme en lista de espera"
-              onClick={() => setWaitlistOpen(true)}
-            />
-          </>
-        )}
-
-        {/* fallback safety - never used but keeps exhaustive feel */}
-        {false && <XCircle className="hidden" />}
       </div>
 
       <WaitlistDialog
