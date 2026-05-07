@@ -8,6 +8,7 @@ import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
 import { parseYmd, formatTime } from "@/mocks/availability";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
+import { IzipayModal } from "@/components/IzipayModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pago")({
@@ -21,12 +22,14 @@ function P6() {
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const patient = useBooking((s) => s.patient);
   const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
   const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
 
   const [method, setMethod] = useState<"online" | "clinic" | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [showIzipay, setShowIzipay] = useState(false);
 
   // Tiene valor para pagar solo si es particular o se eligió pagar como particular.
   const tieneValorPorPagar =
@@ -54,14 +57,32 @@ function P6() {
 
   function confirm() {
     if (!method) return;
+    if (method === "online") {
+      setShowIzipay(true);
+      return;
+    }
     setProcessing(true);
     setTimeout(() => {
-      setPaymentMethod(method as "online" | "clinic");
+      setPaymentMethod("clinic");
       const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setConfirmationCode(code);
       navigate({ to: "/confirmacion" });
     }, 1200);
   }
+
+  function handleIzipaySuccess() {
+    setPaymentMethod("online");
+    const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    setConfirmationCode(code);
+    navigate({ to: "/confirmacion" });
+  }
+
+  const nameParts = (patient?.nombre ?? "").trim().split(/\s+/);
+  const izipayDefaults = {
+    nombres: nameParts.slice(0, Math.max(1, nameParts.length - 1)).join(" "),
+    apellidos: nameParts.length > 1 ? nameParts.slice(-1).join(" ") : "",
+    email: patient?.email ?? "",
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,6 +151,14 @@ function P6() {
           </Button>
         </div>
       </div>
+
+      <IzipayModal
+        open={showIzipay}
+        onClose={() => setShowIzipay(false)}
+        onSuccess={handleIzipaySuccess}
+        amount={slot.price}
+        defaults={izipayDefaults}
+      />
     </div>
   );
 }

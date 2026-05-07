@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import {
@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { CocoLogo } from "@/components/CocoLogo";
+import { IzipayModal } from "@/components/IzipayModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/confirmacion")({
@@ -36,9 +37,11 @@ function P7() {
   const aseguradora = useBooking((s) => s.aseguradora);
   const code = useBooking((s) => s.confirmationCode);
   const paymentMethod = useBooking((s) => s.paymentMethod);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
   const reset = useBooking((s) => s.reset);
 
   const [copied, setCopied] = useState(false);
+  const [showIzipay, setShowIzipay] = useState(false);
 
   useEffect(() => {
     if (!slot || !patient || !code) navigate({ to: "/" });
@@ -239,12 +242,13 @@ function P7() {
                     <AlertCircle className="h-4 w-4" />
                     Pago pendiente: {formatCOP(slot.price)}
                   </div>
-                  <Link
-                    to="/pago"
+                  <button
+                    type="button"
+                    onClick={() => setShowIzipay(true)}
                     className="inline-flex items-center rounded-md bg-foreground px-3 py-1.5 text-sm font-semibold text-background hover:opacity-90"
                   >
                     Pagar ahora
-                  </Link>
+                  </button>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                   Tu cita quedará confirmada únicamente cuando realices el pago
@@ -301,6 +305,21 @@ function P7() {
           Código: <span className="font-mono">{code}</span>
         </div>
       </div>
+
+      <IzipayModal
+        open={showIzipay}
+        onClose={() => setShowIzipay(false)}
+        onSuccess={() => {
+          setPaymentMethod("online");
+          setShowIzipay(false);
+        }}
+        amount={slot.price}
+        defaults={{
+          nombres: patient.nombre,
+          apellidos: "",
+          email: patient.email,
+        }}
+      />
     </div>
   );
 }
