@@ -485,7 +485,7 @@ function P0() {
     }
     const nextIso = ymd(next);
     const nextLabel = next.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
-    botSay(`No hay disponibilidad para el ${targetLabel}. La fecha más cercana disponible es el ${nextLabel}. ¿Quieres tomar esa?`, () =>
+    botSay(`No hay cupo el ${targetLabel}. Lo más cercano: ${nextLabel}. ¿La tomamos?`, () =>
       addBubble({ kind: "date-suggest", iso: nextIso, label: nextLabel }),
     );
   }
