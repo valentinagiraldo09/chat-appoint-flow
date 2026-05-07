@@ -421,7 +421,7 @@ function P0() {
     if (intent) {
       startFlow(intent, { skipUserBubble: true, parsed });
     } else {
-      botSay("Puedo ayudarte a agendar, reagendar, cancelar o confirmar tu cita. ¿Qué necesitas?");
+      botSay("Puedo agendar, reagendar, cancelar o confirmar. ¿Qué necesitas?");
     }
   }
 
