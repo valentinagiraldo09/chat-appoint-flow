@@ -242,19 +242,20 @@ function P5() {
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
-            <p className="py-2 text-center text-sm font-medium text-muted-foreground">
-              puedes tomar esta cita
-            </p>
-
             {particularSlot && (
-              <SuggestedSlotCard
-                slot={particularSlot}
-                eyebrow="Cita particular sugerida"
-                ctaLabel="Agendar esta cita"
-                onSelect={() => tomarSugeridoParticular(particularSlot)}
-                secondaryLabel="Ver más disponibilidad"
-                onSecondary={verMasParticulares}
-              />
+              <>
+                <p className="py-2 text-center text-sm font-medium text-muted-foreground">
+                  puedes tomar esta cita
+                </p>
+                <SuggestedSlotCard
+                  slot={particularSlot}
+                  eyebrow="Cita particular sugerida"
+                  ctaLabel="Agendar esta cita"
+                  onSelect={() => tomarSugeridoParticular(particularSlot)}
+                  secondaryLabel="Ver más disponibilidad"
+                  onSecondary={verMasParticulares}
+                />
+              </>
             )}
 
             <div>
