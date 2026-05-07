@@ -1,65 +1,53 @@
-## Objetivo
+## Cambios a aplicar
 
-Simplificar la pantalla P5 (Validación) a **solo 3 estados**:
+### 1. Eliminar `/oportunidad` del flujo y del proyecto
+- Borrar `src/routes/oportunidad.tsx`.
+- No tocar `src/routeTree.gen.ts` (TanStack lo regenera automáticamente al detectar la eliminación).
+- Verificar que ningún componente/ruta enlace a `/oportunidad` (búsqueda confirma que solo el archivo y el route tree generado lo referencian).
 
-1. `kind: "ok"` → confirmar y pagar
-2. `kind: "limite_paciente"` → la aseguradora aún no cubre la fecha elegida
-3. `kind: "sin_cobertura"` → la aseguradora no cubre el servicio (absorbe el caso que antes era `lista_negra`)
+### 2. Limpiar referencias a `/oportunidad` en `/mnt/documents/flujo-agendamiento-coco.md`
+- Tabla §2 (mapa de pantallas): borrar fila **P5b**.
+- §3.7 P5b — Oportunidad: eliminar la sección completa (renumerar siguientes a P5b = cobertura legacy si quiero, o simplemente quitar el bloque P5b).
+- §5 Empty states: quitar la fila “Sin oportunidad más temprana (P5b)”.
+- Apéndice A (estructura de archivos): quitar `oportunidad.tsx`.
 
-Los antiguos kinds `lista_negra`, `sin_alternativa` y `sin_disponibilidad` desaparecen de P5. La existencia o no de una cita particular alternativa **no genera un kind nuevo**: se calcula y, si existe, se sugiere; si no, simplemente no se muestra ese bloque.
+### 3. Sincronizar el .md con el modelo de validación de 3 estados
+La iteración previa simplificó `ValidationResult` a `ok | limite_paciente | sin_cobertura`, pero el documento todavía describe `lista_negra`, `sin_alternativa`, `sin_disponibilidad` y `telefonoEPS`. Reescribir:
 
----
+- **§3.6 tabla de kinds** → dejar solo 3 filas: `ok`, `limite_paciente`, `sin_cobertura`. En `limite_paciente` y `sin_cobertura` aclarar: “si existe `particularSlot` se muestra como sugerencia opcional; si no, no se muestra ningún bloque alternativo” (no es un kind aparte).
+- **§6.2 Caso 2** → renombrar a “No cubierto (`sin_cobertura`)”. Quitar `sin_alternativa` y `lista_negra`. Explicar que el caso de “lista negra” queda absorbido por `sin_cobertura` (mismo estado desde el punto de vista del paciente). El slot particular es opcional, no estado.
+- **§6.3 limite_paciente** → mantener; aclarar que `particularSlot` se muestra solo si existe.
+- **§6.1 Caso 1** → ya correcto, mínima limpieza para reflejar las 3 reglas reales en `validations.ts`.
+- **§11.4 Validaciones** → sustituir el listado de sufijos por:
+  - `…11` → `limite_paciente`
+  - `…22`, `…00`, `…33` → `sin_cobertura`
+  - Particular o `bypassCoverage` → `ok`
+  - Pediatría + Sura + Primera vez → `sin_cobertura` (antes decía `sin_disponibilidad`)
+  - Cardiología + Primera vez → `sin_cobertura`
+  - Default → `ok`
+- **§11.6 “Reglas que cambian determinísticamente”**: actualizar “Mostrar sin disponibilidad” → ahora se reproduce desde el estado-4 de `disponibilidadStates.ts`, no desde validación.
+- Donde aparezca `telefonoEPS` (header de `lista_negra`): quitar.
 
-## Cambios por archivo
+### 4. Añadir nueva sección “Flujos posibles explicados para no técnicos”
+Insertarla justo antes de “Apéndice A”. Estructura:
 
-### 1. `src/mocks/validations.ts`
+- Introducción de 3 líneas: “Esta sección describe en lenguaje sencillo los caminos que puede recorrer un paciente. No requiere conocimiento técnico.”
+- **Flujo A — Todo sale bien (cubierto por aseguradora)**: el paciente conversa con Coco, ve horarios, elige uno, llena sus datos, su EPS cubre la cita y va directo a la confirmación sin pagar. Indicar pasos numerados con ejemplo de paciente.
+- **Flujo B — Todo sale bien pero paga particular**: igual al A pero el paciente eligió Particular (o cambió a Particular en algún punto). Termina pasando por la pantalla de pago con el modal de tarjeta.
+- **Flujo C — La aseguradora aún no lo cubre en esa fecha (`limite_paciente`)**: explicar que la aseguradora pone una fecha mínima (ej. en 30 días). El paciente puede esperar y ver disponibilidad desde esa fecha, o tomar una cita particular sugerida. Si no hay particular cercano, simplemente se ofrece esperar o entrar a lista de espera.
+- **Flujo D — La aseguradora no cubre el servicio (`sin_cobertura`)**: explicar que esa combinación de servicio + EPS no aplica. El paciente puede pagar particular si hay un horario sugerido, o anotarse en lista de espera, o buscar otra cita.
+- **Flujo E — No hay horarios disponibles**: antes de elegir slot, en `/disponibilidad` aparece el modal “No hay disponibilidad”. El paciente puede dejar sus datos en lista de espera o cambiar de servicio.
+- **Flujo F — El paciente cambia de aseguradora a mitad de camino**: explicar el banner verde que permite volver atrás sin perder datos.
+- **Flujo G — Reagendar / cancelar / consultar**: el asistente Coco maneja estas intenciones desde la pantalla inicial sin pasar por el resto del flujo.
 
-- Reducir el union `ValidationResult` a:
-  ```ts
-  type ValidationResult =
-    | { kind: "ok" }
-    | { kind: "limite_paciente"; fechaPermitida: string }
-    | { kind: "sin_cobertura" };
-  ```
-- Eliminar las variantes `lista_negra`, `sin_alternativa`, `sin_disponibilidad`.
-- Eliminar el campo `telefonoEPS` (el teléfono de contacto pasa a ser un literal en la UI o un valor estático compartido, sin modelarse en el resultado).
-- Reglas mock por sufijo de documento (se mantienen las palancas de QA, redirigidas al nuevo set):
-  - termina en `11` → `limite_paciente`
-  - termina en `22` o `00` → `sin_cobertura`
-  - termina en `33` → también mapea a `sin_cobertura` (antes era `sin_alternativa`; el "no hay particular" deja de ser un kind y se resuelve naturalmente cuando `findParticularSlot` retorna `null`)
-  - reglas previas que devolvían `sin_disponibilidad` (Pediatría + EPS Sura + Primera vez) → mapean a `sin_cobertura` también (es la opción más cercana semánticamente bajo el nuevo modelo)
+Cada flujo en bullets cortos: “Qué ve el paciente”, “Qué decisiones puede tomar”, “Cómo termina”. Sin jerga técnica (sin mencionar `kind`, `Zustand`, `Slot`, etc.).
 
-### 2. `src/routes/validacion.tsx`
+### 5. Salida
+- El archivo se reescribe en su lugar: `/mnt/documents/flujo-agendamiento-coco.md`.
+- Se emite un `<lov-artifact>` para que el usuario pueda descargar la nueva versión.
 
-- Eliminar los 3 bloques JSX correspondientes a `lista_negra`, `sin_alternativa` y `sin_disponibilidad` (líneas 243-282, 334-362, 365-386).
-- Limpiar imports no usados tras la poda (`ShieldOff`, `Clock4`, `XCircle`, `Phone`, `CreditCard` si ya no se usan).
-- Mantener intactos los bloques `ok` y `limite_paciente`.
-- Bloque `sin_cobertura`: ya existe y muestra la sugerencia particular condicionalmente (`particularSlot ? <SuggestedSlotCard/> : <fallback/>`). Confirmar que:
-  - Si NO hay `particularSlot`, **no se muestra ningún bloque de sugerencia particular** (cambiar el fallback actual por `null` en lugar de la card "No encontramos un horario particular cercano").
-  - Igual tratamiento en el bloque `limite_paciente`: si no hay particular, ocultar tanto el separador "o puedes tomar esta cita" como el bloque sugerido (no mostrar fallback).
-- En `sin_cobertura`, el subtítulo conserva el teléfono como literal (`"Contáctate con tu aseguradora al 800 721 3344"`), absorbiendo el caso anterior de `lista_negra`.
+## Notas técnicas
 
-### 3. `src/routes/checkout.tsx`
-
-- No requiere cambios funcionales (sigue llamando `runValidations` y guardando el resultado), pero el typecheck obligará a remover cualquier narrowing sobre los kinds eliminados si existiera. Verificar tras editar.
-
-### 4. `.lovable/plan.md` y `/mnt/documents/flujo-agendamiento-coco.md`
-
-- Actualizar la sección de P5 para reflejar los 3 únicos kinds y la regla "particular es sugerencia opcional, no estado".
-
----
-
-## Por qué
-
-- **Modelo más simple**: el equipo manejaba 6 kinds que en realidad colapsaban a 3 decisiones de producto (sigue, espera fecha, no cubierto). Reducir a 3 elimina ramas muertas en UI.
-- **Particular como sugerencia, no estado**: ya sea por límite de paciente o por sin cobertura, la oferta particular es **una mejora opcional**, no una bifurcación del flujo. Modelarla como kind aparte (`sin_alternativa`) duplicaba lógica.
-- **`lista_negra` ⊂ `sin_cobertura`**: desde la perspectiva del paciente la experiencia es idéntica (no puedes agendar con tu EPS, contacta a tu aseguradora). El teléfono específico por EPS deja de viajar en el resultado y se trata como un dato estático de la pantalla.
-
----
-
-## Verificación post-cambio
-
-- Documento `...11` → ver pantalla `limite_paciente` (con o sin sugerencia particular según haya slot).
-- Documento `...22` / `...00` / `...33` → ver pantalla `sin_cobertura` (con o sin sugerencia particular).
-- Documento normal → ver pantalla `ok`.
-- Confirmar que no quedan imports/iconos sin usar y que el typecheck pasa.
+- No hay imports rotos al borrar `oportunidad.tsx` (búsqueda solo encuentra referencias internas + el route tree autogenerado).
+- `src/routeTree.gen.ts` se regenera; no se edita a mano.
+- El .md se actualiza con `code--write` (reescritura completa porque hay muchos puntos dispersos).
