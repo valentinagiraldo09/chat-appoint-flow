@@ -18,7 +18,7 @@ export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: (
           {slot.attention}
         </span>
       </div>
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-4">
         <div className="text-sm">
           <div className="text-muted-foreground">Profesional:</div>
           <div className="font-medium">{slot.profesional}</div>
@@ -30,7 +30,7 @@ export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: (
           </div>
         )}
         {!hidePrice && (
-          <div className="mt-3 flex justify-end">
+          <div className="mt-auto flex justify-end pt-3">
             <span className="rounded-md bg-muted px-2 py-1 text-sm font-bold">
               {formatCOP(slot.price)}
             </span>
