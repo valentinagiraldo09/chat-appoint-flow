@@ -191,25 +191,22 @@ function P5() {
                 onClick={() => verConAseguradora(result.fechaPermitida)}
               />
 
-              <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
-                <div className="h-px flex-1 bg-border" />
-                <span className="tracking-wide">o puedes tomar esta cita</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              {particularSlot ? (
-                <SuggestedSlotCard
-                  slot={particularSlot}
-                  eyebrow="Cita particular sugerida"
-                  ctaLabel="Agendar esta cita"
-                  onSelect={() => tomarSugeridoParticular(particularSlot)}
-                  secondaryLabel="Ver más disponibilidad"
-                  onSecondary={verMasParticulares}
-                />
-              ) : (
-                <div className="rounded-2xl border border-border bg-muted/20 p-5 text-sm text-muted-foreground">
-                  No encontramos un horario particular cercano.
-                </div>
+              {particularSlot && (
+                <>
+                  <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="tracking-wide">o puedes tomar esta cita</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <SuggestedSlotCard
+                    slot={particularSlot}
+                    eyebrow="Cita particular sugerida"
+                    ctaLabel="Agendar esta cita"
+                    onSelect={() => tomarSugeridoParticular(particularSlot)}
+                    secondaryLabel="Ver más disponibilidad"
+                    onSecondary={verMasParticulares}
+                  />
+                </>
               )}
 
               <div>
