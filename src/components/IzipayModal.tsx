@@ -61,7 +61,7 @@ export function IzipayModal({ open, onClose, onSuccess, amount, defaults }: Prop
         </button>
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 px-6 pb-4 pt-6">
+        <div className="flex items-start justify-between gap-3 px-6 pb-4 pr-12 pt-6">
           <CocoLogo className="h-7 w-auto" />
           <div className="text-right">
             <div className="text-[11px] text-neutral-500">Número de pedido</div>
