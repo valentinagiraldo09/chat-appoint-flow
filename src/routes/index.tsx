@@ -531,7 +531,7 @@ function P0() {
   function confirmCancel(yes: boolean) {
     if (yes) {
       userSay("Sí, cancelar");
-      botSay("✓ Tu cita fue cancelada exitosamente. ¿Quieres agendar una nueva cita?", () =>
+      botSay("✓ Cita cancelada. ¿Agendamos una nueva?", () =>
         addBubble({ kind: "post-cancel" }),
       );
       setIdStep("done");
