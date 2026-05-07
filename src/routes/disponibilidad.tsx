@@ -310,7 +310,7 @@ function P1() {
         <div className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-5 flex items-center gap-4">
             <BackButton to="/" />
-            <h1 className="text-2xl font-bold md:text-3xl">¿Qué cita quieres?</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">Selecciona una cita</h1>
           </div>
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
             <div className="flex-1"><AseguradoraPicker /></div>
@@ -434,10 +434,10 @@ function P1() {
                         search: { specialty, service, aseguradora: "Particular", date: preferredDate },
                       });
                     }}
-                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-primary/30 bg-primary/5 px-5 py-4 text-left transition hover:bg-primary/10"
+                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-100/70 px-5 py-4 text-left transition hover:bg-emerald-100"
                   >
                     <div className="flex items-center gap-3">
-                      <Zap className="h-5 w-5 shrink-0 text-primary" />
+                      <Zap className="h-5 w-5 shrink-0 text-emerald-700" />
                       <div>
                         <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
                         <div className="text-sm text-foreground/80">
@@ -446,7 +446,7 @@ function P1() {
                         </div>
                       </div>
                     </div>
-                    <span className="whitespace-nowrap text-sm font-medium text-primary">
+                    <span className="whitespace-nowrap text-sm font-medium text-emerald-700">
                       Ver citas particulares →
                     </span>
                   </button>
