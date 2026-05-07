@@ -65,6 +65,9 @@ export function ConfirmModal({
               <div className="font-medium">
                 {specialty}
                 {service && <span> · {service}</span>}
+                {aseguradora && (
+                  <span className="text-muted-foreground text-sm font-normal"> · {aseguradora}</span>
+                )}
               </div>
               <div>{slot.profesional}</div>
               {slot.attention === "Presencial" && (
@@ -74,9 +77,6 @@ export function ConfirmModal({
                     <div className="text-muted-foreground">{SEDE_ADDRESSES[slot.sede]}</div>
                   )}
                 </div>
-              )}
-              {aseguradora && (
-                <div className="text-muted-foreground text-sm">Aseguradora: {aseguradora}</div>
               )}
             </div>
 
