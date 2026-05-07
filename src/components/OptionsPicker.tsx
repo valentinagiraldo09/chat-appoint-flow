@@ -113,64 +113,49 @@ export function ChipList({
 }) {
   const [open, setOpen] = useState(false);
 
-  const longest = options.reduce((m, o) => Math.max(m, o.length), 0);
-  const hasLong = longest > 22;
   const count = options.length;
 
-  // Decidir modo:
-  // ≤6 y no hay textos largos → wrap
-  // 7-12 o textos largos → fila scrollable + "Ver todas"
-  // >12 → top 5 + "Ver todas (N)"
-  let mode: "wrap" | "scroll" | "top";
-  let visible: string[] = options;
-  if (count > 12) {
-    mode = "top";
-    const seen = new Set<string>();
-    const merged = [...recent, ...top].filter((x) => options.includes(x) && !seen.has(x) && (seen.add(x), true));
-    const fillers = options.filter((x) => !seen.has(x));
-    visible = [...merged, ...fillers].slice(0, 5);
-  } else if (count > 6 || hasLong) {
-    mode = "scroll";
+  // Regla unificada: máximo 4 chips visibles + "Ver todas (N)" si hay más de 5.
+  let visible: string[];
+  let showSeeAll: boolean;
+  if (count <= 5) {
     visible = options;
+    showSeeAll = false;
   } else {
-    mode = "wrap";
-    visible = options;
+    const seen = new Set<string>();
+    const merged = [...recent, ...top].filter(
+      (x) => options.includes(x) && !seen.has(x) && (seen.add(x), true),
+    );
+    const fillers = options.filter((x) => !seen.has(x));
+    visible = [...merged, ...fillers].slice(0, 4);
+    showSeeAll = true;
   }
 
   const chipBase =
-    "rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted whitespace-nowrap truncate min-w-[7rem] max-w-[18ch] text-center";
+    "rounded-2xl border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition hover:border-foreground hover:bg-muted whitespace-normal break-words text-left leading-snug max-w-[16rem]";
 
-  const seeAll = (
+  const seeAll = showSeeAll ? (
     <button
       key="__all__"
       onClick={() => setOpen(true)}
       className="rounded-full border border-dashed border-border bg-card px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-foreground hover:text-foreground whitespace-nowrap"
     >
-      {mode === "top" ? `Ver todas (${count})` : "Ver todas"}
+      {`Ver todas (${count})`}
     </button>
-  );
+  ) : null;
 
   const chips = visible.map((s) => (
-    <button key={s} title={s} className={chipBase} onClick={() => onPick(s)}>
+    <button key={s} className={chipBase} onClick={() => onPick(s)}>
       {s}
     </button>
   ));
 
   return (
     <>
-      {mode === "wrap" ? (
-        <div className="flex flex-wrap gap-2 pl-10">{chips}</div>
-      ) : (
-        <div className="pl-10">
-          <div className="relative">
-            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
-              {chips}
-              {seeAll}
-            </div>
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" />
-          </div>
-        </div>
-      )}
+      <div className="flex flex-wrap items-start gap-2 pl-10">
+        {chips}
+        {seeAll}
+      </div>
       <OptionsPicker
         open={open}
         onOpenChange={setOpen}
