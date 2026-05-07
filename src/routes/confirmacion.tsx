@@ -305,6 +305,21 @@ function P7() {
           Código: <span className="font-mono">{code}</span>
         </div>
       </div>
+
+      <IzipayModal
+        open={showIzipay}
+        onClose={() => setShowIzipay(false)}
+        onSuccess={() => {
+          setPaymentMethod("online");
+          setShowIzipay(false);
+        }}
+        amount={slot.price}
+        defaults={{
+          nombres: patient.nombre,
+          apellidos: "",
+          email: patient.email,
+        }}
+      />
     </div>
   );
 }
