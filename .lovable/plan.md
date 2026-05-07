@@ -1,17 +1,22 @@
-## Cambios
+## Cambio
 
-### 1. "seguro" → "aseguradora"
-- `src/routes/validacion.tsx` (líneas 289, 290, 341, 342): cambiar título a `"Aún no estás cubierto por tu aseguradora"` y subtítulo a `"Contáctate con tu aseguradora al 800 721 3344"` (manteniendo el sufijo en línea 342).
-- `src/routes/cobertura.no-cubre.tsx` (líneas 54, 59): mismos reemplazos en el `<h1>` y el `<p>`.
-
-### 2. Validación con doc terminado en 22 (`sin_cobertura`, validacion.tsx ~líneas 294-298)
-Reemplazar el bloque divisor por un texto centrado en minúscula sin "O":
+En `src/routes/confirmacion.tsx` (líneas 235-246), dentro del bloque `isPendingClinic` (cuando el usuario eligió pagar haciendo fila), envolver el badge "Pago pendiente" y un nuevo CTA en un contenedor flex:
 
 ```tsx
-<p className="text-center text-sm font-medium text-muted-foreground py-2">
-  puedes tomar esta cita
-</p>
+<div className="flex flex-wrap items-center gap-2">
+  <div className="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-700">
+    <AlertCircle className="h-4 w-4" />
+    Pago pendiente: {formatCOP(slot.price)}
+  </div>
+  <Link
+    to="/pago"
+    className="inline-flex items-center gap-1 rounded-md bg-foreground px-3 py-1.5 text-sm font-semibold text-background hover:opacity-90"
+  >
+    Pagar ahora
+  </Link>
+</div>
 ```
 
-### 3. Validación con doc terminado en 11 (`limite_paciente`, validacion.tsx ~línea 202)
-Cambiar `"O puedes tomar esta cita"` → `"o puedes tomar esta cita"` (minúscula), manteniendo los divisores laterales.
+- Importar `Link` desde `@tanstack/react-router` si aún no está importado en el archivo.
+- El bloque amarillo informativo y el resto del contenido se mantienen igual.
+- El CTA solo aparece en el caso `isPendingClinic` (pago en clínica), no en `isPaid` ni `isCovered`.
