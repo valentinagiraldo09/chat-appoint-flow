@@ -292,13 +292,13 @@ function P0() {
   function askAgendar(step: AgendarStep, d: Draft) {
     setAgStep(step);
     if (step === "specialty") {
-      botSay("Perfecto. ¿Qué especialidad necesitas?");
+      botSay("¿Qué especialidad necesitas?");
     } else if (step === "service") {
-      botSay(`Genial, busquemos disponibilidad para ${d.specialty}. ¿Es primera vez o es un control?`);
+      botSay("¿Primera vez o control?");
     } else if (step === "eps") {
-      botSay("¿Con qué aseguradora o EPS vas a tomar la cita?");
+      botSay("¿Con qué EPS?");
     } else if (step === "date") {
-      botSay("¿Desde cuándo quieres tu cita?");
+      botSay("¿Para cuándo?");
     } else if (step === "ready") {
       finishAgendar(d);
     }
