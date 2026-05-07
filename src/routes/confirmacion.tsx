@@ -321,7 +321,6 @@ function P7() {
           </Button>
         </div>
       </div>
-      </div>
 
       <IzipayModal
         open={showIzipay}
