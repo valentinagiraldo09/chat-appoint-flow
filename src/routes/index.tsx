@@ -500,7 +500,7 @@ function P0() {
 
   function rejectSuggestedDate() {
     userSay("No, prefiero otra fecha");
-    botSay("Claro, elige la fecha que prefieras:", () => addBubble({ kind: "date-input" }));
+    botSay("Elige la fecha:", () => addBubble({ kind: "date-input" }));
   }
 
   // ===== Identificación / cards =====
