@@ -478,7 +478,7 @@ function P0() {
     const next = findNextAvailableDate(new Date(target.getTime() + 86400000), d.specialty!, d.service!);
     const targetLabel = target.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
     if (!next) {
-      botSay(`No encontré disponibilidad para el ${targetLabel} ni en los próximos días. ¿Quieres elegir otra fecha?`, () =>
+      botSay(`Sin disponibilidad para el ${targetLabel} ni días cercanos. ¿Eliges otra fecha?`, () =>
         addBubble({ kind: "date-input" }),
       );
       return;
