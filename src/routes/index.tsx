@@ -521,9 +521,9 @@ function P0() {
       navigate({ to: "/disponibilidad" });
     } else if (f === "cancelar") {
       setIdStep("confirm-cancel");
-      botSay("¿Confirmas que quieres cancelar esta cita?", () => addBubble({ kind: "cancel-confirm" }));
+      botSay("¿Confirmas la cancelación?", () => addBubble({ kind: "cancel-confirm" }));
     } else if (f === "confirmar") {
-      botSay("✓ Tu asistencia quedó confirmada. Te esperamos el jueves 8 de mayo a las 9:15 AM.");
+      botSay("✓ Asistencia confirmada. Te esperamos el jueves 8 de mayo, 9:15 AM.");
       setIdStep("done");
     }
   }
