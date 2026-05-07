@@ -357,28 +357,28 @@ function P0() {
       }
     } else if (intent === "reagendar") {
       setIdStep("ask-doc");
-      botSay("Para reagendar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para reagendar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "reagendar" }),
       );
     } else if (intent === "cancelar") {
       setIdStep("ask-doc");
-      botSay("Para cancelar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para cancelar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "cancelar" }),
       );
     } else if (intent === "confirmar") {
       setIdStep("ask-doc");
-      botSay("¿Cuál es tu número de documento?", () =>
+      botSay("¿Tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "confirmar" }),
       );
     } else if (intent === "pagar") {
-      botSay("Para pagar tu cita necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para pagar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "pagar" }),
       );
       setIdStep("ask-doc");
     } else if (intent === "consultar") {
-      botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
+      botSay("¿Qué información necesitas?");
     } else if (intent === "gestionar") {
-      botSay("¿Qué te gustaría hacer con tu cita?", () =>
+      botSay("¿Qué quieres hacer?", () =>
         addBubble({ kind: "manage-options" }),
       );
     }
