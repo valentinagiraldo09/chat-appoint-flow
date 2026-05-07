@@ -151,6 +151,14 @@ function P6() {
           </Button>
         </div>
       </div>
+
+      <IzipayModal
+        open={showIzipay}
+        onClose={() => setShowIzipay(false)}
+        onSuccess={handleIzipaySuccess}
+        amount={slot.price}
+        defaults={izipayDefaults}
+      />
     </div>
   );
 }
