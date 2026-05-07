@@ -1,40 +1,23 @@
-## Modal de pago Izipay (mock visual)
+## Recomendaciones siempre visibles + CTA fijo en `/confirmacion`
 
-Recrear el modal de la pasarela Izipay como un overlay UI dentro de la app (sin integración real). Se dispara desde dos lugares:
+### 1. Sacar Recomendaciones del card de la cita
+En `src/routes/confirmacion.tsx`, eliminar el botón colapsable "Recomendaciones" (líneas 280-289) que está dentro del card de la cita.
 
-1. **`/pago`** — al hacer click en **Continuar** cuando la opción seleccionada es "Deseo pagar ahora y ahorrar tiempo".
-2. **`/confirmacion`** — al hacer click en el CTA **Pagar ahora** (actualmente es un `Link` a `/pago`; se reemplaza por un botón que abre el modal directo).
+### 2. Nueva card de Recomendaciones (abajo, siempre abierta)
+Debajo del card de la cita, agregar una card independiente con el mismo estilo cyan (`border-cyan-300 bg-cyan-50`, `rounded-2xl`, `p-5`). Contenido:
+- Título "Recomendaciones" en bold (sin ícono Eye, ya que están desplegadas por defecto).
+- Lista de bullets con recomendaciones genéricas para una cita médica:
+  - Llegar 15 min antes.
+  - Traer documento de identidad y carné de aseguradora.
+  - Llevar exámenes, recetas o historia clínica reciente.
+  - Reprogramar/cancelar con al menos 12 h de anticipación.
 
-### Componente nuevo: `src/components/IzipayModal.tsx`
+### 3. CTA "Pedir nueva cita" siempre visible
+Convertir el bloque del botón "Pedir nueva cita" en una **barra fija inferior** (`fixed inset-x-0 bottom-0 z-40`) con:
+- Fondo `bg-background/95` con `backdrop-blur` y borde superior.
+- Botón centrado (full-width en mobile, auto en desktop).
+- Agregar `h-24` (spacer) al final del contenedor scrollable para que el footer no tape el código.
 
-Modal centrado con backdrop oscuro (`bg-black/60`), card blanca redondeada (`rounded-lg`), max-width ~400px, sombra. Replica fiel de la referencia:
+El código de la cita queda dentro del flujo normal, justo arriba del spacer.
 
-- **Header**: ícono de canasta (lucide `ShoppingBasket`) a la izquierda en gris; a la derecha "Número de pedido" (texto pequeño gris) sobre número en negrita (generado: 10 dígitos aleatorios). Botón cerrar (X) circular gris arriba a la derecha.
-- **Separador** fino.
-- **Tabs de método de pago** (4 cards en grid): Tarjeta (seleccionada con borde teal `#14b8a6` y check verde), Plin - Interbank, QR, y un cuarto con flecha desplegable. Solo visual, "Tarjeta" siempre activa.
-- **Subtítulo centrado**: "Recuerda activar tus compras por internet" (gris).
-- **Campos de formulario** (solo UI, no funcional):
-  - Número de tarjeta (input con íconos Visa/Mastercard/Diners/Amex a la derecha, usando texto/badges grises de placeholder)
-  - Caducidad + CVV (grid 2 col)
-  - Nombres + Apellidos (grid 2 col, prellenados con datos del paciente del store si existen)
-  - Correo electrónico (prellenado con `patient.email`)
-- **Botón pagar** ancho completo, color teal `#14b8a6`, texto blanco: `Pagar S/{precio}` usando `slot.price` formateado con `formatCOP` (cambiar a formato S/).
-- **Footer**: "POWERED BY izipay" centrado, gris pequeño + logo de Coco pequeño junto al powered by (requisito del usuario).
-
-Al hacer click en "Pagar S/X": muestra spinner ~1.2s, luego ejecuta callback `onSuccess` que setea `paymentMethod = "online"`, genera código de confirmación y navega a `/confirmacion`.
-
-### Cambios en `src/routes/pago.tsx`
-
-- Estado `showIzipay`. La función `confirm()` cuando `method === "online"` abre el modal en vez de navegar inmediatamente. Cuando `method === "clinic"` mantiene el flujo actual.
-- Render `<IzipayModal open={showIzipay} onClose={() => setShowIzipay(false)} onSuccess={...} amount={slot.price} />`.
-
-### Cambios en `src/routes/confirmacion.tsx`
-
-- Reemplazar el `<Link to="/pago">Pagar ahora</Link>` (líneas 242-247) por un `<button>` que abre el modal Izipay directamente. Al éxito, actualiza `paymentMethod` a `"online"` y se queda en `/confirmacion` (la UI re-renderiza al estado pagado).
-
-### Detalles visuales clave
-
-- Color principal teal: `#14b8a6` (Tailwind `teal-500`).
-- Sin uso de tokens de marca de la app — el modal imita Izipay, no la app.
-- Símbolo de moneda `S/` (no COP) en el botón pagar, según referencia.
-- Logo de Coco: pequeño (h-4) al lado de "POWERED BY izipay" en el footer.
+Si la importación de `Eye` queda sin usar, removerla del import de lucide-react.

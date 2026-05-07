@@ -6,7 +6,6 @@ import {
   Calendar as CalendarIcon,
   Download,
   Printer,
-  Eye,
   Copy,
   Check,
   AlertCircle,
@@ -277,32 +276,49 @@ function P7() {
               <ActionPill icon={<CalendarIcon className="h-4 w-4" />} label="Guardar en el calendario" onClick={downloadICS} />
             </div>
 
-            {/* Recomendaciones */}
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-3 text-sm font-bold text-foreground"
-            >
-              <span>Recomendaciones</span>
-              <span className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
-                Ver <Eye className="h-4 w-4" />
-              </span>
-            </button>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-8 flex justify-center">
+        {/* Recomendaciones (siempre visibles) */}
+        <div className="mt-4 rounded-2xl border border-cyan-300 bg-cyan-50 p-5">
+          <div className="text-base font-bold text-foreground">Recomendaciones</div>
+          <ul className="mt-3 space-y-2 text-sm text-foreground/90">
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-600" />
+              Llega 15 minutos antes de la hora de tu cita.
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-600" />
+              Trae tu documento de identidad y, si aplica, tu carné de la aseguradora.
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-600" />
+              Lleva exámenes, recetas o historia clínica reciente que puedan ser útiles para tu consulta.
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-600" />
+              Si necesitas reprogramar o cancelar, hazlo con al menos 12 horas de anticipación.
+            </li>
+          </ul>
+        </div>
+
+        <div className="mt-4 text-center text-xs text-muted-foreground">
+          Código: <span className="font-mono">{code}</span>
+        </div>
+
+        <div className="h-24" />
+      </div>
+
+      {/* CTA flotante siempre visible */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto flex max-w-xl justify-center">
           <Button
             onClick={nuevaCita}
             size="lg"
-            className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+            className="w-full rounded-full bg-foreground px-8 text-background hover:bg-foreground/90 sm:w-auto"
           >
             Pedir nueva cita
           </Button>
-        </div>
-
-        <div className="mt-3 text-center text-xs text-muted-foreground">
-          Código: <span className="font-mono">{code}</span>
         </div>
       </div>
 
