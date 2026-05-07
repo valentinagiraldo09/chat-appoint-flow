@@ -292,20 +292,20 @@ function P0() {
   function askAgendar(step: AgendarStep, d: Draft) {
     setAgStep(step);
     if (step === "specialty") {
-      botSay("Perfecto. ¿Qué especialidad necesitas?");
+      botSay("¿Qué especialidad necesitas?");
     } else if (step === "service") {
-      botSay(`Genial, busquemos disponibilidad para ${d.specialty}. ¿Es primera vez o es un control?`);
+      botSay("¿Primera vez o control?");
     } else if (step === "eps") {
-      botSay("¿Con qué aseguradora o EPS vas a tomar la cita?");
+      botSay("¿Con qué EPS?");
     } else if (step === "date") {
-      botSay("¿Desde cuándo quieres tu cita?");
+      botSay("¿Para cuándo?");
     } else if (step === "ready") {
       finishAgendar(d);
     }
   }
 
   function finishAgendar(d: Draft) {
-    botSay("Listo. Tengo todo lo que necesito. Voy a mostrarte la disponibilidad disponible para ti.", () => {
+    botSay("Listo, te muestro la disponibilidad.", () => {
       addBubble({
         kind: "summary",
         items: [
@@ -351,34 +351,34 @@ function P0() {
       const step = nextAgendarStep(d);
       // Mensaje inicial contextual
       if (opts?.parsed?.specialty && step !== "specialty") {
-        botSay(`Entendido, te ayudo a agendar tu cita de ${opts.parsed.specialty}.`, () => askAgendar(step, d));
+        botSay(`Agendamos ${opts.parsed.specialty}.`, () => askAgendar(step, d));
       } else {
         askAgendar(step, d);
       }
     } else if (intent === "reagendar") {
       setIdStep("ask-doc");
-      botSay("Para reagendar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para reagendar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "reagendar" }),
       );
     } else if (intent === "cancelar") {
       setIdStep("ask-doc");
-      botSay("Para cancelar necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para cancelar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "cancelar" }),
       );
     } else if (intent === "confirmar") {
       setIdStep("ask-doc");
-      botSay("¿Cuál es tu número de documento?", () =>
+      botSay("¿Tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "confirmar" }),
       );
     } else if (intent === "pagar") {
-      botSay("Para pagar tu cita necesito identificarte. ¿Cuál es tu número de documento?", () =>
+      botSay("Para pagar, ¿tu número de documento?", () =>
         addBubble({ kind: "doc-input", flow: "pagar" }),
       );
       setIdStep("ask-doc");
     } else if (intent === "consultar") {
-      botSay("Cuéntame qué información necesitas y con gusto te ayudo.");
+      botSay("¿Qué información necesitas?");
     } else if (intent === "gestionar") {
-      botSay("¿Qué te gustaría hacer con tu cita?", () =>
+      botSay("¿Qué quieres hacer?", () =>
         addBubble({ kind: "manage-options" }),
       );
     }
@@ -421,7 +421,7 @@ function P0() {
     if (intent) {
       startFlow(intent, { skipUserBubble: true, parsed });
     } else {
-      botSay("Puedo ayudarte a agendar, reagendar, cancelar o confirmar tu cita. ¿Qué necesitas?");
+      botSay("Puedo agendar, reagendar, cancelar o confirmar. ¿Qué necesitas?");
     }
   }
 
@@ -446,7 +446,7 @@ function P0() {
   function pickDate(key: DateChipKey, label: string) {
     if (key === "pick") {
       userSay("Elegir fecha");
-      botSay("Perfecto, ¿para qué fecha quieres consultar?", () =>
+      botSay("¿Qué fecha?", () =>
         addBubble({ kind: "date-input" }),
       );
       return;
@@ -478,14 +478,14 @@ function P0() {
     const next = findNextAvailableDate(new Date(target.getTime() + 86400000), d.specialty!, d.service!);
     const targetLabel = target.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
     if (!next) {
-      botSay(`No encontré disponibilidad para el ${targetLabel} ni en los próximos días. ¿Quieres elegir otra fecha?`, () =>
+      botSay(`Sin disponibilidad para el ${targetLabel} ni días cercanos. ¿Eliges otra fecha?`, () =>
         addBubble({ kind: "date-input" }),
       );
       return;
     }
     const nextIso = ymd(next);
     const nextLabel = next.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
-    botSay(`No hay disponibilidad para el ${targetLabel}. La fecha más cercana disponible es el ${nextLabel}. ¿Quieres tomar esa?`, () =>
+    botSay(`No hay cupo el ${targetLabel}. Lo más cercano: ${nextLabel}. ¿La tomamos?`, () =>
       addBubble({ kind: "date-suggest", iso: nextIso, label: nextLabel }),
     );
   }
@@ -500,7 +500,7 @@ function P0() {
 
   function rejectSuggestedDate() {
     userSay("No, prefiero otra fecha");
-    botSay("Claro, elige la fecha que prefieras:", () => addBubble({ kind: "date-input" }));
+    botSay("Elige la fecha:", () => addBubble({ kind: "date-input" }));
   }
 
   // ===== Identificación / cards =====
@@ -509,7 +509,7 @@ function P0() {
     if (f === "confirmar") {
       addBubble({ kind: "appt-card", flow: f });
     } else {
-      botSay("Encontré tus citas activas:", () => addBubble({ kind: "appt-card", flow: f }));
+      botSay("Tus citas activas:", () => addBubble({ kind: "appt-card", flow: f }));
     }
   }
 
@@ -521,9 +521,9 @@ function P0() {
       navigate({ to: "/disponibilidad" });
     } else if (f === "cancelar") {
       setIdStep("confirm-cancel");
-      botSay("¿Confirmas que quieres cancelar esta cita?", () => addBubble({ kind: "cancel-confirm" }));
+      botSay("¿Confirmas la cancelación?", () => addBubble({ kind: "cancel-confirm" }));
     } else if (f === "confirmar") {
-      botSay("✓ Tu asistencia quedó confirmada. Te esperamos el jueves 8 de mayo a las 9:15 AM.");
+      botSay("✓ Asistencia confirmada. Te esperamos el jueves 8 de mayo, 9:15 AM.");
       setIdStep("done");
     }
   }
@@ -531,7 +531,7 @@ function P0() {
   function confirmCancel(yes: boolean) {
     if (yes) {
       userSay("Sí, cancelar");
-      botSay("✓ Tu cita fue cancelada exitosamente. ¿Quieres agendar una nueva cita?", () =>
+      botSay("✓ Cita cancelada. ¿Agendamos una nueva?", () =>
         addBubble({ kind: "post-cancel" }),
       );
       setIdStep("done");
