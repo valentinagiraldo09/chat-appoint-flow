@@ -223,6 +223,7 @@ function P4() {
 
           <div className="pt-6">
             <h2 className="text-xl font-bold">¿Quieres agregar documentos a tu cita? <span className="text-muted-foreground font-normal">(opcional)</span></h2>
+            <p className="mt-1 text-sm text-muted-foreground">Puedes cargar órdenes médicas, historia clínica, autorizaciones y otros documentos relacionados.</p>
             <label className="mt-3 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 px-6 py-8 text-center cursor-pointer hover:bg-muted/50">
               <span className="inline-flex items-center gap-2 rounded-full border border-foreground bg-background px-4 py-2 text-sm font-medium">
                 <Upload className="h-4 w-4" /> Cargar documentos
