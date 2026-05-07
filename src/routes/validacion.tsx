@@ -197,8 +197,10 @@ function P5() {
                 onClick={() => verConAseguradora(result.fechaPermitida)}
               />
 
-              <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
-                Puedes tomar esta cita
+              <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />
+                <span className="uppercase tracking-wide">O puedes tomar esta cita</span>
+                <div className="h-px flex-1 bg-border" />
               </div>
 
               {particularSlot ? (
@@ -289,8 +291,10 @@ function P5() {
             />
             <IntentSummary specialty={specialty} service={service} slot={slot} compact />
 
-            <div className="px-1 pt-2 text-sm font-medium text-muted-foreground">
-              Puedes tomar esta cita
+            <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
+              <div className="h-px flex-1 bg-border" />
+              <span className="uppercase tracking-wide">O puedes tomar esta cita</span>
+              <div className="h-px flex-1 bg-border" />
             </div>
 
             {particularSlot ? (
