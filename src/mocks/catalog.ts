@@ -108,7 +108,7 @@ export function dateChipToISO(key: DateChipKey): string | undefined {
   return undefined;
 }
 
-export const TIPOS_DOCUMENTO = ["Cédula de ciudadanía", "Cédula de extranjería", "Pasaporte", "Tarjeta de identidad"];
+export const TIPOS_DOCUMENTO = ["DNI", "Carné de extranjería", "Pasaporte"];
 
 export function franjaForHour(hour: number): Franja {
   if (hour < 12) return "Mañana";
