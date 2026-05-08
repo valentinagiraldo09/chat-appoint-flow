@@ -172,7 +172,7 @@ function detectService(t: string, sp?: Specialty): string | undefined {
 }
 
 function detectEPS(t: string): string | undefined {
-  return fuzzyMatch<string>(t, [
+  return strictMatch<string>(t, [
     [["nueva eps"], "Nueva EPS"],
     [["sanitas"], "EPS Sanitas"],
     [["sura"], "EPS Sura"],
