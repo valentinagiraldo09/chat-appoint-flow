@@ -25,6 +25,11 @@ export function runValidations(input: ValidationInput): ValidationResult {
   const doc = documento.trim();
   const isParticular = aseguradora === "Particular" || !aseguradora;
 
+  // Particular u override: no se valida cobertura ni reglas QA.
+  if (bypassCoverage || isParticular) {
+    return { kind: "ok" };
+  }
+
   // Documento termina en 11 -> límite de paciente
   if (doc.endsWith("11")) {
     const base = new Date();
