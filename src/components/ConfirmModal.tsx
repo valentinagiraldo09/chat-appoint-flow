@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useBooking } from "@/store/booking";
 import { type Slot, formatTime, parseYmd } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
-import { getEstadoDisponibilidad } from "@/mocks/disponibilidadStates";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -23,7 +22,6 @@ export function ConfirmModal({
 }) {
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
-  const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
   const aseguradora = useBooking((s) => s.aseguradora);
@@ -97,9 +95,6 @@ export function ConfirmModal({
               className="rounded-full bg-foreground px-10 py-6 text-base text-background hover:bg-foreground/90"
               onClick={() => {
                 setSelectedSlot(slot);
-                setPayParticularOverride(
-                  getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
-                );
                 onOpenChange(false);
                 navigate({ to: "/checkout" });
               }}

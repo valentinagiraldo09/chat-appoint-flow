@@ -1,35 +1,33 @@
-## Bug
+## Problema
 
-En **estado-3** (ej. Optometría + Primera vez + Nueva EPS), `/disponibilidad` muestra correctamente solo cupos **particulares** (porque la EPS no cubre el servicio). Pero al seleccionar uno y confirmar, el flujo nunca marca la cita como "particular":
+En `src/routes/index.tsx`, al escribir "quiero agendar una cita":
 
-- `ConfirmModal` solo hace `setSelectedSlot` + `navigate("/checkout")`. **No** setea `payParticularOverride`.
-- En `/checkout`, `runValidations` recibe `aseguradora = "Nueva EPS"` y `bypassCoverage = false`.
-- Las reglas QA por sufijo de documento (`endsWith("11" | "22" | "00" | "33")`) corren **antes** del short-circuit `if (bypassCoverage || isParticular) return ok`, así que cualquier documento de prueba con esos sufijos dispara `limite_paciente` o `sin_cobertura` aunque el slot sea particular.
+1. `detectIntent` correctamente detecta `agendar`.
+2. `detectSpecialty` también se ejecuta y, por el fuzzy matching con tolerancia a typos (Levenshtein), la palabra **"cita"** (4 letras) coincide con **"vista"** (5 letras, tolerancia 2, distancia 1) → devuelve `Optometría`.
+3. Resultado: el flujo arranca con la especialidad ya "elegida" y salta directo a preguntar el servicio.
 
-Resultado: con un slot particular el usuario debería pasar directo a pago, pero ve la pantalla de validación.
+Lo mismo puede pasar con otras keywords cortas/ambiguas (`derma`, `gineco`, `cardio`, `ojos`, etc.) frente a palabras comunes del usuario.
 
-## Fix
+## Solución
 
-Dos cambios mínimos, solo en presentación/flujo (sin tocar reglas de negocio reales):
+Endurecer la detección de **especialidad** y **EPS** para que no usen fuzzy con palabras cortas, sin tocar el resto del parser ni la UX.
 
-### 1. `src/mocks/validations.ts` — short-circuit primero
+Cambios mínimos en `src/routes/index.tsx`:
 
-Mover el bloque `if (bypassCoverage || isParticular) return { kind: "ok" }` **arriba**, antes de los checks `endsWith("11"/"22"/"00"/"33")`. Regla: **si la cita es particular (o se forzó override), no se valida nada — pasa directo a pago.**
-
-```ts
-// Particular / override: no se valida cobertura ni reglas QA.
-if (bypassCoverage || isParticular) {
-  return { kind: "ok" };
-}
-
-// (resto de reglas: sufijos de documento + reglas por especialidad)
-```
-
-### 2. `src/components/ConfirmModal.tsx` — marcar override en estado-3
-
-Al confirmar un slot, si `getEstadoDisponibilidad(specialty, aseguradora) === "estado-3"` (la aseguradora no cubre el servicio y los cupos mostrados son particulares), llamar `setPayParticularOverride(true)` antes de `navigate("/checkout")`. En el resto de estados se mantiene el comportamiento actual (`false` por defecto).
+1. **Nuevo helper `strictMatch`** (substring exacto sobre texto normalizado, sin Levenshtein), o reusar solo la 1ª pasada de `fuzzyMatch`.
+2. **`detectSpecialty`**: usar `strictMatch` en vez de `fuzzyMatch`. Las keywords ya cubren variantes habituales ("cardio", "derma", "gineco", "optome", "pediatra"…). Si el usuario escribe con typo grave, simplemente caerá al paso de elegir especialidad — comportamiento deseado.
+3. **`detectEPS`**: igual, `strictMatch`. Los nombres de EPS son marcas; no necesitan fuzzy.
+4. **`detectIntent` y `detectService`**: se mantienen con fuzzy (los verbos sí necesitan tolerancia: "agenda" / "agendar" / "ajendar").
+5. Adicional defensivo: en `detectSpecialty` ignorar la keyword si el texto contiene la palabra "cita"/"citas" como única coincidencia con "vista" (cubierto ya por el cambio a strict).
 
 ## Resultado esperado
 
-- Optometría + Primera vez + Nueva EPS → tomar slot → checkout → al enviar, **se salta** `/validacion` y va directo a `/pago` como particular, sin importar el documento.
-- El resto de combinaciones (estado-1, estado-2 con slot EPS, estado-4) conservan la lógica de validación tal cual.
+- "quiero agendar una cita" → intent `agendar`, sin especialidad → P0 pregunta "¿Qué especialidad necesitas?".
+- "quiero una cita de optometría" → intent `agendar` + specialty `Optometría` → salta a servicio (comportamiento correcto previo, se mantiene).
+- "agéndame con cardio" → intent `agendar` + specialty `Cardiología` (substring de "cardio") → se mantiene.
+
+## Archivos a modificar
+
+- `src/routes/index.tsx` (solo lógica de parsing, ~10 líneas).
+
+No hay cambios en mocks, store, ni en otras rutas.

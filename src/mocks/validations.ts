@@ -25,11 +25,6 @@ export function runValidations(input: ValidationInput): ValidationResult {
   const doc = documento.trim();
   const isParticular = aseguradora === "Particular" || !aseguradora;
 
-  // Override desde estado-3 (slot particular tomado con EPS sin cobertura): se salta toda validación.
-  if (bypassCoverage) {
-    return { kind: "ok" };
-  }
-
   // Documento termina en 11 -> límite de paciente
   if (doc.endsWith("11")) {
     const base = new Date();
