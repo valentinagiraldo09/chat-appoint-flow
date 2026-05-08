@@ -142,14 +142,23 @@ function detectIntent(t: string): FlowKind {
   ]) ?? null;
 }
 
+// Substring-only match (sin tolerancia a typos) — para keywords cortas/ambiguas
+function strictMatch<T>(text: string, entries: Array<[string[], T]>): T | undefined {
+  const T = norm(text);
+  for (const [keys, val] of entries) {
+    for (const k of keys) if (T.includes(norm(k))) return val;
+  }
+  return undefined;
+}
+
 function detectSpecialty(t: string): Specialty | undefined {
-  return fuzzyMatch<Specialty>(t, [
+  return strictMatch<Specialty>(t, [
     [["cardiologia", "cardio", "corazon"], "Cardiología"],
     [["dermatologia", "derma", "piel"], "Dermatología"],
-    [["medicina general", "medico general", "general"], "Medicina General"],
+    [["medicina general", "medico general"], "Medicina General"],
     [["ginecologia", "gineco"], "Ginecología"],
     [["optometria", "optome", "vista", "ojos", "lentes"], "Optometría"],
-    [["pediatria", "pediatra", "nino", "hijo"], "Pediatría"],
+    [["pediatria", "pediatra"], "Pediatría"],
   ]);
 }
 
