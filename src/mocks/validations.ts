@@ -25,8 +25,8 @@ export function runValidations(input: ValidationInput): ValidationResult {
   const doc = documento.trim();
   const isParticular = aseguradora === "Particular" || !aseguradora;
 
-  // Particular u override: no se valida cobertura ni reglas QA.
-  if (bypassCoverage || isParticular) {
+  // Override desde estado-3 (slot particular tomado con EPS sin cobertura): se salta toda validación.
+  if (bypassCoverage) {
     return { kind: "ok" };
   }
 
