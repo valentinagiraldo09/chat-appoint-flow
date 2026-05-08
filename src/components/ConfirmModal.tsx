@@ -97,9 +97,9 @@ export function ConfirmModal({
               className="rounded-full bg-foreground px-10 py-6 text-base text-background hover:bg-foreground/90"
               onClick={() => {
                 setSelectedSlot(slot);
-                if (getEstadoDisponibilidad(specialty, aseguradora) === "estado-3") {
-                  setPayParticularOverride(true);
-                }
+                setPayParticularOverride(
+                  getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
+                );
                 onOpenChange(false);
                 navigate({ to: "/checkout" });
               }}
