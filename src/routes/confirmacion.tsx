@@ -169,7 +169,7 @@ function P7() {
             onClick={downloadPDF}
             className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2 text-sm font-medium hover:border-foreground/40 hover:bg-muted/40"
           >
-            Descargar todas las citas
+            Descargar cita
             <Download className="h-4 w-4" />
           </button>
           <button
