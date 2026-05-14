@@ -162,8 +162,28 @@ function P7() {
           </div>
         </div>
 
+        {/* Acciones rápidas */}
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={downloadPDF}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2 text-sm font-medium hover:border-foreground/40 hover:bg-muted/40"
+          >
+            Descargar todas las citas
+            <Download className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2 text-sm font-medium hover:border-foreground/40 hover:bg-muted/40"
+          >
+            Imprimir
+            <Printer className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Datos del paciente */}
-        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
           <div className="text-center text-base font-bold">Datos del paciente</div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
             <span className="inline-flex items-center gap-2 font-medium">
