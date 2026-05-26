@@ -255,26 +255,12 @@ function P7() {
             )}
 
             {isPendingClinic && (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-700">
-                    <AlertCircle className="h-4 w-4" />
-                    Pago pendiente: {formatCOP(slot.price)}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowIzipay(true)}
-                    className="inline-flex items-center rounded-md bg-foreground px-3 py-1.5 text-sm font-semibold text-background hover:opacity-90"
-                  >
-                    Pagar ahora
-                  </button>
-                </div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                  Tu cita quedará confirmada únicamente cuando realices el pago
-                  en el centro médico el día de la atención.
-                </div>
-              </>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                Tu cita quedará confirmada únicamente cuando realices el pago
+                en el centro médico el día de la atención.
+              </div>
             )}
+
 
             {isCovered && (
               <>
