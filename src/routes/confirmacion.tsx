@@ -8,10 +8,10 @@ import {
   Printer,
   Copy,
   Check,
-  AlertCircle,
   User as UserIcon,
   IdCard,
 } from "lucide-react";
+
 import { useBooking } from "@/store/booking";
 import { parseYmd, formatTime } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
