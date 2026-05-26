@@ -131,17 +131,10 @@ function P4() {
     const isParticular = aseguradora === "Particular";
     if (isParticular) {
       setValidationResult(undefined);
-      navigate({ to: "/pago" });
-      return;
-    }
-
-    // Solo se omiten las validaciones si la aseguradora es "Particular".
-    const isParticular = aseguradora === "Particular";
-    if (isParticular) {
-      setValidationResult(undefined);
       goConfirmacion("clinic");
       return;
     }
+
 
     setValidating(true);
     setTimeout(() => {
