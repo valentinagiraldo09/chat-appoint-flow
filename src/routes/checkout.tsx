@@ -135,6 +135,14 @@ function P4() {
       return;
     }
 
+    // Solo se omiten las validaciones si la aseguradora es "Particular".
+    const isParticular = aseguradora === "Particular";
+    if (isParticular) {
+      setValidationResult(undefined);
+      goConfirmacion("clinic");
+      return;
+    }
+
     setValidating(true);
     setTimeout(() => {
       const result = runValidations({
@@ -146,8 +154,9 @@ function P4() {
         bypassCoverage: payParticularOverride,
       });
       setValidationResult(result);
-      if (result.kind === "ok" && payParticularOverride) {
-        navigate({ to: "/pago" });
+      if (result.kind === "ok") {
+        const hasAmount = payParticularOverride || (slot.price ?? 0) > 0;
+        goConfirmacion(hasAmount ? "clinic" : "none");
         return;
       }
       navigate({ to: "/validacion" });
