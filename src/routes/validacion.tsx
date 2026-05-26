@@ -93,10 +93,11 @@ function P5() {
     [specialty, service, preferredDate, date],
   );
 
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
+
   if (!result || !slot) return null;
 
-  const setPaymentMethod = useBooking.getState().setPaymentMethod;
-  const setConfirmationCode = useBooking.getState().setConfirmationCode;
 
   const goConfirmacion = (method: "clinic" | "none") => {
     setPaymentMethod(method);
