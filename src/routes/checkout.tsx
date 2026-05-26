@@ -67,7 +67,16 @@ function P4() {
   const payParticularOverride = useBooking((s) => s.payParticularOverride);
   const setPatient = useBooking((s) => s.setPatient);
   const setValidationResult = useBooking((s) => s.setValidationResult);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
   const patient = useBooking((s) => s.patient);
+
+  function goConfirmacion(method: "clinic" | "none") {
+    setPaymentMethod(method);
+    const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    setConfirmationCode(code);
+    navigate({ to: "/confirmacion" });
+  }
 
   const router = useRouter();
   const [validating, setValidating] = useState(false);
