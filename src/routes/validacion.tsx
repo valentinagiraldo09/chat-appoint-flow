@@ -95,18 +95,32 @@ function P5() {
 
   if (!result || !slot) return null;
 
-  const goPago = () => navigate({ to: "/pago" });
+  const setPaymentMethod = useBooking.getState().setPaymentMethod;
+  const setConfirmationCode = useBooking.getState().setConfirmationCode;
+
+  const goConfirmacion = (method: "clinic" | "none") => {
+    setPaymentMethod(method);
+    const code = "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    setConfirmationCode(code);
+    navigate({ to: "/confirmacion" });
+  };
+
+  const goPago = () => {
+    const hasAmount = (slot.price ?? 0) > 0;
+    goConfirmacion(hasAmount ? "clinic" : "none");
+  };
 
   const tomarSlotActualParticular = () => {
     setPayParticularOverride(true);
-    goPago();
+    goConfirmacion("clinic");
   };
 
   const tomarSugeridoParticular = (s: Slot) => {
     setSelectedSlot(s);
     setPayParticularOverride(true);
-    goPago();
+    goConfirmacion("clinic");
   };
+
 
   const verMasParticulares = () => {
     if (aseguradora && aseguradora !== "Particular") {
