@@ -315,18 +315,50 @@ function P7() {
         <div className="h-24" />
       </div>
 
-      {/* CTA flotante siempre visible */}
+      {/* Barra fija de acciones */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex max-w-xl justify-center">
-          <Button
-            onClick={nuevaCita}
-            size="lg"
-            className="w-full rounded-full bg-foreground px-8 text-background hover:bg-foreground/90 sm:w-auto"
-          >
-            Pedir nueva cita
-          </Button>
-        </div>
+        {isPendingClinic ? (
+          <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-base font-bold">
+                <span aria-hidden>💳</span>
+                <span>Total pago pendiente: {formatCOP(slot.price)}</span>
+              </div>
+              <div className="text-xs text-muted-foreground sm:text-sm">
+                Paga ahora y ahorra tiempo en filas largas el día de tu consulta.
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={nuevaCita}
+                className="rounded-full border-foreground/30 px-6"
+              >
+                Pedir nueva cita
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => setShowIzipay(true)}
+                className="rounded-full bg-foreground px-8 text-background hover:bg-foreground/90"
+              >
+                Pagar ahora
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mx-auto flex max-w-xl justify-center">
+            <Button
+              onClick={nuevaCita}
+              size="lg"
+              className="w-full rounded-full bg-foreground px-8 text-background hover:bg-foreground/90 sm:w-auto"
+            >
+              Pedir nueva cita
+            </Button>
+          </div>
+        )}
       </div>
+
 
       <IzipayModal
         open={showIzipay}
