@@ -346,7 +346,20 @@ function P0() {
         from: "bot",
         text: `Estoy mostrando disponibilidad para ${d.specialty} — ${d.service} (${d.eps}, ${d.dateLabel}). Pídeme filtros aquí o úsalos en la interfaz.`,
       });
-      setTimeout(() => navigate({ to: "/disponibilidad" }), 700);
+      setTimeout(
+        () =>
+          navigate({
+            to: "/disponibilidad",
+            search: {
+              specialty: d.specialty,
+              service: d.service,
+              aseguradora: d.eps,
+              date: resolvedISO,
+              preferredDate: preferred,
+            },
+          }),
+        700,
+      );
     });
     setAgStep(null);
   }
