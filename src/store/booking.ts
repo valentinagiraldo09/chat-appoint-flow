@@ -44,7 +44,7 @@ export type BookingState = {
   coverageOnly?: boolean;
   coverageMinDate?: string;
   validationResult?: ValidationResult;
-  _hasHydrated?: boolean;
+
 
 
   setSpecialty: (s: string) => void;
