@@ -498,7 +498,7 @@ function P0() {
   function pickSpecificDate(iso: string) {
     const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    userSay(label, "date");
+    userSay(label);
     const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso, requestedDateISO: iso };
     setDraft(d);
     if (d.specialty && d.service) {
