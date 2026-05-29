@@ -451,20 +451,20 @@ function P0() {
   }
 
   function pickSpecialty(s: Specialty) {
-    userSay(s);
+    userSay(s, "specialty");
     const d = { ...draft, specialty: s };
     if (d.service && !SERVICES[s].includes(d.service)) d.service = undefined;
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
   function pickService(s: string) {
-    userSay(s);
+    userSay(s, "service");
     const d = { ...draft, service: s };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
   function pickEPS(s: string) {
-    userSay(s);
+    userSay(s, "eps");
     const d = { ...draft, eps: s };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
@@ -477,7 +477,7 @@ function P0() {
       );
       return;
     }
-    userSay(label);
+    userSay(label, "date");
     const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined, requestedDateISO: dateChipToISO(key) };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
@@ -485,7 +485,7 @@ function P0() {
   function pickSpecificDate(iso: string) {
     const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    userSay(label);
+    userSay(label, "date");
     const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso, requestedDateISO: iso };
     setDraft(d);
     if (d.specialty && d.service) {
