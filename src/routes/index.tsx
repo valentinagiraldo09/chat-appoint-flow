@@ -977,9 +977,17 @@ function BubbleRenderer(props: {
   onAcceptSuggestedDate: (iso: string, label: string) => void;
   onRejectSuggestedDate: () => void;
   onPickManageIntent: (sub: ManageIntent, label: string) => void;
+  onEditStep: (step: AgendarStep) => void;
 }) {
   const { bubble: b, isLast } = props;
-  if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
+  if (b.kind === "msg")
+    return (
+      <MsgBubble
+        from={b.from}
+        text={b.text}
+        onEdit={b.from === "user" && b.editStep ? () => props.onEditStep(b.editStep!) : undefined}
+      />
+    );
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
   if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
