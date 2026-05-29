@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Plus, MapPin, Clock, Stethoscope } from "lucide-react";
+import { Send, Plus, MapPin, Clock, Stethoscope, Pencil } from "lucide-react";
 import { useBooking } from "@/store/booking";
 import {
   SPECIALTIES,
@@ -407,10 +407,22 @@ function P0() {
     if (flow === "agendar" && agStep) {
       const parsed = parseMessage(text);
       const d: Draft = { ...draft };
-      if (parsed.specialty) d.specialty = parsed.specialty;
-      if (parsed.service) d.service = parsed.service;
-      if (parsed.eps) d.eps = parsed.eps;
+      const changes: string[] = [];
+      if (parsed.specialty) {
+        if (d.specialty && d.specialty !== parsed.specialty) changes.push(`la especialidad a ${parsed.specialty}`);
+        d.specialty = parsed.specialty;
+        if (d.service && !SERVICES[parsed.specialty].includes(d.service)) d.service = undefined;
+      }
+      if (parsed.service) {
+        if (d.service && d.service !== parsed.service) changes.push(`el servicio a ${parsed.service}`);
+        d.service = parsed.service;
+      }
+      if (parsed.eps) {
+        if (d.eps && d.eps !== parsed.eps) changes.push(`la aseguradora a ${parsed.eps}`);
+        d.eps = parsed.eps;
+      }
       if (parsed.dateKey) {
+        if (d.dateLabel && d.dateLabel !== parsed.dateLabel) changes.push(`la fecha a ${parsed.dateLabel}`);
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
         d.dateISO = parsed.dateISO;
@@ -421,7 +433,11 @@ function P0() {
         validateSpecificDate(d, parsed.dateISO);
         return;
       }
-      askAgendar(nextAgendarStep(d), d);
+      if (changes.length > 0) {
+        botSay(`Listo, cambié ${changes.join(" y ")}.`, () => askAgendar(nextAgendarStep(d), d));
+      } else {
+        askAgendar(nextAgendarStep(d), d);
+      }
       return;
     }
 
@@ -437,6 +453,7 @@ function P0() {
   function pickSpecialty(s: Specialty) {
     userSay(s);
     const d = { ...draft, specialty: s };
+    if (d.service && !SERVICES[s].includes(d.service)) d.service = undefined;
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
@@ -550,6 +567,15 @@ function P0() {
     }
   }
 
+  function editStep(step: AgendarStep) {
+    setFlow("agendar");
+    setAgStep(step);
+    if (step === "specialty") botSay("Claro, ¿qué especialidad prefieres?");
+    else if (step === "service") botSay("Claro, ¿qué tipo de servicio prefieres?");
+    else if (step === "eps") botSay("Claro, ¿con qué aseguradora?");
+    else if (step === "date") botSay("Claro, ¿para cuándo?", () => addBubble({ kind: "date-input" }));
+  }
+
   function newConversation() {
     setBubbles([]);
     setFlow(null);
@@ -558,6 +584,7 @@ function P0() {
     setDraft({});
     reset();
   }
+
 
   // ============ ESTADO 1 — Hero ============
   if (!inChat) {
@@ -671,6 +698,11 @@ function P0() {
           })}
 
           {typing && <TypingIndicator />}
+
+          {/* Resumen editable de selecciones */}
+          {!typing && flow === "agendar" && (
+            <EditableSummary draft={draft} onEdit={editStep} />
+          )}
 
           {/* Chips contextuales al final del flujo */}
           {!typing && flow === "agendar" && agStep && (
@@ -812,6 +844,32 @@ function SummaryChips({ items }: { items: string[] }) {
         <span key={it} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
           ✓ {it}
         </span>
+      ))}
+    </div>
+  );
+}
+
+function EditableSummary({ draft, onEdit }: { draft: Draft; onEdit: (s: AgendarStep) => void }) {
+  const rows: { step: AgendarStep; label: string; value?: string }[] = [
+    { step: "specialty", label: "Especialidad", value: draft.specialty },
+    { step: "service", label: "Servicio", value: draft.service },
+    { step: "eps", label: "Aseguradora", value: draft.eps },
+    { step: "date", label: "Fecha", value: draft.dateLabel },
+  ].filter((r) => r.value) as { step: AgendarStep; label: string; value: string }[];
+  if (rows.length === 0) return null;
+  return (
+    <div className="ml-10 flex flex-wrap gap-2">
+      {rows.map((r) => (
+        <button
+          key={r.step}
+          onClick={() => onEdit(r.step)}
+          className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground transition hover:border-foreground hover:bg-muted"
+          title={`Editar ${r.label.toLowerCase()}`}
+        >
+          <span className="text-muted-foreground">{r.label}:</span>
+          <span className="font-medium">{r.value}</span>
+          <Pencil className="h-3 w-3 text-muted-foreground transition group-hover:text-foreground" />
+        </button>
       ))}
     </div>
   );
