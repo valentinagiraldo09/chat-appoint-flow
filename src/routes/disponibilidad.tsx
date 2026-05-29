@@ -180,6 +180,7 @@ function P1() {
   const service = useBooking((s) => s.service);
   const date = useBooking((s) => s.date);
   const filters = useBooking((s) => s.filters);
+  const setSpecialty = useBooking((s) => s.setSpecialty);
   const setService = useBooking((s) => s.setService);
   const setDate = useBooking((s) => s.setDate);
   const setAseguradora = useBooking((s) => s.setAseguradora);
@@ -188,6 +189,7 @@ function P1() {
   const setPreviousAseguradora = useBooking((s) => s.setPreviousAseguradora);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
   const preferredDate = useBooking((s) => s.preferredDate);
+  const setPreferredDate = useBooking((s) => s.setPreferredDate);
   const coverageMinDate = useBooking((s) => s.coverageMinDate);
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
 
