@@ -699,10 +699,6 @@ function P0() {
 
           {typing && <TypingIndicator />}
 
-          {/* Resumen editable de selecciones */}
-          {!typing && flow === "agendar" && (
-            <EditableSummary draft={draft} onEdit={editStep} />
-          )}
 
           {/* Chips contextuales al final del flujo */}
           {!typing && flow === "agendar" && agStep && (
