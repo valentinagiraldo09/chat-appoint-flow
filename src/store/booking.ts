@@ -139,6 +139,10 @@ export const useBooking = create<BookingState>()(
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? sessionStorage : (undefined as unknown as Storage),
       ),
+      onRehydrateStorage: () => (state) => {
+        state?.set?.({ _hasHydrated: true } as Partial<BookingState>);
+      },
     },
   ),
 );
+
