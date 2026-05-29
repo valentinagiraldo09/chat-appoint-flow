@@ -407,10 +407,22 @@ function P0() {
     if (flow === "agendar" && agStep) {
       const parsed = parseMessage(text);
       const d: Draft = { ...draft };
-      if (parsed.specialty) d.specialty = parsed.specialty;
-      if (parsed.service) d.service = parsed.service;
-      if (parsed.eps) d.eps = parsed.eps;
+      const changes: string[] = [];
+      if (parsed.specialty) {
+        if (d.specialty && d.specialty !== parsed.specialty) changes.push(`la especialidad a ${parsed.specialty}`);
+        d.specialty = parsed.specialty;
+        if (d.service && !SERVICES[parsed.specialty].includes(d.service)) d.service = undefined;
+      }
+      if (parsed.service) {
+        if (d.service && d.service !== parsed.service) changes.push(`el servicio a ${parsed.service}`);
+        d.service = parsed.service;
+      }
+      if (parsed.eps) {
+        if (d.eps && d.eps !== parsed.eps) changes.push(`la aseguradora a ${parsed.eps}`);
+        d.eps = parsed.eps;
+      }
       if (parsed.dateKey) {
+        if (d.dateLabel && d.dateLabel !== parsed.dateLabel) changes.push(`la fecha a ${parsed.dateLabel}`);
         d.dateKey = parsed.dateKey;
         d.dateLabel = parsed.dateLabel;
         d.dateISO = parsed.dateISO;
@@ -421,7 +433,11 @@ function P0() {
         validateSpecificDate(d, parsed.dateISO);
         return;
       }
-      askAgendar(nextAgendarStep(d), d);
+      if (changes.length > 0) {
+        botSay(`Listo, cambié ${changes.join(" y ")}.`, () => askAgendar(nextAgendarStep(d), d));
+      } else {
+        askAgendar(nextAgendarStep(d), d);
+      }
       return;
     }
 
