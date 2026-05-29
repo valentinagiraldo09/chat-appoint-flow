@@ -1,54 +1,40 @@
-# Plan: eliminar /pago y mover la decisión de pago a la barra fija de /confirmacion
+# Editar selecciones durante la conversación
 
-## Objetivo
-La pantalla `/pago` deja de existir en el flujo. En **todos los casos** (Particular, EPS con copago/cuota, EPS cubierta), la cita se confirma directamente y la decisión de pago vive en la **barra inferior fija** de `/confirmacion`. El botón **Pagar ahora** abre el `IzipayModal` ahí mismo. El tono de copy se mantiene parecido al `/pago` actual.
+## Problema
+En `/` (`src/routes/index.tsx`) el flujo de agendar avanza por pasos (especialidad → servicio → EPS → fecha). Cada elección queda fija como burbuja y solo se muestran los chips del paso actual. Si el usuario se equivocó al elegir aseguradora, servicio o subservicio, no tiene cómo corregirlo.
 
-## Cambios
+## Solución (editar + texto libre)
+Dos mecanismos complementarios, ambos dentro del flujo de agendar:
 
-### 1. `src/routes/checkout.tsx` — saltar `/pago`
-En `onSubmit` y tras la validación:
+### 1. Resumen editable con botones
+Mostrar, mientras `flow === "agendar"`, un panel compacto con las selecciones ya confirmadas del `draft` (especialidad, servicio, EPS, fecha). Cada chip confirmado lleva un ícono de lápiz; al hacer clic reabre ese paso puntual reutilizando los chips existentes.
 
-- Caso **Particular** (sin validaciones): generar `confirmationCode`, `setPaymentMethod("clinic")` (pago pendiente) y navegar a `/confirmacion`.
-- Caso **validación OK con `payParticularOverride`**: igual que Particular → `/confirmacion` con pago pendiente.
-- Caso **validación OK normal (EPS)**:
-  - Si `slot.price > 0` → `setPaymentMethod("clinic")` (pago pendiente) y `/confirmacion`.
-  - Si `slot.price === 0` o sin valor a pagar → `setPaymentMethod("none")` y `/confirmacion`.
-- Caso **validación distinta de ok** (`limite_paciente`, `sin_cobertura`): sigue yendo a `/validacion` igual que hoy.
+- Se renderiza encima de `ChipsRow`, en el área de mensajes (antes del input).
+- Cada entrada muestra el valor actual + botón "editar".
+- Al editar un paso anterior (p. ej. especialidad), si el servicio ya no aplica a la nueva especialidad, se limpia el servicio para volver a pedirlo.
+- Tras editar, el asistente confirma el cambio con una burbuja corta ("Listo, cambié la aseguradora a EPS Sura").
 
-Generar `confirmationCode` en checkout en lugar de en `/pago`.
+### 2. Corrección por texto libre
+Permitir que en cualquier momento del flujo el usuario escriba correcciones como "cambia mi EPS a Sura", "mejor control", "que sea dermatología". El parser ya detecta especialidad/servicio/EPS/fecha; se ajusta `handleSend` para:
+- Detectar intención de corrección (palabras como "cambia", "mejor", "en realidad", "no, "), y aplicar el valor detectado al campo correspondiente del `draft`.
+- Confirmar el cambio con una burbuja del bot en vez de saltar al siguiente paso, y luego continuar el flujo.
 
-### 2. `src/routes/confirmacion.tsx` — barra fija con decisión de pago
-Reescribir la barra inferior fija según `paymentMethod`:
+## Cambios técnicos (`src/routes/index.tsx`)
 
-- **`clinic` (pago pendiente)** — layout estilo referencia adjunta:
-  - Izquierda: 💳 **Total pago pendiente: {formatCOP(slot.price)}**
-  - Subtítulo (tono `/pago` actual): _"Paga ahora y ahorra tiempo en filas largas el día de tu consulta."_
-  - Derecha: outline **Pedir nueva cita** + primario **Pagar ahora**.
-  - **Pagar ahora** abre `IzipayModal` (ya montado en la página). En `onSuccess` → `setPaymentMethod("online")` y cerrar modal. La barra cambia sola al estado pagado.
+1. **Nueva función `editStep(step)`**: setea `agStep` al paso pedido, emite una burbuja del bot ("¿Cuál prefieres?") y deja que `ChipsRow` muestre los chips de ese paso. Si se edita especialidad, validar/limpiar `service` cuando no pertenezca a la nueva especialidad.
 
-- **`online` (pagado)**: barra simple centrada con **Pedir nueva cita**.
-- **`none` (cubierto por EPS)**: barra simple centrada con **Pedir nueva cita**.
+2. **Nuevo subcomponente `EditableSummary`**: recibe `draft` y callbacks `onEdit(step)`; renderiza chips de los campos ya definidos con botón de lápiz. Se inserta en el render del chat (estado 2) cuando `flow === "agendar"`.
 
-Quitar el botón inline "Pagar ahora" dentro de la card de la cita (ahora vive en la barra).
+3. **Ajuste en `pickSpecialty/pickService/pickEPS/pickDate`**: tras una edición (cuando el paso editado no es el "siguiente" natural), confirmar con `botSay` y recalcular `nextAgendarStep` para no romper el orden.
 
-Mantener intactos: card de la cita, datos del paciente, recomendaciones, estados visuales `isPaid` / `isPendingClinic` / `isCovered`, descargas (PDF/ICS/imprimir).
+4. **Ajuste en `handleSend` (rama `flow === "agendar"`)**: cuando el texto detecta un valor para un campo ya lleno, tratarlo como corrección — actualizar `draft`, emitir burbuja de confirmación, y continuar con `nextAgendarStep`.
 
-### 3. `src/routes/pago.tsx` — desactivar la ruta
-Reemplazar el componente por un redirect inmediato a `/confirmacion` si llega alguien por URL directa. No borrar el archivo en esta iteración para no tocar `routeTree.gen.ts` manualmente (la regeneración del router lo limpia luego si decidimos eliminarla).
-
-### 4. Sin cambios
-- `ConfirmModal.tsx` (la lógica de `payParticularOverride` para estado-3 se mantiene; ya no afecta a qué pantalla se navega, solo a que no se corra validación de EPS).
-- `validations.ts`, `disponibilidadStates.ts`.
-- `store/booking.ts` (ya tiene `paymentMethod` y `confirmationCode`).
-
-## Copy final de la barra (estado pago pendiente)
-- Título: **Total pago pendiente: {monto} COP**
-- Subtítulo: _Paga ahora y ahorra tiempo en filas largas el día de tu consulta._
-- CTAs: **Pedir nueva cita** (outline) · **Pagar ahora** (primario)
+## Alcance
+- Solo afecta el flujo de agendar en `src/routes/index.tsx` (presentación + lógica de pasos del chat).
+- No cambia el store, las rutas posteriores, ni el `ChatPanel` lateral.
 
 ## QA
-1. **Particular** → checkout → directo a `/confirmacion` con barra de pago pendiente → "Pagar ahora" abre Izipay → success → barra pasa a estado pagado.
-2. **EPS con valor (estado-1/2 ok)** → checkout → `/confirmacion` con barra de pago pendiente → Izipay funciona igual.
-3. **EPS cubierta sin valor** → checkout → `/confirmacion` con barra simple (solo "Pedir nueva cita").
-4. **Documento 11/22/00/33 con EPS** → sigue cayendo en `/validacion` (no cambia).
-5. Navegar manualmente a `/pago` → redirige a `/confirmacion`.
+- Elegir especialidad/servicio/EPS, luego usar el lápiz de cada uno para cambiarlo y verificar que el chip y la confirmación se actualicen.
+- Cambiar especialidad y comprobar que el servicio se vuelve a pedir si no aplica.
+- Escribir "cambia mi EPS a Sura" tras haberla elegido y verificar la corrección.
+- Completar el flujo tras editar y confirmar que llega bien a `/disponibilidad`.
