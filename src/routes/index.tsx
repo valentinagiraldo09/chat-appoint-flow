@@ -490,7 +490,7 @@ function P0() {
       );
       return;
     }
-    userSay(label, "date");
+    userSay(label);
     const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined, requestedDateISO: dateChipToISO(key) };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
