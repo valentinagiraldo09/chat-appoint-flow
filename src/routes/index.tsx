@@ -453,6 +453,7 @@ function P0() {
   function pickSpecialty(s: Specialty) {
     userSay(s);
     const d = { ...draft, specialty: s };
+    if (d.service && !SERVICES[s].includes(d.service)) d.service = undefined;
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
