@@ -295,7 +295,7 @@ function P0() {
     }, 450);
   };
 
-  const userSay = (text: string) => addBubble({ kind: "msg", from: "user", text });
+  const userSay = (text: string, editStep?: AgendarStep) => addBubble({ kind: "msg", from: "user", text, editStep });
 
   // ===== AGENDAR =====
   function askAgendar(step: AgendarStep, d: Draft) {
