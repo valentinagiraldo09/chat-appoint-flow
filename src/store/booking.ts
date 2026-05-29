@@ -45,6 +45,8 @@ export type BookingState = {
   coverageMinDate?: string;
   validationResult?: ValidationResult;
 
+
+
   setSpecialty: (s: string) => void;
   setService: (s: string) => void;
   setDate: (d?: string) => void;
@@ -140,3 +142,5 @@ export const useBooking = create<BookingState>()(
     },
   ),
 );
+
+
