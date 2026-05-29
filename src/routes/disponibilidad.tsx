@@ -191,10 +191,17 @@ function P1() {
     }
   }, [specialty, service, setService]);
 
-  // Redirect to home if no specialty
+  // Redirect to home if no specialty (only after persisted store has hydrated)
+  const [hydrated, setHydrated] = useState(() => useBooking.persist.hasHydrated());
   useEffect(() => {
-    if (!specialty) navigate({ to: "/" });
-  }, [specialty, navigate]);
+    const unsub = useBooking.persist.onFinishHydration(() => setHydrated(true));
+    if (useBooking.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+  useEffect(() => {
+    if (hydrated && !specialty) navigate({ to: "/" });
+  }, [hydrated, specialty, navigate]);
+
 
   const [loading, setLoading] = useState(true);
   const [, setTick] = useState(0);
