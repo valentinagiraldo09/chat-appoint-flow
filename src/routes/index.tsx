@@ -856,32 +856,6 @@ function SummaryChips({ items }: { items: string[] }) {
   );
 }
 
-function EditableSummary({ draft, onEdit }: { draft: Draft; onEdit: (s: AgendarStep) => void }) {
-  const rows: { step: AgendarStep; label: string; value?: string }[] = [
-    { step: "specialty", label: "Especialidad", value: draft.specialty },
-    { step: "service", label: "Servicio", value: draft.service },
-    { step: "eps", label: "Aseguradora", value: draft.eps },
-    { step: "date", label: "Fecha", value: draft.dateLabel },
-  ].filter((r) => r.value) as { step: AgendarStep; label: string; value: string }[];
-  if (rows.length === 0) return null;
-  return (
-    <div className="ml-10 flex flex-wrap gap-2">
-      {rows.map((r) => (
-        <button
-          key={r.step}
-          onClick={() => onEdit(r.step)}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground transition hover:border-foreground hover:bg-muted"
-          title={`Editar ${r.label.toLowerCase()}`}
-        >
-          <span className="text-muted-foreground">{r.label}:</span>
-          <span className="font-medium">{r.value}</span>
-          <Pencil className="h-3 w-3 text-muted-foreground transition group-hover:text-foreground" />
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function DocInput({ onSubmit, disabled }: { onSubmit: (v: string) => void; disabled: boolean }) {
   const [v, setV] = useState("");
   return (
