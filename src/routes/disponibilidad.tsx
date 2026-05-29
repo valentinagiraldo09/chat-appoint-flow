@@ -61,6 +61,13 @@ const formatLongDate = (d: Date) =>
   capWords(format(d, "EEEE, d 'de' MMMM", { locale: es }));
 
 export const Route = createFileRoute("/disponibilidad")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    specialty: typeof s.specialty === "string" ? s.specialty : undefined,
+    service: typeof s.service === "string" ? s.service : undefined,
+    aseguradora: typeof s.aseguradora === "string" ? s.aseguradora : undefined,
+    date: typeof s.date === "string" ? s.date : undefined,
+    preferredDate: typeof s.preferredDate === "string" ? s.preferredDate : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Disponibilidad — Citas médicas" }],
   }),
@@ -168,6 +175,7 @@ function DatePickerField() {
 
 function P1() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const specialty = useBooking((s) => s.specialty);
   const service = useBooking((s) => s.service);
   const date = useBooking((s) => s.date);
@@ -182,6 +190,14 @@ function P1() {
   const preferredDate = useBooking((s) => s.preferredDate);
   const coverageMinDate = useBooking((s) => s.coverageMinDate);
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
+
+  useEffect(() => {
+    if (search.specialty && !specialty) setSpecialty(search.specialty);
+    if (search.service && !service) setService(search.service);
+    if (search.aseguradora && !aseguradora) setAseguradora(search.aseguradora);
+    if (search.date && !date) setDate(search.date);
+    if (search.preferredDate && !preferredDate) setPreferredDate(search.preferredDate);
+  }, [search, specialty, service, aseguradora, date, preferredDate, setSpecialty, setService, setAseguradora, setDate, setPreferredDate]);
 
   // Default service if none picked
   useEffect(() => {
@@ -199,8 +215,8 @@ function P1() {
     return unsub;
   }, []);
   useEffect(() => {
-    if (hydrated && !specialty) navigate({ to: "/" });
-  }, [hydrated, specialty, navigate]);
+    if (hydrated && !specialty && !search.specialty) navigate({ to: "/" });
+  }, [hydrated, specialty, search.specialty, navigate]);
 
 
   const [loading, setLoading] = useState(true);
