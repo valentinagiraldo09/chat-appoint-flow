@@ -44,7 +44,7 @@ type Draft = {
 };
 
 type Bubble =
-  | { id: string; kind: "msg"; from: "bot" | "user"; text: string }
+  | { id: string; kind: "msg"; from: "bot" | "user"; text: string; editStep?: AgendarStep }
   | { id: string; kind: "summary"; items: string[] }
   | { id: string; kind: "doc-input"; flow: FlowKind }
   | { id: string; kind: "appt-card"; flow: FlowKind }
