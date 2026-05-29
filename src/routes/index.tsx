@@ -44,7 +44,7 @@ type Draft = {
 };
 
 type Bubble =
-  | { id: string; kind: "msg"; from: "bot" | "user"; text: string }
+  | { id: string; kind: "msg"; from: "bot" | "user"; text: string; editStep?: AgendarStep }
   | { id: string; kind: "summary"; items: string[] }
   | { id: string; kind: "doc-input"; flow: FlowKind }
   | { id: string; kind: "appt-card"; flow: FlowKind }
@@ -295,7 +295,7 @@ function P0() {
     }, 450);
   };
 
-  const userSay = (text: string) => addBubble({ kind: "msg", from: "user", text });
+  const userSay = (text: string, editStep?: AgendarStep) => addBubble({ kind: "msg", from: "user", text, editStep });
 
   // ===== AGENDAR =====
   function askAgendar(step: AgendarStep, d: Draft) {
@@ -451,20 +451,20 @@ function P0() {
   }
 
   function pickSpecialty(s: Specialty) {
-    userSay(s);
+    userSay(s, "specialty");
     const d = { ...draft, specialty: s };
     if (d.service && !SERVICES[s].includes(d.service)) d.service = undefined;
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
   function pickService(s: string) {
-    userSay(s);
+    userSay(s, "service");
     const d = { ...draft, service: s };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
   }
   function pickEPS(s: string) {
-    userSay(s);
+    userSay(s, "eps");
     const d = { ...draft, eps: s };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
@@ -477,7 +477,7 @@ function P0() {
       );
       return;
     }
-    userSay(label);
+    userSay(label, "date");
     const d = { ...draft, dateKey: key, dateLabel: label, dateISO: undefined, requestedDateISO: dateChipToISO(key) };
     setDraft(d);
     askAgendar(nextAgendarStep(d), d);
@@ -485,7 +485,7 @@ function P0() {
   function pickSpecificDate(iso: string) {
     const d0 = parseYmd(iso);
     const label = d0.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    userSay(label);
+    userSay(label, "date");
     const d: Draft = { ...draft, dateKey: "pick", dateLabel: label, dateISO: iso, requestedDateISO: iso };
     setDraft(d);
     if (d.specialty && d.service) {
@@ -670,6 +670,7 @@ function P0() {
               key={b.id}
               bubble={b}
               isLast={isLast}
+              onEditStep={editStep}
               draft={draft}
               flow={flow}
               agStep={agStep}
@@ -699,10 +700,6 @@ function P0() {
 
           {typing && <TypingIndicator />}
 
-          {/* Resumen editable de selecciones */}
-          {!typing && flow === "agendar" && (
-            <EditableSummary draft={draft} onEdit={editStep} />
-          )}
 
           {/* Chips contextuales al final del flujo */}
           {!typing && flow === "agendar" && agStep && (
@@ -768,19 +765,29 @@ function BotAvatar() {
   );
 }
 
-function MsgBubble({ from, text }: { from: "bot" | "user"; text: string }) {
+function MsgBubble({ from, text, onEdit }: { from: "bot" | "user"; text: string; onEdit?: () => void }) {
   return (
     <div className={cn("flex items-end gap-2", from === "user" ? "justify-end" : "justify-start")}>
       {from === "bot" && <BotAvatar />}
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          "group relative max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           from === "bot"
             ? "rounded-bl-sm bg-muted text-foreground"
             : "rounded-br-sm bg-foreground text-background",
         )}
       >
-        {text}
+        <span className={onEdit ? "pr-5" : undefined}>{text}</span>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            aria-label="Editar esta elección"
+            title="Editar"
+            className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-background/70 transition hover:bg-background/15 hover:text-background"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -844,32 +851,6 @@ function SummaryChips({ items }: { items: string[] }) {
         <span key={it} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
           ✓ {it}
         </span>
-      ))}
-    </div>
-  );
-}
-
-function EditableSummary({ draft, onEdit }: { draft: Draft; onEdit: (s: AgendarStep) => void }) {
-  const rows: { step: AgendarStep; label: string; value?: string }[] = [
-    { step: "specialty", label: "Especialidad", value: draft.specialty },
-    { step: "service", label: "Servicio", value: draft.service },
-    { step: "eps", label: "Aseguradora", value: draft.eps },
-    { step: "date", label: "Fecha", value: draft.dateLabel },
-  ].filter((r) => r.value) as { step: AgendarStep; label: string; value: string }[];
-  if (rows.length === 0) return null;
-  return (
-    <div className="ml-10 flex flex-wrap gap-2">
-      {rows.map((r) => (
-        <button
-          key={r.step}
-          onClick={() => onEdit(r.step)}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground transition hover:border-foreground hover:bg-muted"
-          title={`Editar ${r.label.toLowerCase()}`}
-        >
-          <span className="text-muted-foreground">{r.label}:</span>
-          <span className="font-medium">{r.value}</span>
-          <Pencil className="h-3 w-3 text-muted-foreground transition group-hover:text-foreground" />
-        </button>
       ))}
     </div>
   );
@@ -970,9 +951,17 @@ function BubbleRenderer(props: {
   onAcceptSuggestedDate: (iso: string, label: string) => void;
   onRejectSuggestedDate: () => void;
   onPickManageIntent: (sub: ManageIntent, label: string) => void;
+  onEditStep: (step: AgendarStep) => void;
 }) {
   const { bubble: b, isLast } = props;
-  if (b.kind === "msg") return <MsgBubble from={b.from} text={b.text} />;
+  if (b.kind === "msg")
+    return (
+      <MsgBubble
+        from={b.from}
+        text={b.text}
+        onEdit={b.from === "user" && b.editStep ? () => props.onEditStep(b.editStep!) : undefined}
+      />
+    );
   if (b.kind === "summary") return <SummaryChips items={b.items} />;
   if (b.kind === "doc-input") return <DocInput disabled={!isLast} onSubmit={(v) => props.onSubmitDoc(v, b.flow)} />;
   if (b.kind === "date-input") return <DateInput disabled={!isLast} onSubmit={props.onPickSpecificDate} />;
