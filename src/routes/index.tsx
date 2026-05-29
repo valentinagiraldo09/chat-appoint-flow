@@ -765,19 +765,29 @@ function BotAvatar() {
   );
 }
 
-function MsgBubble({ from, text }: { from: "bot" | "user"; text: string }) {
+function MsgBubble({ from, text, onEdit }: { from: "bot" | "user"; text: string; onEdit?: () => void }) {
   return (
     <div className={cn("flex items-end gap-2", from === "user" ? "justify-end" : "justify-start")}>
       {from === "bot" && <BotAvatar />}
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          "group relative max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           from === "bot"
             ? "rounded-bl-sm bg-muted text-foreground"
             : "rounded-br-sm bg-foreground text-background",
         )}
       >
-        {text}
+        <span className={onEdit ? "pr-5" : undefined}>{text}</span>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            aria-label="Editar esta elección"
+            title="Editar"
+            className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-background/70 transition hover:bg-background/15 hover:text-background"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        )}
       </div>
     </div>
   );
