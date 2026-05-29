@@ -567,7 +567,15 @@ function P0() {
     }
   }
 
-  function newConversation() {
+  function editStep(step: AgendarStep) {
+    setFlow("agendar");
+    setAgStep(step);
+    if (step === "specialty") botSay("Claro, ¿qué especialidad prefieres?");
+    else if (step === "service") botSay("Claro, ¿qué tipo de servicio prefieres?");
+    else if (step === "eps") botSay("Claro, ¿con qué aseguradora?");
+    else if (step === "date") botSay("Claro, ¿para cuándo?", () => addBubble({ kind: "date-input" }));
+  }
+
     setBubbles([]);
     setFlow(null);
     setAgStep(null);
