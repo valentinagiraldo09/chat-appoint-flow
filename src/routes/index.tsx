@@ -576,6 +576,7 @@ function P0() {
     else if (step === "date") botSay("Claro, ¿para cuándo?", () => addBubble({ kind: "date-input" }));
   }
 
+  function newConversation() {
     setBubbles([]);
     setFlow(null);
     setAgStep(null);
@@ -583,6 +584,7 @@ function P0() {
     setDraft({});
     reset();
   }
+
 
   // ============ ESTADO 1 — Hero ============
   if (!inChat) {
