@@ -100,7 +100,6 @@ export function ConfirmModal({
                 setPayParticularOverride(
                   getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
                 );
-                onOpenChange(false);
                 navigate({ to: "/checkout" });
               }}
             >
