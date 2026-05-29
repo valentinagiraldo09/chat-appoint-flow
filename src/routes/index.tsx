@@ -670,6 +670,7 @@ function P0() {
               key={b.id}
               bubble={b}
               isLast={isLast}
+              onEditStep={editStep}
               draft={draft}
               flow={flow}
               agStep={agStep}
