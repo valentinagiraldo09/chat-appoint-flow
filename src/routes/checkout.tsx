@@ -148,8 +148,7 @@ function P4() {
       });
       setValidationResult(result);
       if (result.kind === "ok") {
-        const hasAmount = payParticularOverride || (slot.price ?? 0) > 0;
-        goConfirmacion(hasAmount ? "clinic" : "none");
+        goConfirmacion(payParticularOverride ? "clinic" : "none");
         return;
       }
       navigate({ to: "/validacion" });
