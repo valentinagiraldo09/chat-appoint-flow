@@ -320,6 +320,8 @@ function P1() {
   }, [epsSection, specialty, service, epsSuffix]);
 
   const showFilters = estado !== "estado-4";
+  // estado-3 = insurer has no coverage: all appointments are particular and must show price
+  const showParticularPricing = aseguradora === "Particular" || estado === "estado-3";
 
   return (
     <div className="min-h-screen bg-muted/30">
