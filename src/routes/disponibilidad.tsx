@@ -198,7 +198,7 @@ function P1() {
     if (search.service && !service) setService(search.service);
     if (search.aseguradora && !aseguradora) setAseguradora(search.aseguradora);
     if (search.date && !date) setDate(search.date);
-    if (search.preferredDate && !preferredDate) setPreferredDate(search.preferredDate);
+    if (search.preferredDate && search.preferredDate !== preferredDate) setPreferredDate(search.preferredDate);
   }, [search, specialty, service, aseguradora, date, preferredDate, setSpecialty, setService, setAseguradora, setDate, setPreferredDate]);
 
   // Default service if none picked
@@ -298,8 +298,10 @@ function P1() {
     if (estado !== "estado-2" || !epsSection || !specialty || !service) return null;
     const desiredDate = preferredDate ?? date;
     if (!desiredDate) return null;
-    const firstParticular = findNextAvailableDate(parseYmd(desiredDate), specialty, service, 90);
-    return firstParticular && firstParticular < epsSection.date ? firstParticular : null;
+    const requestedDate = parseYmd(desiredDate);
+    const firstParticular = findNextAvailableDate(requestedDate, specialty, service, 90);
+    if (!firstParticular || firstParticular >= epsSection.date) return null;
+    return requestedDate < epsSection.date ? requestedDate : firstParticular;
   }, [estado, epsSection, specialty, service, preferredDate, date]);
 
 
