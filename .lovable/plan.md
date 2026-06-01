@@ -1,40 +1,46 @@
-# Editar selecciones durante la conversación
+## Objetivo
 
-## Problema
-En `/` (`src/routes/index.tsx`) el flujo de agendar avanza por pasos (especialidad → servicio → EPS → fecha). Cada elección queda fija como burbuja y solo se muestran los chips del paso actual. Si el usuario se equivocó al elegir aseguradora, servicio o subservicio, no tiene cómo corregirlo.
+Dejar listos dos casos de prueba (uno en junio, otro en julio) que reproduzcan el escenario que probaste el 7 de mayo, **manteniendo el mismo servicio, subservicio y aseguradora** y cambiando únicamente la fecha:
 
-## Solución (editar + texto libre)
-Dos mecanismos complementarios, ambos dentro del flujo de agendar:
+- Especialidad: **Ginecología**
+- Servicio (subservicio): **Primera vez**
+- Aseguradora: **EPS Sura** (estado-2)
 
-### 1. Resumen editable con botones
-Mostrar, mientras `flow === "agendar"`, un panel compacto con las selecciones ya confirmadas del `draft` (especialidad, servicio, EPS, fecha). Cada chip confirmado lleva un ícono de lápiz; al hacer clic reabre ese paso puntual reutilizando los chips existentes.
+Flujo esperado en ambos casos:
+1. En el chat pides Ginecología · Primera vez · EPS Sura para una **fecha específica**.
+2. Esa fecha **no tiene cupo** → el bot avisa y propone la **siguiente fecha más cercana** con disponibilidad.
+3. En Disponibilidad (P1) se muestra la fecha EPS + el banner de **cita Particular en la fecha que tú querías**.
+4. En la **validación** también se sugiere la cita particular **en la fecha preferida**.
 
-- Se renderiza encima de `ChipsRow`, en el área de mensajes (antes del input).
-- Cada entrada muestra el valor actual + botón "editar".
-- Al editar un paso anterior (p. ej. especialidad), si el servicio ya no aplica a la nueva especialidad, se limpia el servicio para volver a pedirlo.
-- Tras editar, el asistente confirma el cambio con una burbuja corta ("Listo, cambié la aseguradora a EPS Sura").
+## Confirmaciones de lógica ya existente
 
-### 2. Corrección por texto libre
-Permitir que en cualquier momento del flujo el usuario escriba correcciones como "cambia mi EPS a Sura", "mejor control", "que sea dermatología". El parser ya detecta especialidad/servicio/EPS/fecha; se ajusta `handleSend` para:
-- Detectar intención de corrección (palabras como "cambia", "mejor", "en realidad", "no, "), y aplicar el valor detectado al campo correspondiente del `draft`.
-- Confirmar el cambio con una burbuja del bot en vez de saltar al siguiente paso, y luego continuar el flujo.
+- **La cita particular recomendada siempre cae en la fecha preferida.** Verificado en `src/routes/validacion.tsx`: `particularSlot` usa `preferredDate ?? date` y `findParticularSlot` fuerza `date: ymd(start)` (la fecha preferida) aunque el horario provenga de la siguiente fecha hábil. Esto ya está implementado, no requiere cambios.
+- `hasAvailability`, `findNextAvailableDate` y el anclaje del particular a `preferredDate` son deterministas por fecha; el escenario ya funciona en junio y julio con la misma combinación cambiando solo la fecha.
 
-## Cambios técnicos (`src/routes/index.tsx`)
+## Casos de prueba (solo cambia la fecha)
 
-1. **Nueva función `editStep(step)`**: setea `agStep` al paso pedido, emite una burbuja del bot ("¿Cuál prefieres?") y deja que `ChipsRow` muestre los chips de ese paso. Si se edita especialidad, validar/limpiar `service` cuando no pertenezca a la nueva especialidad.
+Combinación fija para los dos: **Ginecología · Primera vez · EPS Sura**.
 
-2. **Nuevo subcomponente `EditableSummary`**: recibe `draft` y callbacks `onEdit(step)`; renderiza chips de los campos ya definidos con botón de lápiz. Se inserta en el render del chat (estado 2) cuando `flow === "agendar"`.
+**Caso JUNIO**
+- En el chat: "Quiero ginecología primera vez con EPS Sura para el **9 de junio**".
+- El bot responde que no hay cupo el 9 de junio y propone lo más cercano: **11 de junio**.
+- Aceptas → P1 muestra fecha EPS (11 jun) + banner de particular el **9 de junio**.
 
-3. **Ajuste en `pickSpecialty/pickService/pickEPS/pickDate`**: tras una edición (cuando el paso editado no es el "siguiente" natural), confirmar con `botSay` y recalcular `nextAgendarStep` para no romper el orden.
+**Caso JULIO**
+- En el chat: "Quiero ginecología primera vez con EPS Sura para el **2 de julio**".
+- El bot responde que no hay cupo el 2 de julio y propone lo más cercano: **6 de julio**.
+- Aceptas → P1 muestra fecha EPS (6 jul) + banner de particular el **2 de julio**.
 
-4. **Ajuste en `handleSend` (rama `flow === "agendar"`)**: cuando el texto detecta un valor para un campo ya lleno, tratarlo como corrección — actualizar `draft`, emitir burbuja de confirmación, y continuar con `nextAgendarStep`.
+Para ver además la sugerencia particular en la **validación**, usa un documento que termine en **22/00/33** (sin cobertura) o en **11** (límite de paciente). En ambos casos la cita particular sugerida aparecerá en la fecha preferida (9 jun / 2 jul).
 
-## Alcance
-- Solo afecta el flujo de agendar en `src/routes/index.tsx` (presentación + lógica de pasos del chat).
-- No cambia el store, las rutas posteriores, ni el `ChatPanel` lateral.
+(Fechas alternativas verificadas, misma combinación: junio 2/3/4→5, 10→11, 12→14; julio 3/4/5→6, 11→12, 16→17.)
 
-## QA
-- Elegir especialidad/servicio/EPS, luego usar el lápiz de cada uno para cambiarlo y verificar que el chip y la confirmación se actualicen.
-- Cambiar especialidad y comprobar que el servicio se vuelve a pedir si no aplica.
-- Escribir "cambia mi EPS a Sura" tras haberla elegido y verificar la corrección.
-- Completar el flujo tras editar y confirmar que llega bien a `/disponibilidad`.
+## Trabajo a realizar
+
+1. **Verificar end-to-end** ambos casos en el preview (chat → recomendación → P1 con banner particular → validación con sugerencia particular en la fecha preferida) y ajustar solo si algún paso no coincide.
+2. **Limpiar texto de fecha fija de mayo**: en `src/routes/index.tsx` hay textos de confirmación quemados ("jueves 8 de mayo, 9:15 AM"). Actualizarlos para que no muestren una fecha de mayo ya pasada.
+
+## Notas técnicas
+
+- No se requiere cambiar la lógica del mock ni la del particular en validación; ambas son deterministas y ya anclan a la fecha preferida.
+- Si prefieres que estas fechas-demo queden "fijas" y garantizadas, puedo añadir una pequeña lista en el mock, pero no es necesario para probar ahora.
