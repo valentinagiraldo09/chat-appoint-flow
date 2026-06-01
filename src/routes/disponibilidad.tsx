@@ -290,27 +290,6 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters, epsSuffix]);
 
-  // Particular nearer slot for estado-2 — uses the date the patient originally asked for.
-  // Particular always has cupo; if the exact date doesn't have generated slots, fall back to next.
-  const particularSection = useMemo(() => {
-    if (!specialty || !service) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = preferredDate ? parseYmd(preferredDate) : today;
-    let first = target;
-    let raw = generateSlots(first, specialty, service);
-    // No fake "borrowing": if the target day has no real cupo, move to the next
-    // truly available day (so the banner won't claim cupo that doesn't exist).
-    if (raw.length === 0) {
-      const next = findNextAvailableDate(target, specialty, service);
-      if (next) {
-        first = next;
-        raw = generateSlots(first, specialty, service);
-      }
-    }
-    const all = filterSlots(raw, filters);
-    return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, filters, preferredDate]);
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
   // can cross-restrict (sede ↔ profesional ↔ atención ↔ franja) consistently.
