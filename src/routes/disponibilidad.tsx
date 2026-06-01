@@ -15,7 +15,6 @@ import {
   parseYmd,
   ymd,
   findNextAvailableDate,
-  hasAvailability,
   type Slot,
 } from "@/mocks/availability";
 
@@ -295,6 +294,14 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters, epsSuffix]);
 
+  const earlierParticularDate = useMemo(() => {
+    if (estado !== "estado-2" || !epsSection || !specialty || !service) return null;
+    const desiredDate = preferredDate ?? date;
+    if (!desiredDate) return null;
+    const firstParticular = findNextAvailableDate(parseYmd(desiredDate), specialty, service, 90);
+    return firstParticular && firstParticular < epsSection.date ? firstParticular : null;
+  }, [estado, epsSection, specialty, service, preferredDate, date]);
+
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
   // can cross-restrict (sede ↔ profesional ↔ atención ↔ franja) consistently.
@@ -376,20 +383,14 @@ function P1() {
           </button>
         )}
 
-        {estado === "estado-2" &&
-          preferredDate &&
-          epsSection &&
-          specialty &&
-          service &&
-          parseYmd(preferredDate) < epsSection.date &&
-          hasAvailability(parseYmd(preferredDate), specialty, service) && (
+        {earlierParticularDate && (
             <button
               onClick={() => {
                 setAseguradora("Particular");
-                setDate(preferredDate);
+                setDate(ymd(earlierParticularDate));
                 navigate({
                   to: "/disponibilidad",
-                  search: { specialty, service, aseguradora: "Particular", date: preferredDate },
+                  search: { specialty, service, aseguradora: "Particular", date: ymd(earlierParticularDate) },
                 });
               }}
               className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-100/70 px-5 py-4 text-left transition hover:bg-emerald-100"
@@ -400,7 +401,7 @@ function P1() {
                   <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
                   <div className="text-sm text-foreground/80">
                     Hay disponibilidad particular para el{" "}
-                    {format(parseYmd(preferredDate), "d 'de' MMMM", { locale: es })}
+                    {format(earlierParticularDate, "d 'de' MMMM", { locale: es })}
                   </div>
                 </div>
               </div>
