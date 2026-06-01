@@ -263,11 +263,15 @@ function P1() {
       return { date: selectedDate, slots: spreadSlots(all), full: all };
     }
 
-    const startFrom = date
-      ? parseYmd(date)
-      : estado === "estado-2"
-        ? new Date(today.getTime() + 10 * 86400000)
-        : today;
+    // For estado-2 the insurer (EPS) availability is always pushed ~10 days
+    // out — even when the patient picked a preferred date — so the "¿Quieres
+    // una cita antes?" banner can surface particular availability on the
+    // earlier preferred date.
+    const baseFrom = date ? parseYmd(date) : today;
+    const startFrom =
+      estado === "estado-2"
+        ? new Date(baseFrom.getTime() + 10 * 86400000)
+        : baseFrom;
     const first = findNextAvailableDate(startFrom, specialty, service, 90, epsSuffix) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service, epsSuffix), filters);
     return { date: first, slots: spreadSlots(all), full: all };
