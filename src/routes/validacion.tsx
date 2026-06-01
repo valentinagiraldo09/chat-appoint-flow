@@ -124,8 +124,16 @@ function P5() {
 
 
   const verMasParticulares = () => {
-    if (aseguradora && aseguradora !== "Particular") {
+    // Solo ofrecer "volver a ver con mi aseguradora" cuando la aseguradora sí
+    // cubre el servicio (límite por fecha). Si no hay cobertura, no aplica.
+    if (
+      aseguradora &&
+      aseguradora !== "Particular" &&
+      result?.kind === "limite_paciente"
+    ) {
       setPreviousAseguradora(aseguradora);
+    } else {
+      setPreviousAseguradora(undefined);
     }
     // Recordar la fecha mínima de cobertura para poder volver a la aseguradora
     if (result?.kind === "limite_paciente") {
