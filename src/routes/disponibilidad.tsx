@@ -262,13 +262,15 @@ function P1() {
       return { date: selectedDate, slots: spreadSlots(all), full: all };
     }
 
-    // For estado-2 the insurer (EPS) availability is always pushed ~10 days
-    // out — even when the patient picked a preferred date — so the "¿Quieres
-    // una cita antes?" banner can surface particular availability on the
-    // earlier preferred date.
+    // For estado-2 the insurer (EPS) availability is pushed ~10 days out ONLY
+    // when the patient is still on their preferred date (or hasn't picked one),
+    // so the "¿Quieres una cita antes?" banner can surface earlier particular
+    // availability. Once the patient accepts a specific EPS date (date differs
+    // from preferredDate), honor that exact date instead of pushing again.
     const baseFrom = date ? parseYmd(date) : today;
+    const onPreferredDate = !date || !preferredDate || date === preferredDate;
     const startFrom =
-      estado === "estado-2"
+      estado === "estado-2" && onPreferredDate
         ? new Date(baseFrom.getTime() + 10 * 86400000)
         : baseFrom;
     const first = findNextAvailableDate(startFrom, specialty, service, 90, epsSuffix) ?? startFrom;
