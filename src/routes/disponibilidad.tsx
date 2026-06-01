@@ -470,7 +470,7 @@ function P1() {
         </div>
       </div>
 
-      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={!showParticularPricing} />>
+      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={!showParticularPricing} />
       <WaitlistDialog
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
