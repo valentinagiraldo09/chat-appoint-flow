@@ -237,9 +237,9 @@ function P1() {
     return () => clearTimeout(t);
   }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, estado]);
 
-  // EPS Sura (estado-2) uses an independent availability channel so that there
-  // exist days where Particular has cupo but Sura does not.
-  const epsSuffix = estado === "estado-2" ? "eps" : "";
+  // Single availability channel so the EPS date the patient confirmed upstream
+  // (e.g. the "nearest available" date) is honored exactly on this screen.
+  const epsSuffix = "";
 
   // EPS slots: artificially pushed further in the future for estado-2
   const epsSection = useMemo(() => {
