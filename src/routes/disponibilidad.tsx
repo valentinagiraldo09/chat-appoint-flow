@@ -320,6 +320,8 @@ function P1() {
   }, [epsSection, specialty, service, epsSuffix]);
 
   const showFilters = estado !== "estado-4";
+  // estado-3 = insurer has no coverage: all appointments are particular and must show price
+  const showParticularPricing = aseguradora === "Particular" || estado === "estado-3";
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -446,8 +448,8 @@ function P1() {
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={aseguradora !== "Particular"}
-                  showPriceInLink={aseguradora === "Particular"}
+                  hidePrice={!showParticularPricing}
+                  showPriceInLink={showParticularPricing}
                   onSelect={setModalSlot}
                 />
               )}
@@ -457,8 +459,8 @@ function P1() {
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
-                  hidePrice={aseguradora !== "Particular"}
-                  showPriceInLink={aseguradora === "Particular"}
+                  hidePrice={!showParticularPricing}
+                  showPriceInLink={showParticularPricing}
                   onSelect={setModalSlot}
                 />
               )}
@@ -468,7 +470,7 @@ function P1() {
         </div>
       </div>
 
-      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={aseguradora !== "Particular"} />
+      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={!showParticularPricing} />
       <WaitlistDialog
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
