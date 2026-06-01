@@ -448,8 +448,8 @@ function P1() {
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={aseguradora !== "Particular"}
-                  showPriceInLink={aseguradora === "Particular"}
+                  hidePrice={!showParticularPricing}
+                  showPriceInLink={showParticularPricing}
                   onSelect={setModalSlot}
                 />
               )}
