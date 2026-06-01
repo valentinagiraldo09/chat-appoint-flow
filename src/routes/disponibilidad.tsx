@@ -371,6 +371,37 @@ function P1() {
           </button>
         )}
 
+        {estado === "estado-2" &&
+          preferredDate &&
+          epsSection &&
+          parseYmd(preferredDate) < epsSection.date && (
+            <button
+              onClick={() => {
+                setAseguradora("Particular");
+                setDate(preferredDate);
+                navigate({
+                  to: "/disponibilidad",
+                  search: { specialty, service, aseguradora: "Particular", date: preferredDate },
+                });
+              }}
+              className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-100/70 px-5 py-4 text-left transition hover:bg-emerald-100"
+            >
+              <div className="flex items-center gap-3">
+                <Zap className="h-5 w-5 shrink-0 text-emerald-700" />
+                <div>
+                  <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
+                  <div className="text-sm text-foreground/80">
+                    Hay disponibilidad particular para el{" "}
+                    {format(parseYmd(preferredDate), "d 'de' MMMM", { locale: es })}
+                  </div>
+                </div>
+              </div>
+              <span className="whitespace-nowrap text-sm font-medium text-emerald-700">
+                Ver citas particulares →
+              </span>
+            </button>
+          )}
+
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
         <div className="mt-6 space-y-6">
@@ -421,36 +452,6 @@ function P1() {
                 />
               )}
 
-              {estado === "estado-2" &&
-                preferredDate &&
-                epsSection &&
-                parseYmd(preferredDate) < epsSection.date && (
-                  <button
-                    onClick={() => {
-                      setAseguradora("Particular");
-                      setDate(preferredDate);
-                      navigate({
-                        to: "/disponibilidad",
-                        search: { specialty, service, aseguradora: "Particular", date: preferredDate },
-                      });
-                    }}
-                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-100/70 px-5 py-4 text-left transition hover:bg-emerald-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-5 w-5 shrink-0 text-emerald-700" />
-                      <div>
-                        <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
-                        <div className="text-sm text-foreground/80">
-                          Hay disponibilidad particular para el{" "}
-                          {format(parseYmd(preferredDate), "d 'de' MMMM", { locale: es })}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="whitespace-nowrap text-sm font-medium text-emerald-700">
-                      Ver citas particulares →
-                    </span>
-                  </button>
-                )}
             </>
           )}
         </div>
