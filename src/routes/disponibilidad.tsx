@@ -299,14 +299,9 @@ function P1() {
     const target = preferredDate ? parseYmd(preferredDate) : today;
     let first = target;
     let raw = generateSlots(first, specialty, service);
-    if (raw.length === 0 && preferredDate) {
-      const next = findNextAvailableDate(target, specialty, service);
-      raw = (next ? generateSlots(next, specialty, service) : []).map((slot) => ({
-        ...slot,
-        id: `${ymd(target)}-particular-${slot.hour}-${slot.minute}`,
-        date: ymd(target),
-      }));
-    } else if (raw.length === 0) {
+    // No fake "borrowing": if the target day has no real cupo, move to the next
+    // truly available day (so the banner won't claim cupo that doesn't exist).
+    if (raw.length === 0) {
       const next = findNextAvailableDate(target, specialty, service);
       if (next) {
         first = next;
@@ -326,10 +321,10 @@ function P1() {
     for (let i = 0; i < 30; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
-      pool.push(...generateSlots(d, specialty, service));
+      pool.push(...generateSlots(d, specialty, service, epsSuffix));
     }
     return pool;
-  }, [epsSection, specialty, service]);
+  }, [epsSection, specialty, service, epsSuffix]);
 
   const showFilters = estado !== "estado-4";
 
