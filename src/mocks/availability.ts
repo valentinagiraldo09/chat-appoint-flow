@@ -135,11 +135,12 @@ export function findNextAvailableDate(
   specialty: string,
   service: string,
   maxDays = 90,
+  seedSuffix = "",
 ): Date | null {
   const d = new Date(from);
   d.setHours(0, 0, 0, 0);
   for (let i = 0; i < maxDays; i++) {
-    if (hasAvailability(d, specialty, service)) return new Date(d);
+    if (hasAvailability(d, specialty, service, seedSuffix)) return new Date(d);
     d.setDate(d.getDate() + 1);
   }
   return null;
