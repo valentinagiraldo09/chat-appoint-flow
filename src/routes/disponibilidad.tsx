@@ -444,11 +444,8 @@ function P1() {
 
               {estado === "estado-2" &&
                 preferredDate &&
-                particularSection &&
-                particularSection.slots.length > 0 &&
                 epsSection &&
-                ymd(particularSection.date) === preferredDate &&
-                particularSection.date < epsSection.date && (
+                parseYmd(preferredDate) < epsSection.date && (
                   <button
                     onClick={() => {
                       setAseguradora("Particular");
@@ -466,7 +463,7 @@ function P1() {
                         <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
                         <div className="text-sm text-foreground/80">
                           Hay disponibilidad particular para el{" "}
-                          {format(particularSection.date, "d 'de' MMMM", { locale: es })}
+                          {format(parseYmd(preferredDate), "d 'de' MMMM", { locale: es })}
                         </div>
                       </div>
                     </div>
