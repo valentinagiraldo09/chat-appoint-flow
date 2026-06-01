@@ -15,7 +15,6 @@ import {
   parseYmd,
   ymd,
   findNextAvailableDate,
-  hasAvailability,
   type Slot,
 } from "@/mocks/availability";
 
