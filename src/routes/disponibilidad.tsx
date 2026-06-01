@@ -276,7 +276,7 @@ function P1() {
     const first = findNextAvailableDate(startFrom, specialty, service, 90, epsSuffix) ?? startFrom;
     const all = filterSlots(generateSlots(first, specialty, service, epsSuffix), filters);
     return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, date, filters, estado, epsSuffix]);
+  }, [specialty, service, date, filters, estado, epsSuffix, preferredDate]);
 
   // Following day section: next available date after epsSection
   const nextSection = useMemo(() => {
