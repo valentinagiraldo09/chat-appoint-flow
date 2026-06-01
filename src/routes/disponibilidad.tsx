@@ -15,6 +15,7 @@ import {
   parseYmd,
   ymd,
   findNextAvailableDate,
+  hasAvailability,
   type Slot,
 } from "@/mocks/availability";
 
@@ -374,7 +375,10 @@ function P1() {
         {estado === "estado-2" &&
           preferredDate &&
           epsSection &&
-          parseYmd(preferredDate) < epsSection.date && (
+          specialty &&
+          service &&
+          parseYmd(preferredDate) < epsSection.date &&
+          hasAvailability(parseYmd(preferredDate), specialty, service) && (
             <button
               onClick={() => {
                 setAseguradora("Particular");
