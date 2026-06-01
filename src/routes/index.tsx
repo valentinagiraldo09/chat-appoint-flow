@@ -562,7 +562,7 @@ function P0() {
       setIdStep("confirm-cancel");
       botSay("¿Confirmas la cancelación?", () => addBubble({ kind: "cancel-confirm" }));
     } else if (f === "confirmar") {
-      botSay("✓ Asistencia confirmada. Te esperamos el jueves 8 de mayo, 9:15 AM.");
+      botSay("✓ Asistencia confirmada. Te esperamos el jueves 11 de junio, 9:15 AM.");
       setIdStep("done");
     }
   }
@@ -901,7 +901,7 @@ function ApptCard({ flow, onAction, disabled }: { flow: FlowKind; onAction: () =
     <div className="ml-10 max-w-md rounded-2xl border border-border bg-card p-4 shadow-sm">
       <p className="text-sm font-semibold text-foreground">Dermatología primera vez</p>
       <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-        <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Jueves 8 de mayo · 9:15 AM</p>
+        <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Jueves 11 de junio · 9:15 AM</p>
         <p className="flex items-center gap-1.5"><Stethoscope className="h-3.5 w-3.5" /> Dra. María Rodríguez</p>
         <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Sede Centro</p>
       </div>
