@@ -237,6 +237,10 @@ function P1() {
     return () => clearTimeout(t);
   }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, estado]);
 
+  // EPS Sura (estado-2) uses an independent availability channel so that there
+  // exist days where Particular has cupo but Sura does not.
+  const epsSuffix = estado === "estado-2" ? "eps" : "";
+
   // EPS slots: artificially pushed further in the future for estado-2
   const epsSection = useMemo(() => {
     if (!specialty || !service) return null;
@@ -263,10 +267,10 @@ function P1() {
       : estado === "estado-2"
         ? new Date(today.getTime() + 10 * 86400000)
         : today;
-    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
-    const all = filterSlots(generateSlots(first, specialty, service), filters);
+    const first = findNextAvailableDate(startFrom, specialty, service, 90, epsSuffix) ?? startFrom;
+    const all = filterSlots(generateSlots(first, specialty, service, epsSuffix), filters);
     return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, date, filters, estado]);
+  }, [specialty, service, date, filters, estado, epsSuffix]);
 
   // Following day section: next available date after epsSection
   const nextSection = useMemo(() => {
@@ -279,12 +283,12 @@ function P1() {
       return null;
     const after = new Date(epsSection.date);
     after.setDate(after.getDate() + 1);
-    const next = findNextAvailableDate(after, specialty, service);
+    const next = findNextAvailableDate(after, specialty, service, 90, epsSuffix);
     if (!next) return null;
-    const all = filterSlots(generateSlots(next, specialty, service), filters);
+    const all = filterSlots(generateSlots(next, specialty, service, epsSuffix), filters);
     if (all.length === 0) return null;
     return { date: next, slots: spreadSlots(all), full: all };
-  }, [estado, epsSection, specialty, service, filters]);
+  }, [estado, epsSection, specialty, service, filters, epsSuffix]);
 
   // Particular nearer slot for estado-2 — uses the date the patient originally asked for.
   // Particular always has cupo; if the exact date doesn't have generated slots, fall back to next.
