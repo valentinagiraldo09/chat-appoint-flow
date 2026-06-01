@@ -426,8 +426,8 @@ function P1() {
                   date={epsSection.date}
                   slots={epsSection.slots}
                   full={epsSection.full}
-                  hidePrice={estado === "estado-1" || estado === "estado-2"}
-                  showPriceInLink={estado === "estado-3"}
+                  hidePrice={aseguradora !== "Particular"}
+                  showPriceInLink={aseguradora === "Particular"}
                   onSelect={setModalSlot}
                 />
               )}
@@ -437,8 +437,8 @@ function P1() {
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
-                  hidePrice={estado === "estado-1" || estado === "estado-2"}
-                  showPriceInLink={estado === "estado-3"}
+                  hidePrice={aseguradora !== "Particular"}
+                  showPriceInLink={aseguradora === "Particular"}
                   onSelect={setModalSlot}
                 />
               )}
@@ -481,7 +481,7 @@ function P1() {
         </div>
       </div>
 
-      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={estado === "estado-1" || estado === "estado-2"} />
+      <ConfirmModal slot={modalSlot} open={!!modalSlot} onOpenChange={(o) => !o && setModalSlot(null)} hidePrice={aseguradora !== "Particular"} />
       <WaitlistDialog
         open={waitlistOpen}
         onOpenChange={setWaitlistOpen}
