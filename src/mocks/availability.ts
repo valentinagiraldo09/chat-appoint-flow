@@ -51,7 +51,12 @@ export function parseYmd(s: string): Date {
  * Determine if a date has availability. ~65% of upcoming days have availability,
  * deterministic by date+specialty.
  */
-export function hasAvailability(date: Date, specialty: string, service: string): boolean {
+export function hasAvailability(
+  date: Date,
+  specialty: string,
+  service: string,
+  seedSuffix = "",
+): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const d0 = new Date(date);
@@ -60,16 +65,22 @@ export function hasAvailability(date: Date, specialty: string, service: string):
   // Only within ~90 days
   const diff = (d0.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
   if (diff > 90) return false;
-  const r = mulberry32(hash(`${ymd(d0)}|${specialty}|${service}`))();
+  const r = mulberry32(hash(`${ymd(d0)}|${specialty}|${service}${seedSuffix}`))();
   return r < 0.65;
 }
 
 /**
  * Generate slots for a given day. Number and content vary deterministically.
+ * seedSuffix only affects availability/RNG seeding, never the price logic.
  */
-export function generateSlots(date: Date, specialty: string, service: string): Slot[] {
-  if (!hasAvailability(date, specialty, service)) return [];
-  const seed = hash(`${ymd(date)}|${specialty}|${service}|slots`);
+export function generateSlots(
+  date: Date,
+  specialty: string,
+  service: string,
+  seedSuffix = "",
+): Slot[] {
+  if (!hasAvailability(date, specialty, service, seedSuffix)) return [];
+  const seed = hash(`${ymd(date)}|${specialty}|${service}|slots${seedSuffix}`);
   const rng = mulberry32(seed);
   const count = 6 + Math.floor(rng() * 9); // 6..14
   const used = new Set<string>();
@@ -124,11 +135,12 @@ export function findNextAvailableDate(
   specialty: string,
   service: string,
   maxDays = 90,
+  seedSuffix = "",
 ): Date | null {
   const d = new Date(from);
   d.setHours(0, 0, 0, 0);
   for (let i = 0; i < maxDays; i++) {
-    if (hasAvailability(d, specialty, service)) return new Date(d);
+    if (hasAvailability(d, specialty, service, seedSuffix)) return new Date(d);
     d.setDate(d.getDate() + 1);
   }
   return null;

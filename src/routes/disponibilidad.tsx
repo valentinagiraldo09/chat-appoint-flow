@@ -237,6 +237,10 @@ function P1() {
     return () => clearTimeout(t);
   }, [date, filters.sede, filters.profesional, filters.attention, filters.franja, service, estado]);
 
+  // EPS Sura (estado-2) uses an independent availability channel so that there
+  // exist days where Particular has cupo but Sura does not.
+  const epsSuffix = estado === "estado-2" ? "eps" : "";
+
   // EPS slots: artificially pushed further in the future for estado-2
   const epsSection = useMemo(() => {
     if (!specialty || !service) return null;
@@ -263,10 +267,10 @@ function P1() {
       : estado === "estado-2"
         ? new Date(today.getTime() + 10 * 86400000)
         : today;
-    const first = findNextAvailableDate(startFrom, specialty, service) ?? startFrom;
-    const all = filterSlots(generateSlots(first, specialty, service), filters);
+    const first = findNextAvailableDate(startFrom, specialty, service, 90, epsSuffix) ?? startFrom;
+    const all = filterSlots(generateSlots(first, specialty, service, epsSuffix), filters);
     return { date: first, slots: spreadSlots(all), full: all };
-  }, [specialty, service, date, filters, estado]);
+  }, [specialty, service, date, filters, estado, epsSuffix]);
 
   // Following day section: next available date after epsSection
   const nextSection = useMemo(() => {
@@ -279,12 +283,12 @@ function P1() {
       return null;
     const after = new Date(epsSection.date);
     after.setDate(after.getDate() + 1);
-    const next = findNextAvailableDate(after, specialty, service);
+    const next = findNextAvailableDate(after, specialty, service, 90, epsSuffix);
     if (!next) return null;
-    const all = filterSlots(generateSlots(next, specialty, service), filters);
+    const all = filterSlots(generateSlots(next, specialty, service, epsSuffix), filters);
     if (all.length === 0) return null;
     return { date: next, slots: spreadSlots(all), full: all };
-  }, [estado, epsSection, specialty, service, filters]);
+  }, [estado, epsSection, specialty, service, filters, epsSuffix]);
 
   // Particular nearer slot for estado-2 — uses the date the patient originally asked for.
   // Particular always has cupo; if the exact date doesn't have generated slots, fall back to next.
@@ -295,14 +299,9 @@ function P1() {
     const target = preferredDate ? parseYmd(preferredDate) : today;
     let first = target;
     let raw = generateSlots(first, specialty, service);
-    if (raw.length === 0 && preferredDate) {
-      const next = findNextAvailableDate(target, specialty, service);
-      raw = (next ? generateSlots(next, specialty, service) : []).map((slot) => ({
-        ...slot,
-        id: `${ymd(target)}-particular-${slot.hour}-${slot.minute}`,
-        date: ymd(target),
-      }));
-    } else if (raw.length === 0) {
+    // No fake "borrowing": if the target day has no real cupo, move to the next
+    // truly available day (so the banner won't claim cupo that doesn't exist).
+    if (raw.length === 0) {
       const next = findNextAvailableDate(target, specialty, service);
       if (next) {
         first = next;
@@ -322,10 +321,10 @@ function P1() {
     for (let i = 0; i < 30; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
-      pool.push(...generateSlots(d, specialty, service));
+      pool.push(...generateSlots(d, specialty, service, epsSuffix));
     }
     return pool;
-  }, [epsSection, specialty, service]);
+  }, [epsSection, specialty, service, epsSuffix]);
 
   const showFilters = estado !== "estado-4";
 
