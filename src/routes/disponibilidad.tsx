@@ -389,6 +389,12 @@ function P1() {
                 <div className="text-sm text-muted-foreground">
                   Volver a ver horarios cubiertos por {previousAseguradora}.
                 </div>
+                {coverageMinDate && (
+                  <div className="text-sm text-muted-foreground">
+                    Disponibilidad desde el{" "}
+                    {format(parseYmd(coverageMinDate), "d 'de' MMMM", { locale: es })}.
+                  </div>
+                )}
               </div>
             </div>
             <span className="whitespace-nowrap text-sm font-medium text-foreground">
