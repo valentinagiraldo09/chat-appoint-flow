@@ -302,10 +302,16 @@ function P1() {
     // explicitly stated a preferred date in the chat. No preferred date → no banner.
     if (!preferredDate) return null;
     const requestedDate = parseYmd(preferredDate);
+    // Banner is only meaningful when the preferred date is earlier than the EPS
+    // date the patient is seeing.
+    if (requestedDate >= epsSection.date) return null;
+    // Earliest particular availability from the preferred date. As long as it is
+    // not later than the EPS date, there is a particular option at/around the
+    // preferred date worth surfacing.
     const firstParticular = findNextAvailableDate(requestedDate, specialty, service, 90);
-    if (!firstParticular || firstParticular >= epsSection.date) return null;
-    // Prefer showing particular availability on the requested preferred date.
-    return requestedDate < epsSection.date ? requestedDate : firstParticular;
+    if (!firstParticular || firstParticular > epsSection.date) return null;
+    // Surface the patient's originally preferred date.
+    return requestedDate;
   }, [estado, epsSection, specialty, service, preferredDate]);
 
 
