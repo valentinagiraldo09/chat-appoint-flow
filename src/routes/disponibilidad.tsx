@@ -298,13 +298,15 @@ function P1() {
 
   const earlierParticularDate = useMemo(() => {
     if (estado !== "estado-2" || !epsSection || !specialty || !service) return null;
-    const desiredDate = preferredDate ?? date;
-    if (!desiredDate) return null;
-    const requestedDate = parseYmd(desiredDate);
+    // Only surface the "¿Quieres una cita antes?" banner when the user
+    // explicitly stated a preferred date in the chat. No preferred date → no banner.
+    if (!preferredDate) return null;
+    const requestedDate = parseYmd(preferredDate);
     const firstParticular = findNextAvailableDate(requestedDate, specialty, service, 90);
     if (!firstParticular || firstParticular >= epsSection.date) return null;
+    // Prefer showing particular availability on the requested preferred date.
     return requestedDate < epsSection.date ? requestedDate : firstParticular;
-  }, [estado, epsSection, specialty, service, preferredDate, date]);
+  }, [estado, epsSection, specialty, service, preferredDate]);
 
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
