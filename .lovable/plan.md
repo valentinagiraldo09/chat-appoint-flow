@@ -1,41 +1,23 @@
-## Problema
+## Objetivo
 
-En la pantalla de confirmación (`src/routes/confirmacion.tsx`) la barra fija inferior con "Total pago pendiente" aparece siempre que `paymentMethod === "clinic"`. El problema raíz está en `src/routes/checkout.tsx`: cuando la validación con la aseguradora es exitosa, el método de pago se decide así:
+En el banner "Ver disponibilidad con mi aseguradora" (el que permite volver a ver horarios cubiertos por la EPS) mostrar también la fecha desde la cual la aseguradora puede dar la cita.
 
-```text
-const hasAmount = payParticularOverride || (slot.price ?? 0) > 0;
-goConfirmacion(hasAmount ? "clinic" : "none");
-```
+## Contexto
 
-Como **todos** los slots generados traen `price > 0` (ver `generateSlots` en `availability.ts`), una cita cubierta por la aseguradora también entra como `"clinic"` y muestra la barra de pago pendiente, aunque el paciente no deba pagar nada.
-
-Confirmado con el usuario: una cita de aseguradora no tiene valor por pagar (sin copago por ahora).
+- El banner está en `src/routes/disponibilidad.tsx`, líneas 366-398.
+- Ya existe en el store el valor `coverageMinDate` (línea 193), que es justamente la fecha desde la cual la aseguradora ofrece disponibilidad. Hoy solo se usa para navegar (línea 370), no se muestra.
 
 ## Cambio
 
-En `src/routes/checkout.tsx`, dentro de `onSubmit`, ajustar la decisión del método de pago tras una validación `ok`:
-
-- La cita solo es "pago pendiente" (`"clinic"`) cuando es un pago **particular** (es decir, `payParticularOverride === true`, que es el único caso donde el paciente paga el valor del slot).
-- Cuando la cita queda cubierta por la aseguradora (validación `ok` sin override particular), el método debe ser `"none"` → "Cubierta por tu aseguradora", sin barra de pago.
-
-Reemplazar:
+En el subtítulo del banner, agregar la fecha formateada cuando `coverageMinDate` exista:
 
 ```text
-const hasAmount = payParticularOverride || (slot.price ?? 0) > 0;
-goConfirmacion(hasAmount ? "clinic" : "none");
+Volver a ver horarios cubiertos por EPS Sura.
+Disponibilidad desde el 6 de julio.
 ```
 
-por:
+Detalle técnico:
+- Parsear `coverageMinDate` (string `yyyy-MM-dd`) con el helper `parseYmd` ya presente en el archivo y formatear con `format(..., "d 'de' MMMM", { locale: es })`, igual que se hace en el banner verde (línea 418).
+- Mostrar la segunda línea solo si `coverageMinDate` está definida; si no, dejar el subtítulo actual sin cambios.
 
-```text
-goConfirmacion(payParticularOverride ? "clinic" : "none");
-```
-
-La rama de aseguradora "Particular" (líneas 130-136) ya llama a `goConfirmacion("clinic")` y se mantiene igual, ya que esas citas sí tienen valor por pagar.
-
-## Resultado esperado
-
-- Cita particular (Particular o banner "cita antes" particular) → barra fija "Total pago pendiente: $..." con botón "Pagar ahora".
-- Cita cubierta por aseguradora → sin barra de pago, solo "Pedir nueva cita" y mensaje "Cubierta por tu aseguradora".
-
-No se toca la UI de `confirmacion.tsx`; ya reacciona correctamente según `paymentMethod`.
+No se modifica lógica de negocio ni navegación, solo el texto presentado en el banner.
