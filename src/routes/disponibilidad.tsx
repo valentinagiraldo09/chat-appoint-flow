@@ -478,6 +478,7 @@ function P1() {
                   full={nextSection.full}
                   hidePrice={!showParticularPricing}
                   showPriceInLink={showParticularPricing}
+                  aseguradora={showParticularPricing ? "Particular" : aseguradora}
                   onSelect={setModalSlot}
                 />
               )}
