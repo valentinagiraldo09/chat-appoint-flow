@@ -625,8 +625,9 @@ function P0() {
                 onClick={handleSend}
                 disabled={!mounted || !input.trim()}
                 aria-label="Enviar"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background transition hover:bg-foreground/90 disabled:opacity-40"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-medium text-background transition hover:bg-foreground/90 disabled:opacity-40"
               >
+                Enviar
                 <Send className="h-4 w-4" />
               </button>
             </div>
@@ -742,8 +743,9 @@ function P0() {
               onClick={handleSend}
               disabled={!input.trim()}
               aria-label="Enviar"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-foreground px-3.5 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
             >
+              Enviar
               <Send className="h-4 w-4" />
             </button>
           </div>
