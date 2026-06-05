@@ -1,23 +1,27 @@
 ## Objetivo
 
-En el banner "Ver disponibilidad con mi aseguradora" (el que permite volver a ver horarios cubiertos por la EPS) mostrar también la fecha desde la cual la aseguradora puede dar la cita.
+Cuando el usuario hace clic en el chip "Elegir fecha", en lugar de mostrar un campo `<input type="date">`, desplegar directamente un calendario inline (como el de la imagen de referencia) con todos los días desde hoy en adelante habilitados, sin marcar disponibilidad específica.
 
-## Contexto
+## Cambios
 
-- El banner está en `src/routes/disponibilidad.tsx`, líneas 366-398.
-- Ya existe en el store el valor `coverageMinDate` (línea 193), que es justamente la fecha desde la cual la aseguradora ofrece disponibilidad. Hoy solo se usa para navegar (línea 370), no se muestra.
+### `src/routes/index.tsx`
 
-## Cambio
+Reemplazar el componente `DateInput` (líneas 926-948) por un calendario inline propio que:
 
-En el subtítulo del banner, agregar la fecha formateada cuando `coverageMinDate` exista:
+- Muestre el encabezado con el mes/año (ej. "Junio 2026") y flechas para navegar entre meses (`ChevronLeft` / `ChevronRight`, ya disponibles vía lucide-react).
+- Muestre la fila de días de la semana: L M M J V S D.
+- Renderice una grilla de días del mes con la lógica de offset por lunes como primer día (igual que `SmartCalendar`).
+- Habilite únicamente los días **desde hoy en adelante**; los días pasados se muestran deshabilitados/atenuados. No se pinta disponibilidad real.
+- Impida navegar a meses completamente anteriores al mes actual (la flecha "anterior" se desactiva cuando corresponde).
+- Al hacer clic en un día habilitado, llame `onSubmit(iso)` con la fecha en formato `yyyy-MM-dd` (usando el helper `ymd` de `@/mocks/availability`), conservando el flujo actual (`onPickSpecificDate`).
+- Respete el estado `disabled` (cuando la burbuja no es la última) atenuando el calendario y evitando selección.
 
-```text
-Volver a ver horarios cubiertos por EPS Sura.
-Disponibilidad desde el 6 de julio.
-```
+El estilo seguirá los tokens del design system (bordes redondeados, `bg-popover`/`bg-card`, acento verde para días seleccionables como en la referencia). Se mantiene el `pl-10` para alinear con las demás burbujas.
 
-Detalle técnico:
-- Parsear `coverageMinDate` (string `yyyy-MM-dd`) con el helper `parseYmd` ya presente en el archivo y formatear con `format(..., "d 'de' MMMM", { locale: es })`, igual que se hace en el banner verde (línea 418).
-- Mostrar la segunda línea solo si `coverageMinDate` está definida; si no, dejar el subtítulo actual sin cambios.
+### Detalles técnicos
 
-No se modifica lógica de negocio ni navegación, solo el texto presentado en el banner.
+- Reutilizar el patrón de grilla de `src/components/SmartCalendar.tsx` (cálculo de `startWeekday`, `daysInMonth`, navegación de mes), pero sin la dependencia de `getMonthAvailability`: el criterio de habilitado pasa a ser simplemente `date >= today`.
+- Importar `ChevronLeft`, `ChevronRight` (ya hay imports de lucide en el archivo; agregar los que falten), `format`/`es` de date-fns para el título del mes, y `ymd` de `@/mocks/availability`.
+- No se cambia la firma `onSubmit(iso: string)` ni el tipo de burbuja `date-input`, por lo que el resto del flujo (validación de disponibilidad posterior en `pickSpecificDate`) permanece intacto.
+
+No se requieren cambios de backend ni de lógica de negocio.
