@@ -507,6 +507,7 @@ function SectionCard({
   onSelect,
   tone = "emerald",
   icon,
+  aseguradora,
 }: {
   label?: string;
   date: Date;
@@ -517,6 +518,7 @@ function SectionCard({
   onSelect: (s: Slot) => void;
   tone?: "emerald" | "amber";
   icon?: React.ReactNode;
+  aseguradora?: string;
 }) {
   const headerBg = tone === "amber" ? "bg-[#FFF6E5]" : "bg-emerald-100/70";
   const bodyBorder = tone === "amber" ? "border-[#FFA800]" : "border-border";
