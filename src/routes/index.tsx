@@ -986,7 +986,7 @@ function DateInput({ onSubmit, disabled }: { onSubmit: (iso: string) => void; di
                 className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-full text-sm transition",
                   !isEnabled && "cursor-not-allowed text-muted-foreground/40",
-                  isEnabled && "border border-emerald-500 text-emerald-700 hover:bg-emerald-50",
+                  isEnabled && "text-foreground hover:bg-muted",
                 )}
               >
                 {d}
