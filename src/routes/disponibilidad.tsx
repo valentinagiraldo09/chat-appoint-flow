@@ -466,6 +466,7 @@ function P1() {
                   full={epsSection.full}
                   hidePrice={!showParticularPricing}
                   showPriceInLink={showParticularPricing}
+                  aseguradora={showParticularPricing ? "Particular" : aseguradora}
                   onSelect={setModalSlot}
                 />
               )}
