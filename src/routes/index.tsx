@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Plus, MapPin, Clock, Stethoscope, Pencil } from "lucide-react";
+import { Send, Plus, MapPin, Clock, Stethoscope, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useBooking } from "@/store/booking";
 import {
   SPECIALTIES,
