@@ -539,7 +539,7 @@ function SectionCard({
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
             {slots.map((slot) => (
-              <SlotCard key={slot.id} slot={slot} hidePrice={hidePrice} onClick={() => onSelect(slot)} />
+              <SlotCard key={slot.id} slot={slot} hidePrice={hidePrice} aseguradora={aseguradora} onClick={() => onSelect(slot)} />
             ))}
           </div>
         )}
