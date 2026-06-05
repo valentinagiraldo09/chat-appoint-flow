@@ -1,23 +1,27 @@
 ## Objetivo
+Reorganizar la información dentro de cada card de disponibilidad (`src/components/SlotCard.tsx`).
 
-En el banner "Ver disponibilidad con mi aseguradora" (el que permite volver a ver horarios cubiertos por la EPS) mostrar también la fecha desde la cual la aseguradora puede dar la cita.
+## Cambios
+1. **Reordenar** los datos para que el orden sea: **Aseguradora → Profesional → Sede**.
+2. **Aseguradora y Profesional en doble columna**: mostrar ambos lado a lado en una fila de 2 columnas (grid de 2), cada uno con su etiqueta arriba y el valor abajo. La Sede queda debajo, a todo el ancho.
 
-## Contexto
-
-- El banner está en `src/routes/disponibilidad.tsx`, líneas 366-398.
-- Ya existe en el store el valor `coverageMinDate` (línea 193), que es justamente la fecha desde la cual la aseguradora ofrece disponibilidad. Hoy solo se usa para navegar (línea 370), no se muestra.
-
-## Cambio
-
-En el subtítulo del banner, agregar la fecha formateada cuando `coverageMinDate` exista:
-
+## Detalle visual
 ```text
-Volver a ver horarios cubiertos por EPS Sura.
-Disponibilidad desde el 6 de julio.
+┌──────────────────────────────┐
+│ 8:00 AM            Presencial │
+├──────────────────────────────┤
+│ Aseguradora     Profesional   │
+│ EPS Sura        Laura Castillo │
+│                               │
+│ Sede                          │
+│ Sede Chapinero                │
+│ Calle 60 #9-15                │
+└──────────────────────────────┘
 ```
 
-Detalle técnico:
-- Parsear `coverageMinDate` (string `yyyy-MM-dd`) con el helper `parseYmd` ya presente en el archivo y formatear con `format(..., "d 'de' MMMM", { locale: es })`, igual que se hace en el banner verde (línea 418).
-- Mostrar la segunda línea solo si `coverageMinDate` está definida; si no, dejar el subtítulo actual sin cambios.
+- La fila Aseguradora/Profesional usará `grid grid-cols-2 gap-3`.
+- Si no hay aseguradora (no aplica), el Profesional ocupa su columna normalmente.
+- La Sede se mantiene oculta para Telemedicina/Telefónica (como hoy).
+- El precio permanece al pie sin cambios.
 
-No se modifica lógica de negocio ni navegación, solo el texto presentado en el banner.
+Solo cambios de presentación en `SlotCard.tsx`; sin tocar lógica de negocio.
