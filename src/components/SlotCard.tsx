@@ -19,16 +19,18 @@ export function SlotCard({ slot, onClick, hidePrice, aseguradora }: { slot: Slot
         </span>
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <div className="text-sm">
-          <div className="text-muted-foreground">Profesional:</div>
-          <div className="font-medium">{slot.profesional}</div>
-        </div>
-        {aseguradora && (
-          <div className="mt-2 text-sm">
-            <div className="text-muted-foreground">Aseguradora:</div>
-            <div className="font-medium">{aseguradora}</div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {aseguradora && (
+            <div>
+              <div className="text-muted-foreground">Aseguradora:</div>
+              <div className="font-medium">{aseguradora}</div>
+            </div>
+          )}
+          <div>
+            <div className="text-muted-foreground">Profesional:</div>
+            <div className="font-medium">{slot.profesional}</div>
           </div>
-        )}
+        </div>
         {slot.attention !== "Telemedicina" && slot.attention !== "Telefónica" && (
           <div className="mt-2 text-sm text-muted-foreground">
             <div>{slot.sede}</div>
