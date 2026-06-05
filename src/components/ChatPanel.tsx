@@ -302,9 +302,10 @@ export function ChatPanel() {
           </button>
           <button
             onClick={() => handleSend()}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background hover:bg-foreground/90"
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-foreground px-3 text-xs font-medium text-background hover:bg-foreground/90"
             aria-label="Enviar"
           >
+            Enviar
             <Send className="h-3.5 w-3.5" />
           </button>
         </div>
