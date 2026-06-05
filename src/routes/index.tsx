@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Plus, MapPin, Clock, Stethoscope, Pencil } from "lucide-react";
+import { Send, Plus, MapPin, Clock, Stethoscope, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useBooking } from "@/store/booking";
 import {
   SPECIALTIES,
@@ -924,25 +926,75 @@ function ApptCard({ flow, onAction, disabled }: { flow: FlowKind; onAction: () =
 }
 
 function DateInput({ onSubmit, disabled }: { onSubmit: (iso: string) => void; disabled: boolean }) {
-  const [v, setV] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [view, setView] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const firstDay = new Date(view.getFullYear(), view.getMonth(), 1);
+  const startWeekday = (firstDay.getDay() + 6) % 7; // Lunes=0
+  const daysInMonth = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const isCurrentMonth =
+    view.getFullYear() === today.getFullYear() && view.getMonth() === today.getMonth();
+  const goPrev = () => {
+    if (isCurrentMonth) return;
+    setView(new Date(view.getFullYear(), view.getMonth() - 1, 1));
+  };
+  const goNext = () => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1));
+
   return (
-    <div className="flex flex-wrap items-center gap-2 pl-10">
-      <input
-        type="date"
-        value={v}
-        min={today}
-        onChange={(e) => setV(e.target.value)}
-        disabled={disabled}
-        className="rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-foreground/40 disabled:opacity-60"
-      />
-      <button
-        disabled={disabled || !v}
-        onClick={() => onSubmit(v)}
-        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 disabled:opacity-40"
-      >
-        Continuar
-      </button>
+    <div className="pl-10">
+      <div className={cn("w-[320px] rounded-2xl border border-border bg-popover p-4 shadow-lg", disabled && "pointer-events-none opacity-60")}>
+        <div className="mb-3 flex items-center justify-between">
+          <button
+            onClick={goPrev}
+            disabled={isCurrentMonth}
+            className="rounded-lg border border-border p-1.5 hover:bg-muted disabled:opacity-30"
+            aria-label="Mes anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div className="text-base font-semibold capitalize">
+            {format(view, "MMMM yyyy", { locale: es })}
+          </div>
+          <button
+            onClick={goNext}
+            className="rounded-lg border border-border p-1.5 hover:bg-muted"
+            aria-label="Mes siguiente"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground">
+          {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+            <div key={i}>{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((d, i) => {
+            if (d === null) return <div key={i} />;
+            const date = new Date(view.getFullYear(), view.getMonth(), d);
+            const isEnabled = date >= today;
+            return (
+              <button
+                key={i}
+                disabled={disabled || !isEnabled}
+                onClick={() => isEnabled && onSubmit(ymd(date))}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full text-sm transition",
+                  !isEnabled && "cursor-not-allowed text-muted-foreground/40",
+                  isEnabled && "border border-emerald-500 text-emerald-700 hover:bg-emerald-50",
+                )}
+              >
+                {d}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
