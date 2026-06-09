@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, Zap, AlertTriangle, CalendarPlus, Users, Stethoscope } from "lucide-react";
+import { Search, ChevronDown, AlertTriangle, CalendarPlus, Users, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -296,23 +296,6 @@ function P1() {
     return { date: next, slots: spreadSlots(all), full: all };
   }, [estado, epsSection, specialty, service, filters, epsSuffix]);
 
-  const earlierParticularDate = useMemo(() => {
-    if (estado !== "estado-2" || !epsSection || !specialty || !service) return null;
-    // Only surface the "¿Quieres una cita antes?" banner when the user
-    // explicitly stated a preferred date in the chat. No preferred date → no banner.
-    if (!preferredDate) return null;
-    const requestedDate = parseYmd(preferredDate);
-    // Banner is only meaningful when the preferred date is earlier than the EPS
-    // date the patient is seeing.
-    if (requestedDate >= epsSection.date) return null;
-    // Earliest particular availability from the preferred date. As long as it is
-    // not later than the EPS date, there is a particular option at/around the
-    // preferred date worth surfacing.
-    const firstParticular = findNextAvailableDate(requestedDate, specialty, service, 90);
-    if (!firstParticular || firstParticular > epsSection.date) return null;
-    // Surface the patient's originally preferred date.
-    return requestedDate;
-  }, [estado, epsSection, specialty, service, preferredDate]);
 
 
   // Build a wider slot pool (next 30 days from epsSection) so filter dropdowns
@@ -403,33 +386,6 @@ function P1() {
           </button>
         )}
 
-        {earlierParticularDate && (
-            <button
-              onClick={() => {
-                setAseguradora("Particular");
-                setDate(ymd(earlierParticularDate));
-                navigate({
-                  to: "/disponibilidad",
-                  search: { specialty, service, aseguradora: "Particular", date: ymd(earlierParticularDate) },
-                });
-              }}
-              className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-emerald-300 bg-emerald-100/70 px-5 py-4 text-left transition hover:bg-emerald-100"
-            >
-              <div className="flex items-center gap-3">
-                <Zap className="h-5 w-5 shrink-0 text-emerald-700" />
-                <div>
-                  <div className="text-base font-bold text-foreground">¿Quieres una cita antes?</div>
-                  <div className="text-sm text-foreground/80">
-                    Hay disponibilidad particular para el{" "}
-                    {format(earlierParticularDate, "d 'de' MMMM", { locale: es })}
-                  </div>
-                </div>
-              </div>
-              <span className="whitespace-nowrap text-sm font-medium text-emerald-700">
-                Ver citas particulares →
-              </span>
-            </button>
-          )}
 
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
