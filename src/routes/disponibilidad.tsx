@@ -50,7 +50,7 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
-import { BackButton } from "@/components/BackButton";
+
 
 import { cn } from "@/lib/utils";
 
