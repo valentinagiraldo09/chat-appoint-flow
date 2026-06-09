@@ -1,15 +1,13 @@
 ## Objetivo
 
-Mejorar el copy del banner "¿Quieres una cita antes?" en `src/routes/disponibilidad.tsx` para que sea **más corto, directo y claro** sobre:
-1. Es la **fecha preferida** del usuario.
-2. Es **particular con pago** (no EPS).
+Eliminar el botón "Atrás" (`<BackButton />`) del encabezado de la pantalla de disponibilidad (`/disponibilidad`).
 
-## Cambio de copy
+## Cambio
 
-En el `<button>` del banner (líneas 418-430), sustituir el texto actual por:
+En `src/routes/disponibilidad.tsx`:
 
-- **Título:** `Hay cita particular el {fecha}` (ej. "Hay cita particular el 12 de junio")
-- **Subtítulo:** `Tu fecha preferida · pago directo`
-- **CTA:** `Ver horarios →`
+1. **Eliminar la importación** de `BackButton` (línea 53).
+2. **Eliminar el uso** del componente `<BackButton to="/" />` dentro del encabezado (línea 341).
+3. **Simplificar el contenedor flex** que actualmente agrupa el botón y el título. Como solo quedará el `<h1>`, el `<div className="mb-5 flex items-center gap-4">` se puede ajustar para que el título mantenga su alineación sin necesidad del `flex` y `gap-4`.
 
-Mantiene las mismas variables (`earlierParticularDate`, `format`, `es`) y no toca la lógica de navegación. Solo se cambian los nodos de texto.
+El resultado es un encabezado limpio con solo el título "Selecciona una cita".

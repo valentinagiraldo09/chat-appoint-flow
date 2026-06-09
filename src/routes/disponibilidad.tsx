@@ -50,7 +50,7 @@ import { FiltersBar } from "@/components/FiltersBar";
 import { SlotCard } from "@/components/SlotCard";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
-import { BackButton } from "@/components/BackButton";
+
 
 import { cn } from "@/lib/utils";
 
@@ -337,10 +337,10 @@ function P1() {
     <div className="min-h-screen bg-muted/30">
       <div className="border-b border-border bg-muted/60">
         <div className="mx-auto max-w-6xl px-4 py-6">
-          <div className="mb-5 flex items-center gap-4">
-            <BackButton to="/" />
+          <div className="mb-5">
             <h1 className="text-2xl font-bold md:text-3xl">Selecciona una cita</h1>
           </div>
+
           <div className="flex flex-col gap-2 rounded-2xl bg-background p-2 shadow-sm md:flex-row">
             <div className="flex-1"><AseguradoraPicker /></div>
             <div className="flex-1"><ServicePicker /></div>
