@@ -430,7 +430,6 @@ function P1() {
 
               {nextSection && (
                 <SectionCard
-                  label="Siguiente disponibilidad"
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
