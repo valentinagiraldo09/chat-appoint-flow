@@ -90,6 +90,7 @@ function P5() {
 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [particularSheetOpen, setParticularSheetOpen] = useState(false);
+  const [confirmSlot, setConfirmSlot] = useState<Slot | null>(null);
 
   useEffect(() => {
     if (!result) navigate({ to: "/" });
