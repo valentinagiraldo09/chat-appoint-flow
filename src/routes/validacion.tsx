@@ -309,23 +309,22 @@ function P5() {
               </>
             )}
 
-            <div>
-              <SecondaryActions title="Otras opciones">
-                <SecondaryActionRow
-                  icon={ListChecks}
-                  label="Inscribirme en lista de espera"
-                  onClick={() => setWaitlistOpen(true)}
-                />
-              </SecondaryActions>
-              <div className="mt-3 flex justify-center">
-                <button
-                  type="button"
-                  onClick={buscarNuevaCita}
-                  className="text-sm font-medium text-foreground underline underline-offset-4 hover:underline"
-                >
-                  Buscar nueva cita
-                </button>
-              </div>
+            <div className="flex items-center justify-center gap-2 text-sm font-medium text-foreground">
+              <button
+                type="button"
+                onClick={() => setWaitlistOpen(true)}
+                className="underline underline-offset-4 hover:underline"
+              >
+                Inscribirme en lista de espera
+              </button>
+              <span className="text-muted-foreground">·</span>
+              <button
+                type="button"
+                onClick={buscarNuevaCita}
+                className="underline underline-offset-4 hover:underline"
+              >
+                Buscar nueva cita
+              </button>
             </div>
           </>
         )}
