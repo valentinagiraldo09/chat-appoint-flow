@@ -549,8 +549,8 @@ function NoAvailabilityModal({
         </div>
         <h3 className="mt-4 text-xl font-semibold">No hay disponibilidad</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Lo sentimos, actualmente no tenemos citas disponibles para {specialty}
-          {service ? ` — ${service}` : ""}. Tenemos algunas opciones para ti.
+          {specialty}
+          {service ? ` — ${service}` : ""} no tiene citas disponibles en este momento.
         </p>
 
         <button
@@ -559,7 +559,7 @@ function NoAvailabilityModal({
         >
           <div className="flex items-center gap-2 font-semibold">
             <Users className="h-4 w-4" />
-            Inscríbete a lista de espera
+            Avisarme cuando haya citas
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Te avisaremos por correo o SMS tan pronto como tengamos cita disponible.
@@ -581,7 +581,7 @@ function NoAvailabilityModal({
 
         <div className="mt-6 flex flex-col gap-2">
           <Button onClick={onWaitlist} className="w-full rounded-full">
-            Inscribirme en lista de espera
+            Avisarme cuando haya citas
           </Button>
           <Button onClick={onOtherService} variant="outline" className="w-full rounded-full">
             Buscar otro servicio
