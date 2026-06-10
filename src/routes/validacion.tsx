@@ -206,11 +206,6 @@ function P5() {
             "d 'de' MMMM",
             { locale: es },
           );
-          const fechaCorta = format(
-            parseYmd(result.fechaPermitida),
-            "MMMM",
-            { locale: es },
-          );
           return (
             <>
               <ResultHeader
@@ -225,7 +220,7 @@ function P5() {
               <div className="space-y-3">
                 <PrimaryAction
                   icon={CalendarDays}
-                  label={`Ver disponibilidad desde ${fechaCorta} →`}
+                  label={`Ver disponibilidad desde el ${fechaLabel} →`}
                   onClick={() => verConAseguradora(result.fechaPermitida)}
                 />
 
