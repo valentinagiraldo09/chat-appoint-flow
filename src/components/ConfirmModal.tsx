@@ -106,7 +106,7 @@ export function ConfirmModal({
                 navigate({ to: "/checkout" });
               }}
             >
-              Sí, avanzar
+              Sí, agendar
             </Button>
           </div>
         </DialogPrimitive.Content>
