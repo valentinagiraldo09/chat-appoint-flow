@@ -106,7 +106,7 @@ export function ConfirmModal({
                 navigate({ to: "/checkout" });
               }}
             >
-              Sí, agendar
+              {payParticular ? "Sí, agendar" : "Sí, avanzar"}
             </Button>
           </div>
         </DialogPrimitive.Content>
