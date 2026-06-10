@@ -427,14 +427,13 @@ function P1() {
                 />
               )}
 
-              {(estado === "estado-1" || estado === "estado-2" || estado === "estado-3") && nextSection && (
+              {nextSection && (
                 <SectionCard
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
                   hidePrice={!showParticularPricing}
                   showPriceInLink={showParticularPricing}
-                  aseguradora={showParticularPricing ? "Particular" : aseguradora}
                   onSelect={setModalSlot}
                 />
               )}
