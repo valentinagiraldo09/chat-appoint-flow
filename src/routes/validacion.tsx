@@ -234,7 +234,7 @@ function P5() {
                     onClick={() => setParticularSheetOpen(true)}
                     className="w-full rounded-full"
                   >
-                    Mostrar cita particular más próxima · {formatCOP(particularSlot.price)}
+                    Ver opción particular · {formatCOP(particularSlot.price)}
                   </Button>
                 )}
 
