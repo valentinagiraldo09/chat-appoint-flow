@@ -234,19 +234,33 @@ function P5() {
                     onClick={() => setParticularSheetOpen(true)}
                     className="w-full rounded-full"
                   >
-                    Ver cita particular · {formatCOP(particularSlot.price)}
+                    Mostrar cita particular más próxima · {formatCOP(particularSlot.price)}
                   </Button>
                 )}
 
                 {particularSlot && particularSheetOpen && (
-                  <SuggestedSlotCard
-                    slot={particularSlot}
-                    eyebrow="Cita particular sugerida"
-                    ctaLabel="Agendar esta cita"
-                    onSelect={() => tomarSugeridoParticular(particularSlot)}
-                    secondaryLabel="Ver más disponibilidad"
-                    onSecondary={verMasParticulares}
-                  />
+                  <div className="animate-fade-in space-y-2">
+                    <p className="text-center text-sm text-muted-foreground">
+                      Esta es la cita particular más próxima disponible
+                    </p>
+                    <SuggestedSlotCard
+                      slot={particularSlot}
+                      eyebrow="Cita particular sugerida"
+                      ctaLabel="Agendar esta cita"
+                      onSelect={() => tomarSugeridoParticular(particularSlot)}
+                      secondaryLabel="Ver más disponibilidad"
+                      onSecondary={verMasParticulares}
+                    />
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setParticularSheetOpen(false)}
+                        className="text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+                      >
+                        Ocultar
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
