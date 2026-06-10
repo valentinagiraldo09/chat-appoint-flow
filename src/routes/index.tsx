@@ -625,7 +625,7 @@ function P0() {
   if (!inChat) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-3xl">
           <div className="mb-10 flex flex-col items-center text-center">
             <CocoLogo className="mb-8 h-16 w-auto" />
             <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
