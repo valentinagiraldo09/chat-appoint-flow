@@ -310,7 +310,7 @@ function P5() {
                   slot={particularSlot}
                   eyebrow="Cita particular sugerida"
                   ctaLabel="Confirmar esta cita"
-                  onSelect={() => tomarSugeridoParticular(particularSlot)}
+                  onSelect={() => setConfirmSlot(particularSlot)}
                   secondaryLabel="Ver más disponibilidad"
                   onSecondary={verMasParticulares}
                 />
