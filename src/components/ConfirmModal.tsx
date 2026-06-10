@@ -47,7 +47,7 @@ export function ConfirmModal({
           </DialogPrimitive.Close>
 
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
-            ¿Agendamos esta cita?
+            {payParticular ? "¿Agendamos esta cita?" : "¿Avanzamos con esta cita?"}
           </h2>
 
           <div className="mx-auto mt-8 max-w-md rounded-2xl bg-muted/50 p-6">
