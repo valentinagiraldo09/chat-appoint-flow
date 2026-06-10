@@ -26,9 +26,13 @@ export function ConfirmModal({
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
+  const setValidationResult = useBooking((s) => s.setValidationResult);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const patient = useBooking((s) => s.patient);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
@@ -103,10 +107,23 @@ export function ConfirmModal({
               className="rounded-full bg-foreground px-10 py-6 text-base text-background hover:bg-foreground/90"
               onClick={() => {
                 setSelectedSlot(slot);
-                setPayParticularOverride(
+                const isParticular =
                   payParticular ||
-                    getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
-                );
+                  getEstadoDisponibilidad(specialty, aseguradora) === "estado-3";
+                setPayParticularOverride(isParticular);
+
+                // Cita particular con datos del paciente ya capturados:
+                // se omite cobertura y checkout, va directo a confirmación.
+                if (isParticular && patient) {
+                  setValidationResult(undefined);
+                  setPaymentMethod("clinic");
+                  setConfirmationCode(
+                    "CIT-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
+                  );
+                  navigate({ to: "/confirmacion" });
+                  return;
+                }
+
                 navigate({ to: "/checkout" });
               }}
             >
