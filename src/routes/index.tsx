@@ -350,11 +350,6 @@ function P0() {
       bubbles.forEach((b) => {
         if (b.kind === "msg") pushChat({ from: b.from, text: b.text });
       });
-      const noConvenio =
-        !!d.specialty &&
-        !!d.eps &&
-        d.eps !== "Particular" &&
-        getEstadoDisponibilidad(d.specialty, d.eps) === "estado-3";
 
       if (noConvenio) {
         pushChat({
