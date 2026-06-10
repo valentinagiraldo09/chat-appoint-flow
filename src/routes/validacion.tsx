@@ -212,7 +212,7 @@ function P5() {
                 icon={AlertTriangle}
                 tone="warning"
                 title="Tu aseguradora aún no cubre esta cita"
-                subtitle={`Cubre este servicio desde el ${fechaLabel}`}
+                subtitle={<span>Cubre este servicio desde el <span className="font-bold">{fechaLabel}</span></span>}
               />
 
               <div className="h-px w-full bg-border" />
