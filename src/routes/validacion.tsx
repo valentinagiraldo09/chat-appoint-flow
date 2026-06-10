@@ -220,7 +220,7 @@ function P5() {
               <div className="space-y-3">
                 <PrimaryAction
                   icon={CalendarDays}
-                  label={`Ver disponibilidad desde el ${fechaLabel} →`}
+                  label={`Ver disponibilidad desde el ${fechaLabel}`}
                   onClick={() => verConAseguradora(result.fechaPermitida)}
                 />
 
