@@ -83,9 +83,18 @@ function P4() {
   const [files, setFiles] = useState<File[]>([]);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
 
+  // Wait for the persisted store to hydrate before deciding to redirect,
+  // otherwise the slot reads as undefined on first render and bounces to "/".
+  const [hydrated, setHydrated] = useState(() => useBooking.persist.hasHydrated());
   useEffect(() => {
-    if (!slot) navigate({ to: "/" });
-  }, [slot, navigate]);
+    const unsub = useBooking.persist.onFinishHydration(() => setHydrated(true));
+    if (useBooking.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (hydrated && !slot) navigate({ to: "/" });
+  }, [hydrated, slot, navigate]);
 
   const form = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
