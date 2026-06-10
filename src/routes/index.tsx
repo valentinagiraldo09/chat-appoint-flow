@@ -345,10 +345,23 @@ function P0() {
       bubbles.forEach((b) => {
         if (b.kind === "msg") pushChat({ from: b.from, text: b.text });
       });
-      pushChat({
-        from: "bot",
-        text: `Estoy mostrando disponibilidad para ${d.specialty} — ${d.service} (${d.eps}, ${d.dateLabel}). Pídeme filtros aquí o úsalos en la interfaz.`,
-      });
+      const noConvenio =
+        !!d.specialty &&
+        !!d.eps &&
+        d.eps !== "Particular" &&
+        getEstadoDisponibilidad(d.specialty, d.eps) === "estado-3";
+
+      if (noConvenio) {
+        pushChat({
+          from: "bot",
+          text: `${d.eps} no tiene convenio para ${d.specialty}${d.service ? ` — ${d.service}` : ""}. Te muestro disponibilidad como cita particular.`,
+        });
+      } else {
+        pushChat({
+          from: "bot",
+          text: `Estoy mostrando disponibilidad para ${d.specialty} — ${d.service} (${d.eps}, ${d.dateLabel}). Pídeme filtros aquí o úsalos en la interfaz.`,
+        });
+      }
       setTimeout(
         () =>
           navigate({
@@ -356,7 +369,7 @@ function P0() {
             search: {
               specialty: d.specialty,
               service: d.service,
-              aseguradora: d.eps,
+              aseguradora: noConvenio ? "Particular" : d.eps,
               date: resolvedISO,
               preferredDate: preferred,
             },
