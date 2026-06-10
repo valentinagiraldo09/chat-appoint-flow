@@ -379,7 +379,7 @@ function P0() {
               preferredDate: preferred,
             },
           }),
-        700,
+        noConvenio ? 5000 : 700,
       );
     });
     setAgStep(null);
