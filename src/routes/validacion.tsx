@@ -204,62 +204,110 @@ function P5() {
             "d 'de' MMMM",
             { locale: es },
           );
+          const fechaCorta = format(
+            parseYmd(result.fechaPermitida),
+            "MMMM",
+            { locale: es },
+          );
           return (
             <>
               <ResultHeader
                 icon={AlertTriangle}
                 tone="warning"
                 title="Tu aseguradora aún no cubre esta cita"
-                subtitle={
-                  <>
-                    Tu aseguradora cubre citas de este servicio a partir del{" "}
-                    <span className="font-medium text-foreground">{fechaLabel}</span>.
-                  </>
-                }
+                subtitle={`Cubre este servicio desde el ${fechaLabel}`}
               />
-              <IntentSummary specialty={specialty} service={service} slot={slot} compact />
-              <PrimaryAction
-                icon={CalendarDays}
-                label={`Ver disponibilidad desde el ${fechaLabel} con mi aseguradora`}
-                onClick={() => verConAseguradora(result.fechaPermitida)}
-              />
+
+              <div className="h-px w-full bg-border" />
+
+              <div className="space-y-3">
+                <PrimaryAction
+                  icon={CalendarDays}
+                  label={`Ver disponibilidad desde ${fechaCorta} →`}
+                  onClick={() => verConAseguradora(result.fechaPermitida)}
+                />
+
+                {particularSlot && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setParticularSheetOpen(true)}
+                    className="w-full rounded-full"
+                  >
+                    Ver cita particular · {formatCOP(particularSlot.price)}
+                  </Button>
+                )}
+              </div>
+
+              <div className="h-px w-full bg-border" />
+
+              <div className="flex items-center justify-center gap-2 text-sm font-medium text-foreground">
+                <button
+                  type="button"
+                  onClick={() => setWaitlistOpen(true)}
+                  className="underline-offset-4 hover:underline"
+                >
+                  Lista de espera
+                </button>
+                <span className="text-muted-foreground">·</span>
+                <button
+                  type="button"
+                  onClick={buscarNuevaCita}
+                  className="underline-offset-4 hover:underline"
+                >
+                  Buscar nueva cita
+                </button>
+              </div>
 
               {particularSlot && (
-                <>
-                  <div className="flex items-center gap-3 py-2 text-sm font-medium text-muted-foreground">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="tracking-wide">o puedes tomar esta cita</span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-                  <SuggestedSlotCard
-                    slot={particularSlot}
-                    eyebrow="Cita particular sugerida"
-                    ctaLabel="Agendar esta cita"
-                    onSelect={() => tomarSugeridoParticular(particularSlot)}
-                    secondaryLabel="Ver más disponibilidad"
-                    onSecondary={verMasParticulares}
-                  />
-                </>
+                <Drawer open={particularSheetOpen} onOpenChange={setParticularSheetOpen}>
+                  <DrawerContent>
+                    <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2">
+                      <h3 className="text-lg font-semibold">Cita particular sugerida</h3>
+                      <div className="mt-4 space-y-3 text-sm">
+                        <div className="text-base font-medium capitalize">
+                          {format(parseYmd(particularSlot.date), "EEEE d 'de' MMMM", { locale: es })}
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          {formatTime(particularSlot.hour, particularSlot.minute)}
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Stethoscope className="h-4 w-4" />
+                          {particularSlot.profesional}
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          {particularSlot.sede}
+                        </div>
+                        <div className="flex items-baseline justify-between pt-2">
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Particular
+                          </span>
+                          <span className="text-xl font-bold">{formatCOP(particularSlot.price)}</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="lg"
+                        onClick={() => tomarSugeridoParticular(particularSlot)}
+                        className="mt-5 w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
+                      >
+                        Confirmar esta cita
+                      </Button>
+                      <div className="mt-3 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={verMasParticulares}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          Ver más disponibilidad →
+                        </button>
+                      </div>
+                      <DrawerClose className="sr-only">Cerrar</DrawerClose>
+                    </div>
+                  </DrawerContent>
+                </Drawer>
               )}
-
-              <div>
-                <SecondaryActions title="Otras opciones">
-                  <SecondaryActionRow
-                    icon={ListChecks}
-                    label="Inscribirme en lista de espera"
-                    onClick={() => setWaitlistOpen(true)}
-                  />
-                </SecondaryActions>
-                <div className="mt-3 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={buscarNuevaCita}
-                    className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-                  >
-                    Buscar nueva cita
-                  </button>
-                </div>
-              </div>
             </>
           );
         })()}
