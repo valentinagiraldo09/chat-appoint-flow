@@ -15,8 +15,17 @@ import {
   ymd,
   generateSlots,
   findNextAvailableDate,
+  formatTime,
   type Slot,
 } from "@/mocks/availability";
+import { formatCOP } from "@/mocks/catalog";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import { Clock, Stethoscope, MapPin } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { ResultHeader } from "@/components/validacion/ResultHeader";
@@ -79,6 +88,7 @@ function P5() {
   const reset = useBooking((s) => s.reset);
 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [particularSheetOpen, setParticularSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!result) navigate({ to: "/" });
