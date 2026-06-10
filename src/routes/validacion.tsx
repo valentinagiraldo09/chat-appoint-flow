@@ -346,6 +346,13 @@ function P5() {
         specialty={specialty}
         aseguradora={aseguradora}
       />
+
+      <ConfirmModal
+        slot={confirmSlot}
+        open={!!confirmSlot}
+        onOpenChange={(o) => !o && setConfirmSlot(null)}
+        payParticular
+      />
     </div>
   );
 }
