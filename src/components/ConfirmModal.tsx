@@ -26,9 +26,13 @@ export function ConfirmModal({
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
   const setPayParticularOverride = useBooking((s) => s.setPayParticularOverride);
+  const setValidationResult = useBooking((s) => s.setValidationResult);
+  const setPaymentMethod = useBooking((s) => s.setPaymentMethod);
+  const setConfirmationCode = useBooking((s) => s.setConfirmationCode);
   const service = useBooking((s) => s.service);
   const specialty = useBooking((s) => s.specialty);
   const aseguradora = useBooking((s) => s.aseguradora);
+  const patient = useBooking((s) => s.patient);
 
   if (!slot) return null;
   const date = parseYmd(slot.date);
