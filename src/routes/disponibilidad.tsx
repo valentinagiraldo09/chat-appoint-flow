@@ -343,7 +343,7 @@ function P1() {
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
         {coverageOnly && aseguradora && aseguradora !== "Particular" && (
-          <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex justify-start">
             <button
               onClick={() => {
                 const current = aseguradora;
@@ -358,7 +358,7 @@ function P1() {
               }}
               className="text-sm text-muted-foreground underline hover:text-foreground"
             >
-              Ver opciones particulares disponibles antes →
+              ← Ver opciones particulares disponibles antes
             </button>
           </div>
         )}
