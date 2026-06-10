@@ -491,9 +491,10 @@ function SectionCard({
             <span className="font-semibold">{formatLongDate(date)}</span>
           </div>
           {aseguradora && (
-            <Badge variant={aseguradora === "Particular" ? "destructive" : "default"}>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1 text-xs font-bold uppercase tracking-wide text-background">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {aseguradora === "Particular" ? "Particular" : "Con tu EPS"}
-            </Badge>
+            </span>
           )}
         </div>
       </div>
