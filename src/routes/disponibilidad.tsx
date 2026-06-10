@@ -428,8 +428,9 @@ function P1() {
                 />
               )}
 
-              {(estado === "estado-1" || estado === "estado-2" || estado === "estado-3") && nextSection && (
+              {nextSection && (
                 <SectionCard
+                  label="Siguiente disponibilidad"
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
@@ -506,7 +507,7 @@ function SectionCard({
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
             {slots.map((slot) => (
-              <SlotCard key={slot.id} slot={slot} hidePrice={hidePrice} aseguradora={aseguradora} onClick={() => onSelect(slot)} />
+              <SlotCard key={slot.id} slot={slot} hidePrice={hidePrice} onClick={() => onSelect(slot)} />
             ))}
           </div>
         )}
