@@ -100,7 +100,8 @@ export function ConfirmModal({
               onClick={() => {
                 setSelectedSlot(slot);
                 setPayParticularOverride(
-                  getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
+                  payParticular ||
+                    getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
                 );
                 navigate({ to: "/checkout" });
               }}
