@@ -10,6 +10,7 @@ import {
   Check,
   User as UserIcon,
   IdCard,
+  Clock,
 } from "lucide-react";
 
 import { useBooking } from "@/store/booking";
