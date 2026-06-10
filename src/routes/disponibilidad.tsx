@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useBooking } from "@/store/booking";
 import { SPECIALTIES, SERVICES, EPS_OPTIONS, type Specialty } from "@/mocks/catalog";
 import {
@@ -483,10 +484,17 @@ function SectionCard({
   return (
     <section>
       <div className={cn("rounded-t-xl px-5 py-4", headerBg)}>
-        <div className="flex items-center gap-2 text-base">
-          {icon}
-          {label && <span className="font-bold">{label}</span>}
-          <span className="font-semibold">{formatLongDate(date)}</span>
+        <div className="flex items-center justify-between text-base">
+          <div className="flex items-center gap-2">
+            {icon}
+            {label && <span className="font-bold">{label}</span>}
+            <span className="font-semibold">{formatLongDate(date)}</span>
+          </div>
+          {aseguradora && (
+            <Badge variant={aseguradora === "Particular" ? "destructive" : "default"}>
+              {aseguradora === "Particular" ? "Particular" : "Con tu EPS"}
+            </Badge>
+          )}
         </div>
       </div>
       <div className={cn("rounded-b-xl border border-t-0 bg-background p-4", bodyBorder)}>
