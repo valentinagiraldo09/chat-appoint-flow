@@ -267,15 +267,15 @@ function P5() {
                 <button
                   type="button"
                   onClick={() => setWaitlistOpen(true)}
-                  className="underline-offset-4 hover:underline"
+                  className="underline underline-offset-4 hover:underline"
                 >
-                  Lista de espera
+                  Inscribirme en lista de espera
                 </button>
                 <span className="text-muted-foreground">·</span>
                 <button
                   type="button"
                   onClick={buscarNuevaCita}
-                  className="underline-offset-4 hover:underline"
+                  className="underline underline-offset-4 hover:underline"
                 >
                   Buscar nueva cita
                 </button>
