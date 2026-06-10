@@ -136,8 +136,9 @@ function P4() {
       direccion: values.direccion,
     });
 
-    // Solo se omiten las validaciones si la aseguradora es "Particular".
-    const isParticular = aseguradora === "Particular";
+    // Se omiten las validaciones de cobertura para citas particulares
+    // (aseguradora "Particular" o cuando el usuario optó por pago particular).
+    const isParticular = aseguradora === "Particular" || payParticularOverride;
     if (isParticular) {
       setValidationResult(undefined);
       goConfirmacion("clinic");
