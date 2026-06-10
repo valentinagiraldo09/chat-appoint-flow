@@ -227,7 +227,7 @@ function P5() {
                   onClick={() => verConAseguradora(result.fechaPermitida)}
                 />
 
-                {particularSlot && (
+                {particularSlot && !particularSheetOpen && (
                   <Button
                     variant="outline"
                     size="lg"
@@ -236,6 +236,17 @@ function P5() {
                   >
                     Ver cita particular · {formatCOP(particularSlot.price)}
                   </Button>
+                )}
+
+                {particularSlot && particularSheetOpen && (
+                  <SuggestedSlotCard
+                    slot={particularSlot}
+                    eyebrow="Cita particular sugerida"
+                    ctaLabel="Agendar esta cita"
+                    onSelect={() => tomarSugeridoParticular(particularSlot)}
+                    secondaryLabel="Ver más disponibilidad"
+                    onSecondary={verMasParticulares}
+                  />
                 )}
               </div>
 
