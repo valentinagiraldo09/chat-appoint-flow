@@ -378,7 +378,7 @@ function P1() {
                 search: { specialty, service, aseguradora: back, date: targetDate },
               });
             }}
-            className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background px-5 py-4 text-left transition hover:border-foreground/60 hover:shadow-sm"
+            className="mb-4 mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background px-5 py-4 text-left transition hover:border-foreground/60 hover:shadow-sm"
           >
             <div className="flex items-center gap-3">
               <Stethoscope className="h-5 w-5 shrink-0 text-foreground" />
