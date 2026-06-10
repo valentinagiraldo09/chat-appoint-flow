@@ -358,21 +358,12 @@ function P1() {
               <Stethoscope className="h-5 w-5 shrink-0 text-foreground" />
               <div>
                 <div className="text-base font-bold">
-                  Ver disponibilidad con mi aseguradora
+                  Tu aseguradora cubre desde el 10 de julio
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Volver a ver horarios cubiertos por {previousAseguradora}.
-                </div>
-                {coverageMinDate && (
-                  <div className="text-sm text-muted-foreground">
-                    Disponibilidad desde el{" "}
-                    {format(parseYmd(coverageMinDate), "d 'de' MMMM", { locale: es })}.
-                  </div>
-                )}
               </div>
             </div>
             <span className="whitespace-nowrap text-sm font-medium text-foreground">
-              Ver con {previousAseguradora} →
+              Ver con mi aseguradora →
             </span>
           </button>
         )}
