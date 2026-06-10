@@ -269,57 +269,8 @@ function P5() {
                   Buscar nueva cita
                 </button>
               </div>
-
-              {particularSlot && (
-                <Drawer open={particularSheetOpen} onOpenChange={setParticularSheetOpen}>
-                  <DrawerContent>
-                    <div className="mx-auto w-full max-w-md px-5 pb-8 pt-2">
-                      <h3 className="text-lg font-semibold">Cita particular sugerida</h3>
-                      <div className="mt-4 space-y-3 text-sm">
-                        <div className="text-base font-medium capitalize">
-                          {format(parseYmd(particularSlot.date), "EEEE d 'de' MMMM", { locale: es })}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          {formatTime(particularSlot.hour, particularSlot.minute)}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Stethoscope className="h-4 w-4" />
-                          {particularSlot.profesional}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {particularSlot.sede}
-                        </div>
-                        <div className="flex items-baseline justify-between pt-2">
-                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Particular
-                          </span>
-                          <span className="text-xl font-bold">{formatCOP(particularSlot.price)}</span>
-                        </div>
-                      </div>
-                      <Button
-                        size="lg"
-                        onClick={() => tomarSugeridoParticular(particularSlot)}
-                        className="mt-5 w-full rounded-full bg-foreground text-background hover:bg-foreground/90"
-                      >
-                        Confirmar esta cita
-                      </Button>
-                      <div className="mt-3 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={verMasParticulares}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          Ver más disponibilidad →
-                        </button>
-                      </div>
-                      <DrawerClose className="sr-only">Cerrar</DrawerClose>
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              )}
             </>
+
           );
         })()}
 
