@@ -423,17 +423,20 @@ function P1() {
                   full={epsSection.full}
                   hidePrice={!showParticularPricing}
                   showPriceInLink={showParticularPricing}
+                  aseguradora={showParticularPricing ? "Particular" : aseguradora}
                   onSelect={setModalSlot}
                 />
               )}
 
               {nextSection && (
                 <SectionCard
+                  label="Siguiente disponibilidad"
                   date={nextSection.date}
                   slots={nextSection.slots}
                   full={nextSection.full}
                   hidePrice={!showParticularPricing}
                   showPriceInLink={showParticularPricing}
+                  aseguradora={showParticularPricing ? "Particular" : aseguradora}
                   onSelect={setModalSlot}
                 />
               )}
