@@ -372,6 +372,27 @@ function P1() {
 
         {showFilters && <FiltersBar slotPool={slotPool} />}
 
+        {coverageOnly && aseguradora && aseguradora !== "Particular" && (
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={() => {
+                const current = aseguradora;
+                setAseguradora("Particular");
+                setPreviousAseguradora(current);
+                setCoverageOnly(false);
+                setPayParticularOverride(true);
+                navigate({
+                  to: "/disponibilidad",
+                  search: { specialty, service, aseguradora: "Particular", date },
+                });
+              }}
+              className="text-sm text-muted-foreground underline hover:text-foreground"
+            >
+              Ver opciones particulares disponibles antes →
+            </button>
+          </div>
+        )}
+
         <div className="mt-6 space-y-6">
           {loading ? (
             <div>
