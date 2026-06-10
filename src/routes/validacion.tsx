@@ -37,6 +37,7 @@ import {
 } from "@/components/validacion/ActionList";
 
 import { SuggestedSlotCard } from "@/components/validacion/SuggestedSlotCard";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export const Route = createFileRoute("/validacion")({
   head: () => ({ meta: [{ title: "Resultado de validaciones" }] }),
