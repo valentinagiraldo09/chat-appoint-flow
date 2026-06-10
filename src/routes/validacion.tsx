@@ -37,6 +37,7 @@ import {
 } from "@/components/validacion/ActionList";
 
 import { SuggestedSlotCard } from "@/components/validacion/SuggestedSlotCard";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export const Route = createFileRoute("/validacion")({
   head: () => ({ meta: [{ title: "Resultado de validaciones" }] }),
@@ -89,6 +90,7 @@ function P5() {
 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [particularSheetOpen, setParticularSheetOpen] = useState(false);
+  const [confirmSlot, setConfirmSlot] = useState<Slot | null>(null);
 
   useEffect(() => {
     if (!result) navigate({ to: "/" });
@@ -247,7 +249,7 @@ function P5() {
                       slot={particularSlot}
                       eyebrow="Cita particular sugerida"
                       ctaLabel="Confirmar esta cita"
-                      onSelect={() => tomarSugeridoParticular(particularSlot)}
+                      onSelect={() => setConfirmSlot(particularSlot)}
                       secondaryLabel="Ver más disponibilidad"
                       onSecondary={verMasParticulares}
                     />
@@ -308,7 +310,7 @@ function P5() {
                   slot={particularSlot}
                   eyebrow="Cita particular sugerida"
                   ctaLabel="Confirmar esta cita"
-                  onSelect={() => tomarSugeridoParticular(particularSlot)}
+                  onSelect={() => setConfirmSlot(particularSlot)}
                   secondaryLabel="Ver más disponibilidad"
                   onSecondary={verMasParticulares}
                 />
@@ -343,6 +345,13 @@ function P5() {
         onOpenChange={setWaitlistOpen}
         specialty={specialty}
         aseguradora={aseguradora}
+      />
+
+      <ConfirmModal
+        slot={confirmSlot}
+        open={!!confirmSlot}
+        onOpenChange={(o) => !o && setConfirmSlot(null)}
+        payParticular
       />
     </div>
   );

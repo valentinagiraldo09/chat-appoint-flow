@@ -15,11 +15,13 @@ export function ConfirmModal({
   open,
   onOpenChange,
   hidePrice,
+  payParticular,
 }: {
   slot: Slot | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   hidePrice?: boolean;
+  payParticular?: boolean;
 }) {
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
@@ -98,7 +100,8 @@ export function ConfirmModal({
               onClick={() => {
                 setSelectedSlot(slot);
                 setPayParticularOverride(
-                  getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
+                  payParticular ||
+                    getEstadoDisponibilidad(specialty, aseguradora) === "estado-3",
                 );
                 navigate({ to: "/checkout" });
               }}
