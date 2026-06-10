@@ -294,7 +294,7 @@ function P5() {
               title="Aún no estás cubierto por tu aseguradora"
               subtitle="Contáctate con tu aseguradora al 800 721 3344"
             />
-            <IntentSummary specialty={specialty} service={service} slot={slot} compact />
+            <div className="h-px w-full bg-border" />
 
             {particularSlot && (
               <>
