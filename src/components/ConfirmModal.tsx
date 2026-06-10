@@ -69,8 +69,12 @@ export function ConfirmModal({
               <div className="font-medium">
                 {specialty}
                 {service && <span> · {service}</span>}
-                {aseguradora && (
-                  <span className="text-muted-foreground text-sm font-normal"> · {aseguradora}</span>
+                {payParticular ? (
+                  <span className="text-muted-foreground text-sm font-normal"> · Particular</span>
+                ) : (
+                  aseguradora && (
+                    <span className="text-muted-foreground text-sm font-normal"> · {aseguradora}</span>
+                  )
                 )}
               </div>
               <div>{slot.profesional}</div>
