@@ -3,7 +3,7 @@ import { type Slot, formatTime } from "@/mocks/availability";
 import { formatCOP, SEDE_ADDRESSES } from "@/mocks/catalog";
 import { cn } from "@/lib/utils";
 
-export function SlotCard({ slot, onClick, hidePrice, aseguradora }: { slot: Slot; onClick?: () => void; hidePrice?: boolean; aseguradora?: string }) {
+export function SlotCard({ slot, onClick, hidePrice }: { slot: Slot; onClick?: () => void; hidePrice?: boolean }) {
   return (
     <button
       onClick={onClick}
