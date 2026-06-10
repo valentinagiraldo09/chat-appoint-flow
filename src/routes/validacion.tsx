@@ -246,7 +246,7 @@ function P5() {
                     <SuggestedSlotCard
                       slot={particularSlot}
                       eyebrow="Cita particular sugerida"
-                      ctaLabel="Agendar esta cita"
+                      ctaLabel="Confirmar esta cita"
                       onSelect={() => tomarSugeridoParticular(particularSlot)}
                       secondaryLabel="Ver más disponibilidad"
                       onSecondary={verMasParticulares}
@@ -307,7 +307,7 @@ function P5() {
                 <SuggestedSlotCard
                   slot={particularSlot}
                   eyebrow="Cita particular sugerida"
-                  ctaLabel="Agendar esta cita"
+                  ctaLabel="Confirmar esta cita"
                   onSelect={() => tomarSugeridoParticular(particularSlot)}
                   secondaryLabel="Ver más disponibilidad"
                   onSecondary={verMasParticulares}
