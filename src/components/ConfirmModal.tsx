@@ -15,11 +15,13 @@ export function ConfirmModal({
   open,
   onOpenChange,
   hidePrice,
+  payParticular,
 }: {
   slot: Slot | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   hidePrice?: boolean;
+  payParticular?: boolean;
 }) {
   const navigate = useNavigate();
   const setSelectedSlot = useBooking((s) => s.setSelectedSlot);
