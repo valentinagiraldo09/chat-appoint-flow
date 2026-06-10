@@ -317,7 +317,17 @@ function P0() {
   }
 
   function finishAgendar(d: Draft) {
-    botSay("Listo, te muestro la disponibilidad.", () => {
+    const noConvenio =
+      !!d.specialty &&
+      !!d.eps &&
+      d.eps !== "Particular" &&
+      getEstadoDisponibilidad(d.specialty, d.eps) === "estado-3";
+
+    const intro = noConvenio
+      ? `${d.eps} no tiene convenio para ${d.specialty}${d.service ? ` — ${d.service}` : ""}. Te muestro disponibilidad como cita particular.`
+      : "Listo, te muestro la disponibilidad.";
+
+    botSay(intro, () => {
       addBubble({
         kind: "summary",
         items: [
@@ -327,11 +337,6 @@ function P0() {
         ],
       });
       // Persistir en store
-      const noConvenio =
-        !!d.specialty &&
-        !!d.eps &&
-        d.eps !== "Particular" &&
-        getEstadoDisponibilidad(d.specialty, d.eps) === "estado-3";
       if (d.specialty) setSpecialty(d.specialty);
       if (d.service) setService(d.service);
       if (d.eps) setAseguradora(noConvenio ? "Particular" : d.eps);
@@ -379,6 +384,7 @@ function P0() {
     });
     setAgStep(null);
   }
+
 
   function startFlow(intent: FlowKind, opts?: { skipUserBubble?: boolean; label?: string; parsed?: Partial<Draft> }) {
     if (!opts?.skipUserBubble && opts?.label) userSay(opts.label);
