@@ -14,6 +14,7 @@ import {
   type Specialty,
 } from "@/mocks/catalog";
 import { hasAvailability, findNextAvailableDate, parseYmd, ymd } from "@/mocks/availability";
+import { getEstadoDisponibilidad } from "@/mocks/disponibilidadStates";
 import { CocoLogo } from "@/components/CocoLogo";
 import { ChipList } from "@/components/OptionsPicker";
 import { cn } from "@/lib/utils";
