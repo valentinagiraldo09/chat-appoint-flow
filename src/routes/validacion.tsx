@@ -324,7 +324,7 @@ function P5() {
                 <button
                   type="button"
                   onClick={buscarNuevaCita}
-                  className="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                  className="text-sm font-medium text-foreground underline underline-offset-4 hover:underline"
                 >
                   Buscar nueva cita
                 </button>
