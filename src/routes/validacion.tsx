@@ -298,9 +298,6 @@ function P5() {
 
             {particularSlot && (
               <>
-                <p className="py-2 text-center text-sm font-medium text-muted-foreground">
-                  puedes tomar esta cita
-                </p>
                 <SuggestedSlotCard
                   slot={particularSlot}
                   eyebrow="Cita particular sugerida"
