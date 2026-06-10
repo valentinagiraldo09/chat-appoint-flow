@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ChevronDown, AlertTriangle, CalendarPlus, Users, Stethoscope } from "lucide-react";
+import { Search, ChevronDown, CalendarPlus, Users, Stethoscope } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -337,16 +337,6 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {estado === "estado-3" && aseguradora !== "Particular" && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#FFA800] bg-[#FFF6E5] p-4 text-sm">
-            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#B36B00]" />
-            <div>
-              Tu aseguradora no tiene cobertura para este servicio con nosotros.
-              Te mostramos la disponibilidad de citas particulares.
-            </div>
-          </div>
-        )}
-
         {aseguradora === "Particular" && previousAseguradora && (
           <button
             onClick={() => {
