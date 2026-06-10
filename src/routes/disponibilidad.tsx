@@ -338,36 +338,6 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {aseguradora === "Particular" && previousAseguradora && (
-          <button
-            onClick={() => {
-              const back = previousAseguradora;
-              const targetDate = coverageMinDate ?? date;
-              setAseguradora(back);
-              setPreviousAseguradora(undefined);
-              setPayParticularOverride(false);
-              setCoverageOnly(true);
-              if (targetDate) setDate(targetDate);
-              navigate({
-                to: "/disponibilidad",
-                search: { specialty, service, aseguradora: back, date: targetDate },
-              });
-            }}
-            className="mb-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background px-5 py-4 text-left transition hover:border-foreground/60 hover:shadow-sm"
-          >
-            <div className="flex items-center gap-3">
-              <Stethoscope className="h-5 w-5 shrink-0 text-foreground" />
-              <div>
-                <div className="text-base font-bold">
-                  Tu aseguradora cubre desde el 10 de julio
-                </div>
-              </div>
-            </div>
-            <span className="whitespace-nowrap text-sm font-medium text-foreground">
-              Ver con mi aseguradora →
-            </span>
-          </button>
-        )}
 
 
         {showFilters && <FiltersBar slotPool={slotPool} />}
