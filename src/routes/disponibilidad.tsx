@@ -192,6 +192,7 @@ function P1() {
   const preferredDate = useBooking((s) => s.preferredDate);
   const setPreferredDate = useBooking((s) => s.setPreferredDate);
   const coverageMinDate = useBooking((s) => s.coverageMinDate);
+  const coverageOnly = useBooking((s) => s.coverageOnly);
   const setCoverageOnly = useBooking((s) => s.setCoverageOnly);
 
   useEffect(() => {
