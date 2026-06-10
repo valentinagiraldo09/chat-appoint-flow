@@ -270,8 +270,7 @@ function P7() {
                   </Button>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                  Tu cita quedará confirmada únicamente cuando realices el pago
-                  en el centro médico el día de la atención.
+                  Paga ahora y ahorra tiempo en filas largas el día de tu consulta.
                 </div>
               </>
             )}
