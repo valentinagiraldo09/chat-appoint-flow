@@ -337,16 +337,6 @@ function P1() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8">
-        {estado === "estado-3" && aseguradora !== "Particular" && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#FFA800] bg-[#FFF6E5] p-4 text-sm">
-            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#B36B00]" />
-            <div>
-              Tu aseguradora no tiene cobertura para este servicio con nosotros.
-              Te mostramos la disponibilidad de citas particulares.
-            </div>
-          </div>
-        )}
-
         {aseguradora === "Particular" && previousAseguradora && (
           <button
             onClick={() => {
